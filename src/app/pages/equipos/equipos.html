@@ -1,0 +1,428 @@
+<section class="page-header">
+  <h1>Registro de equipos</h1>
+
+  <div class="breadcrumb">
+    <span>Dashboard</span>
+    <span>›</span>
+    <span>Equipos</span>
+    <span>›</span>
+    <strong>Registro de equipos</strong>
+  </div>
+</section>
+
+<section class="content-card">
+  <div class="card-header">
+    <h2>Equipos registrados</h2>
+
+    <button
+      type="button"
+      class="primary-button"
+      (click)="nuevoEquipo()"
+    >
+      <span class="plus">＋</span>
+      Nuevo equipo
+    </button>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <span class="search-icon">⌕</span>
+
+      <input
+        type="search"
+        placeholder="Buscar equipo..."
+        [value]="busqueda()"
+        (input)="buscar($event)"
+      />
+    </div>
+
+    <button
+      type="button"
+      class="refresh-button"
+      title="Actualizar equipos"
+      (click)="cargarEquipos()"
+    >
+      ↻
+    </button>
+  </div>
+
+  @if (cargando()) {
+    <div class="state-message">
+      <div class="loader"></div>
+      <p>Cargando equipos...</p>
+    </div>
+  } @else if (error()) {
+    <div class="state-message error-message">
+      <p>{{ error() }}</p>
+
+      <button
+        type="button"
+        (click)="cargarEquipos()"
+      >
+        Intentar nuevamente
+      </button>
+    </div>
+  } @else {
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre del equipo</th>
+            <th>Institución</th>
+            <th>Categoría</th>
+            <th>Integrantes</th>
+            <th>Robots</th>
+            <th class="actions-column">
+              Acciones
+            </th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (
+            equipo of equiposFiltrados();
+            track equipo._id
+          ) {
+            <tr>
+              <td>
+                <div class="entity-information">
+                  <div class="team-logo">
+                    {{
+                      obtenerInicial(
+                        equipo.nombreEquipo
+                      )
+                    }}
+                  </div>
+
+                  <strong>
+                    {{ equipo.nombreEquipo }}
+                  </strong>
+                </div>
+              </td>
+
+              <td>
+                {{ equipo.institucion }}
+              </td>
+
+              <td>
+                <span class="category-badge">
+                  {{
+                    obtenerCategoria(
+                      equipo.categoriaId
+                    )
+                  }}
+                </span>
+              </td>
+
+              <td>
+                <span class="count-badge">
+                  {{ equipo.integrantes.length }}
+                </span>
+              </td>
+
+              <td>
+                <span class="count-badge">
+                  {{ equipo.robotIds?.length || 0 }}
+                </span>
+              </td>
+
+              <td>
+                <div class="action-buttons">
+                  <button
+                    type="button"
+                    class="action-button edit-button"
+                    title="Editar equipo"
+                    (click)="editarEquipo(equipo)"
+                  >
+                    ✎
+                  </button>
+
+                  <button
+                    type="button"
+                    class="action-button view-button"
+                    title="Ver equipo"
+                    (click)="verEquipo(equipo)"
+                  >
+                    ◉
+                  </button>
+
+                  <button
+                    type="button"
+                    class="action-button delete-button"
+                    title="Eliminar equipo"
+                    (click)="eliminarEquipo(equipo)"
+                  >
+                    ♲
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6">
+                <div class="empty-state">
+                  <div class="empty-icon">
+                    ♟
+                  </div>
+
+                  @if (busqueda()) {
+                    <strong>
+                      No se encontraron equipos
+                    </strong>
+
+                    <p>
+                      Prueba con otro término de búsqueda.
+                    </p>
+                  } @else {
+                    <strong>
+                      No hay equipos registrados
+                    </strong>
+
+                    <p>
+                      Registra el primer equipo del torneo.
+                    </p>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <footer class="card-footer">
+      <span>
+        Mostrando
+        {{ equiposFiltrados().length }}
+        de
+        {{ equipos().length }}
+        equipos
+      </span>
+
+      <div class="pagination">
+        <button
+          type="button"
+          disabled
+        >
+          ‹
+        </button>
+
+        <button
+          type="button"
+          class="active"
+        >
+          1
+        </button>
+
+        <button
+          type="button"
+          disabled
+        >
+          ›
+        </button>
+      </div>
+    </footer>
+  }
+</section>
+
+@if (modalAbierto()) {
+  <div
+    class="modal-backdrop"
+    (click)="cerrarModal()"
+  >
+    <section
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="titulo-modal-equipo"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="modal-header">
+        <div>
+          <h2 id="titulo-modal-equipo">
+            @if (equipoEditando()) {
+              Editar equipo
+            } @else {
+              Registrar equipo
+            }
+          </h2>
+
+          <p>
+            Ingresa la información del equipo participante.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="close-button"
+          aria-label="Cerrar formulario"
+          (click)="cerrarModal()"
+        >
+          ×
+        </button>
+      </header>
+
+      <form
+        class="modal-form"
+        [formGroup]="formulario"
+        (ngSubmit)="guardarEquipo()"
+      >
+        <div class="form-grid">
+          <div class="form-field">
+            <label for="nombreEquipo">
+              Nombre del equipo
+            </label>
+
+            <input
+              id="nombreEquipo"
+              type="text"
+              formControlName="nombreEquipo"
+              placeholder="Ej. Titanes UTEQ"
+            />
+
+            @if (
+              formulario.controls.nombreEquipo.touched &&
+              formulario.controls.nombreEquipo.invalid
+            ) {
+              <small class="field-error">
+                El nombre debe tener al menos 2 caracteres.
+              </small>
+            }
+          </div>
+
+          <div class="form-field">
+            <label for="institucion">
+              Institución
+            </label>
+
+            <input
+              id="institucion"
+              type="text"
+              formControlName="institucion"
+              placeholder="Ej. UTEQ"
+            />
+
+            @if (
+              formulario.controls.institucion.touched &&
+              formulario.controls.institucion.invalid
+            ) {
+              <small class="field-error">
+                La institución es obligatoria.
+              </small>
+            }
+          </div>
+
+          <div class="form-field full-width">
+            <label for="integrantes">
+              Integrantes
+            </label>
+
+            <textarea
+              id="integrantes"
+              rows="3"
+              formControlName="integrantesTexto"
+              placeholder="Aldo García, María López, Juan Pérez"
+            ></textarea>
+
+            <small class="field-help">
+              Separa los nombres utilizando comas.
+            </small>
+
+            @if (
+              formulario.controls.integrantesTexto.touched &&
+              formulario.controls.integrantesTexto.invalid
+            ) {
+              <small class="field-error">
+                Agrega al menos un integrante.
+              </small>
+            }
+          </div>
+
+          <div class="form-field">
+            <label for="categoriaEquipo">
+              Categoría
+            </label>
+
+            <select
+              id="categoriaEquipo"
+              formControlName="categoriaId"
+            >
+              <option value="">
+                Selecciona una categoría
+              </option>
+
+              @for (
+                categoria of categorias();
+                track categoria._id
+              ) {
+                <option [value]="categoria._id">
+                  {{ categoria.nombre }}
+                  — máximo
+                  {{ categoria.pesoMaximo }}
+                  kg
+                </option>
+              }
+            </select>
+
+            @if (
+              formulario.controls.categoriaId.touched &&
+              formulario.controls.categoriaId.invalid
+            ) {
+              <small class="field-error">
+                Selecciona una categoría.
+              </small>
+            }
+          </div>
+
+          <div class="form-field">
+            <label for="torneoEquipo">
+              ID del torneo
+            </label>
+
+            <input
+              id="torneoEquipo"
+              type="text"
+              maxlength="24"
+              formControlName="torneoId"
+              placeholder="24 caracteres de MongoDB"
+            />
+
+            @if (
+              formulario.controls.torneoId.touched &&
+              formulario.controls.torneoId.invalid
+            ) {
+              <small class="field-error">
+                Debe ser un ObjectId válido de 24 caracteres.
+              </small>
+            }
+          </div>
+        </div>
+
+        <footer class="modal-footer">
+          <button
+            type="button"
+            class="secondary-button"
+            [disabled]="guardando()"
+            (click)="cerrarModal()"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            class="primary-button"
+            [disabled]="guardando()"
+          >
+            @if (guardando()) {
+              Guardando...
+            } @else if (equipoEditando()) {
+              Guardar cambios
+            } @else {
+              Registrar equipo
+            }
+          </button>
+        </footer>
+      </form>
+    </section>
+  </div>
+}

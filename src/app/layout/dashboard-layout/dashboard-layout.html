@@ -1,0 +1,161 @@
+<div class="dashboard-layout">
+
+  <aside class="sidebar">
+
+    <div class="logo">
+      <div class="logo-icon">
+        🤖
+      </div>
+
+      <div class="logo-text">
+        <strong>SUMO</strong>
+        <strong>MASTERS</strong>
+      </div>
+    </div>
+
+    <nav class="menu">
+
+      <a
+        routerLink="/dashboard"
+        routerLinkActive="active"
+      >
+        <span class="menu-icon">⌂</span>
+        <span>Dashboard</span>
+      </a>
+
+      <a
+        routerLink="/torneos"
+        routerLinkActive="active"
+      >
+        <span class="menu-icon">♜</span>
+        <span>Torneos</span>
+      </a>
+
+      <a
+        routerLink="/equipos"
+        routerLinkActive="active"
+      >
+        <span class="menu-icon">♟</span>
+        <span>Equipos</span>
+      </a>
+
+      <a
+        routerLink="/robots"
+        routerLinkActive="active"
+      >
+        <span class="menu-icon">🤖</span>
+        <span>Robots</span>
+      </a>
+
+      <a
+        routerLink="/categorias"
+        routerLinkActive="active"
+      >
+        <span class="menu-icon">▦</span>
+        <span>Categorías</span>
+      </a>
+
+      <a
+        routerLink="/combates"
+        routerLinkActive="active"
+      >
+        <span class="menu-icon">⚔</span>
+        <span>Combates</span>
+      </a>
+
+      <a
+        routerLink="/reportes"
+        routerLinkActive="active"
+      >
+        <span class="menu-icon">▤</span>
+        <span>Reportes</span>
+      </a>
+
+      <a
+        routerLink="/usuarios"
+        routerLinkActive="active"
+      >
+        <span class="menu-icon">♙</span>
+        <span>Usuarios</span>
+      </a>
+
+      <a
+        routerLink="/configuracion"
+        routerLinkActive="active"
+      >
+        <span class="menu-icon">⚙</span>
+        <span>Configuración</span>
+      </a>
+
+    </nav>
+
+    <div class="sidebar-user">
+
+      <div class="avatar">
+        {{ sesionService.nombreUsuario().charAt(0) || 'U' }}
+      </div>
+
+      <div class="user-information">
+        <strong>
+          {{ sesionService.nombreUsuario() || 'Usuario' }}
+        </strong>
+
+        <small>
+          {{ sesionService.usuario()?.rol || 'Sin rol' }}
+        </small>
+      </div>
+
+      <span class="arrow">⌄</span>
+
+    </div>
+
+  </aside>
+
+  <section class="content-area">
+
+    <header class="topbar">
+
+      <div class="topbar-spacer"></div>
+
+      <div class="topbar-actions">
+
+        <button
+          type="button"
+          class="notification-button"
+          aria-label="Notificaciones"
+        >
+          🔔
+          <span class="notification-count">3</span>
+        </button>
+
+        <div class="topbar-user">
+
+          <div class="avatar">
+            {{ sesionService.nombreUsuario().charAt(0) || 'U' }}
+          </div>
+
+          <div class="topbar-user-information">
+            <strong>
+              {{ sesionService.nombreUsuario() || 'Usuario' }}
+            </strong>
+
+            <small>
+              {{ sesionService.usuario()?.rol || 'Sin rol' }}
+            </small>
+          </div>
+
+          <span class="arrow">⌄</span>
+
+        </div>
+
+      </div>
+
+    </header>
+
+    <main class="page-content">
+      <router-outlet></router-outlet>
+    </main>
+
+  </section>
+
+</div>
