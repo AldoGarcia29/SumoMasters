@@ -1,0 +1,127 @@
+<header class="topbar">
+  <div class="topbar__left">
+    <button
+      type="button"
+      class="topbar__menu-btn"
+      aria-label="Abrir menú"
+      (click)="menuToggle.emit()"
+    >
+      <svg viewBox="0 0 24 24" width="22" height="22">
+        <path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      </svg>
+    </button>
+
+    <div class="topbar__titles">
+      <h1>{{ title }}</h1>
+      <p *ngIf="subtitle">{{ subtitle }}</p>
+    </div>
+  </div>
+
+  <div class="topbar__actions">
+    <div class="topbar__notifications-wrapper">
+      <button
+        type="button"
+        class="topbar__icon-btn"
+        aria-label="Notificaciones"
+        (click)="toggleNotifications()"
+        [attr.aria-expanded]="isNotificationsOpen()"
+      >
+        <svg viewBox="0 0 24 24" width="20" height="20">
+          <path
+            d="M6 10a6 6 0 1 1 12 0c0 4 1.5 5.5 1.5 5.5h-15S6 14 6 10Z"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linejoin="round"
+          />
+          <path d="M10 18.5a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+        </svg>
+        <span class="topbar__badge" *ngIf="unreadCount() > 0">{{ unreadCount() }}</span>
+      </button>
+
+      <div class="topbar__dropdown topbar__dropdown--notifications" *ngIf="isNotificationsOpen()">
+        <div class="topbar__dropdown-header topbar__notifications-header">
+          <p class="topbar__dropdown-name">Notificaciones</p>
+          <button type="button" class="topbar__mark-read" *ngIf="unreadCount() > 0" (click)="markAllAsRead()">
+            Marcar todas como leídas
+          </button>
+        </div>
+
+        <ul class="topbar__notifications-list" *ngIf="notifications().length > 0; else sinNotificaciones">
+          <li *ngFor="let notif of notifications()" [class.topbar__notification--unread]="!notif.read">
+            <span class="topbar__notification-icon">
+              <svg *ngIf="notif.icon === 'trophy'" viewBox="0 0 24 24" width="15" height="15">
+                <path d="M7 4h10v3a5 5 0 0 1-5 5 5 5 0 0 1-5-5V4Z" fill="none" stroke="currentColor" stroke-width="1.6" />
+              </svg>
+              <svg *ngIf="notif.icon === 'users'" viewBox="0 0 24 24" width="15" height="15">
+                <circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.6" />
+                <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+              </svg>
+              <svg *ngIf="notif.icon === 'robot'" viewBox="0 0 24 24" width="15" height="15">
+                <rect x="5" y="9" width="14" height="10" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.6" />
+                <circle cx="9.5" cy="14" r="1.1" fill="currentColor" />
+                <circle cx="14.5" cy="14" r="1.1" fill="currentColor" />
+              </svg>
+            </span>
+            <span class="topbar__notification-body">
+              <span class="topbar__notification-text">
+                {{ notif.before }} <strong>{{ notif.highlight }}</strong> {{ notif.after }}
+              </span>
+              <span class="topbar__notification-time">{{ relativeTime(notif.date) }}</span>
+            </span>
+          </li>
+        </ul>
+
+        <ng-template #sinNotificaciones>
+          <p class="topbar__notifications-empty">No hay actividad reciente todavía.</p>
+        </ng-template>
+      </div>
+    </div>
+
+    <div class="topbar__profile-wrapper">
+      <button
+        type="button"
+        class="topbar__profile"
+        (click)="toggleProfileMenu()"
+        [attr.aria-expanded]="isProfileMenuOpen()"
+      >
+        <span class="topbar__avatar">{{ initials() }}</span>
+        <span class="topbar__profile-name">{{ displayName() }}</span>
+        <svg
+          class="topbar__profile-chevron"
+          [class.topbar__profile-chevron--open]="isProfileMenuOpen()"
+          viewBox="0 0 24 24"
+          width="14"
+          height="14"
+        >
+          <path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </button>
+
+      <div class="topbar__dropdown" *ngIf="isProfileMenuOpen()">
+        <div class="topbar__dropdown-header">
+          <p class="topbar__dropdown-name">{{ displayName() }}</p>
+          <p class="topbar__dropdown-email" *ngIf="email()">{{ email() }}</p>
+        </div>
+
+        <a routerLink="/configuracion" (click)="closeProfileMenu()" class="topbar__dropdown-item">
+          <svg viewBox="0 0 24 24" width="16" height="16">
+            <circle cx="12" cy="8" r="3.4" fill="none" stroke="currentColor" stroke-width="1.6" />
+            <path d="M5 20c0-3.6 3.1-6.4 7-6.4s7 2.8 7 6.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+          </svg>
+          Mi perfil
+        </a>
+
+        <div class="topbar__dropdown-divider"></div>
+
+        <button type="button" class="topbar__dropdown-item topbar__dropdown-item--danger" (click)="logout()">
+          <svg viewBox="0 0 24 24" width="16" height="16">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M16 17l5-5-5-5M21 12H9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          Cerrar sesión
+        </button>
+      </div>
+    </div>
+  </div>
+</header>

@@ -1,0 +1,17 @@
+<div class="image-upload">
+  <div class="image-upload__preview" [class.image-upload__preview--square]="shape === 'square'">
+    <img *ngIf="value" [src]="value" alt="Vista previa" />
+    <span *ngIf="!value" class="image-upload__placeholder">{{ fallbackText || '+' }}</span>
+  </div>
+
+  <div class="image-upload__actions">
+    <label class="image-upload__button">
+      {{ value ? 'Cambiar imagen' : 'Subir imagen' }}
+      <input type="file" accept="image/*" (change)="onFileSelected($event)" hidden />
+    </label>
+    <button type="button" class="image-upload__remove" *ngIf="value" (click)="remove()">Quitar</button>
+  </div>
+
+  <p class="image-upload__hint" *ngIf="!error">{{ hint }}</p>
+  <p class="image-upload__error" *ngIf="error">{{ error }}</p>
+</div>

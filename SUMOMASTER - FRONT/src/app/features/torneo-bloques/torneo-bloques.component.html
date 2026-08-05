@@ -1,0 +1,136 @@
+<div class="app-shell">
+  <app-sidebar [isOpen]="sidebarOpen()" (closeRequested)="closeSidebar()" />
+  <div class="app-shell__backdrop" *ngIf="sidebarOpen()" (click)="closeSidebar()"></div>
+
+  <div class="app-shell__main">
+    <app-topbar
+      title="Generación de bloques"
+      [subtitle]="'Dashboard › Torneos › ' + (torneo()?.nombre ?? '') + ' › Generación de bloques'"
+      [notificationCount]="3"
+      (menuToggle)="toggleSidebar()"
+    />
+
+    <main class="bloques-page">
+      <section class="panel panel--header">
+        <div class="panel--header__info">
+          <span class="panel--header__icon">
+            <svg viewBox="0 0 24 24" width="18" height="18">
+              <rect x="4" y="4" width="7" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6" />
+              <rect x="13" y="4" width="7" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6" />
+              <rect x="4" y="13" width="7" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6" />
+              <rect x="13" y="13" width="7" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6" />
+            </svg>
+          </span>
+          <div>
+            <h2>{{ torneo()?.nombre ?? 'Torneo' }}</h2>
+            <p>
+              Categoría: {{ torneo()?.categoria && $any(torneo()?.categoria)?.nombre }} ·
+              Robots inscritos: {{ torneo()?.robotsInscritos?.length ?? 0 }}
+            </p>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn--primary" [disabled]="generating()" (click)="generar()">
+          <svg viewBox="0 0 24 24" width="16" height="16">
+            <path d="M4 12a8 8 0 0 1 14-5.2M20 12a8 8 0 0 1-14 5.2M4 4v5h5M20 20v-5h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          {{ generating() ? 'Generando…' : 'Generar bloques automáticamente' }}
+        </button>
+      </section>
+
+      <p class="panel__error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+
+      <div class="bloques-layout">
+        <section class="panel bloques-main">
+          <div class="panel--tabs">
+            <button type="button" [class.tab--active]="activeTab() === 'vista'" (click)="setTab('vista')">Vista de bloques</button>
+            <button type="button" [class.tab--active]="activeTab() === 'lista'" (click)="setTab('lista')">Lista de robots</button>
+          </div>
+
+          <p class="table__loading" *ngIf="loading()">Cargando bloques…</p>
+
+          <p class="empty-hint" *ngIf="!loading() && bloques().length === 0">
+            Todavía no se han generado bloques para este torneo. Usa "Generar bloques automáticamente" para repartir los robots inscritos.
+          </p>
+
+          <div class="bloques-grid" *ngIf="!loading() && activeTab() === 'vista' && bloques().length > 0">
+            <div class="bloque-card" *ngFor="let bloque of bloques()">
+              <div class="bloque-card__header">
+                <h4>{{ bloque.nombre }} ({{ bloque.robots.length }} robots)</h4>
+                <span class="badge badge--success">{{ bloque.robots.length }}/{{ bloque.robots.length }}</span>
+              </div>
+              <ol class="bloque-card__list">
+                <li *ngFor="let robot of bloque.robots">
+                  <app-robot-chip [robot]="robot" />
+                </li>
+              </ol>
+            </div>
+          </div>
+
+          <div class="table-wrapper" *ngIf="!loading() && activeTab() === 'lista' && bloques().length > 0">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Robot</th>
+                  <th>Bloque asignado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of todosLosRobots()">
+                  <td><app-robot-chip [robot]="item.robot" /></td>
+                  <td>{{ item.bloqueNombre }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <aside class="panel bloques-config">
+          <h4>Configuración</h4>
+
+          <form [formGroup]="form">
+            <label class="field">
+              <span>Tamaño de bloque</span>
+              <select formControlName="tamanioBloque">
+                <option [value]="8">8 robots</option>
+                <option [value]="16">16 robots</option>
+                <option [value]="32">32 robots</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Método de distribución</span>
+              <select formControlName="metodoDistribucion">
+                <option value="aleatorio">Aleatorio</option>
+                <option value="aleatorio-balanceado">Aleatorio balanceado</option>
+              </select>
+            </label>
+
+            <label class="checkbox">
+              <input type="checkbox" formControlName="balancearPorRanking" />
+              Balancear por desempeño (ranking)
+            </label>
+          </form>
+
+          <div class="config-summary">
+            <h5>Resumen</h5>
+            <p><span>Total de robots</span><strong>{{ totalRobots() }}</strong></p>
+            <p><span>Bloques generados</span><strong>{{ bloques().length }}</strong></p>
+            <p><span>Robots por bloque</span><strong>{{ form.controls.tamanioBloque.value }}</strong></p>
+          </div>
+
+          <div class="config-note" *ngIf="bloques().length > 0">
+            Cada bloque se enfrentará en formato round robin. Los mejores avanzan a la siguiente fase.
+          </div>
+        </aside>
+      </div>
+
+      <div class="panel--footer-actions">
+        <a class="btn btn--ghost" [routerLink]="['/torneos']">← Volver al torneo</a>
+        <button type="button" class="btn btn--primary" [disabled]="bloques().length === 0" (click)="continuar()">
+          Confirmar bloques y continuar
+        </button>
+      </div>
+    </main>
+  </div>
+</div>

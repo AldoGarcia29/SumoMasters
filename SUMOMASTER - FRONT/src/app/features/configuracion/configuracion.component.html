@@ -1,0 +1,113 @@
+<div class="app-shell">
+  <app-sidebar [isOpen]="sidebarOpen()" (closeRequested)="closeSidebar()" />
+  <div class="app-shell__backdrop" *ngIf="sidebarOpen()" (click)="closeSidebar()"></div>
+
+  <div class="app-shell__main">
+    <app-topbar
+      title="Configuración"
+      subtitle="Dashboard › Configuración"
+      [notificationCount]="3"
+      (menuToggle)="toggleSidebar()"
+    />
+
+    <main class="config-page">
+      <!-- Perfil -->
+      <section class="panel">
+        <h3>Perfil</h3>
+        <p class="section-hint">Información de tu cuenta en Sumo Masters.</p>
+
+        <div class="profile-row" *ngIf="currentUser() as user">
+          <span class="profile-avatar">{{ user.name.charAt(0) }}</span>
+          <div>
+            <p class="profile-name">{{ user.name }}</p>
+            <p class="profile-meta">{{ user.email }} · &#64;{{ user.username }}</p>
+          </div>
+          <div class="profile-roles">
+            <span class="badge badge--info" *ngFor="let role of user.roles">{{ role }}</span>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn--ghost" (click)="cerrarSesion()">Cerrar sesión</button>
+      </section>
+
+      <!-- Preferencias -->
+      <section class="panel">
+        <h3>Preferencias</h3>
+        <p class="section-hint">Estas preferencias se guardan solo en este dispositivo.</p>
+
+        <div class="pref-row">
+          <div>
+            <p class="pref-title">Notificaciones de combates</p>
+            <p class="pref-desc">Recibe avisos cuando un combate de tu interés inicie o finalice.</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" [checked]="preferencias().notificacionesCombates" (change)="toggle('notificacionesCombates')" />
+            <span class="switch__track"></span>
+          </label>
+        </div>
+
+        <div class="pref-row">
+          <div>
+            <p class="pref-title">Notificaciones de torneos</p>
+            <p class="pref-desc">Avisos sobre cambios de estado en los torneos.</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" [checked]="preferencias().notificacionesTorneos" (change)="toggle('notificacionesTorneos')" />
+            <span class="switch__track"></span>
+          </label>
+        </div>
+
+        <div class="pref-row">
+          <div>
+            <p class="pref-title">Tablas en densidad compacta</p>
+            <p class="pref-desc">Reduce el espaciado de las tablas para ver más filas por pantalla.</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" [checked]="preferencias().densidadCompacta" (change)="toggle('densidadCompacta')" />
+            <span class="switch__track"></span>
+          </label>
+        </div>
+
+        <p class="saved-hint" *ngIf="saved()">✓ Preferencias guardadas</p>
+      </section>
+
+      <!-- Reglas de puntuación -->
+      <section class="panel">
+        <h3>Reglas de puntuación</h3>
+        <p class="section-hint">Estas reglas aplican al ranking de todos los torneos.</p>
+
+        <div class="rules-grid">
+          <div class="rule-chip"><strong>{{ puntuacion.victoria }}</strong><span>Puntos por victoria</span></div>
+          <div class="rule-chip"><strong>{{ puntuacion.empate }}</strong><span>Puntos por empate</span></div>
+          <div class="rule-chip"><strong>{{ puntuacion.derrota }}</strong><span>Puntos por derrota</span></div>
+        </div>
+
+        <p class="section-hint" style="margin-top: 0.9rem">Criterios de desempate, en orden:</p>
+        <ol class="criterios-list">
+          <li *ngFor="let criterio of criteriosDesempate">{{ criterio }}</li>
+        </ol>
+      </section>
+
+      <!-- Estado de servicios -->
+      <section class="panel">
+        <h3>Estado de la plataforma</h3>
+        <div class="services-grid">
+          <div class="service-chip">
+            <span class="service-chip__dot"></span>
+            <div>
+              <p class="pref-title">Servicio de autenticación</p>
+              <p class="pref-desc">Gestión de usuarios, sesiones y roles.</p>
+            </div>
+          </div>
+          <div class="service-chip">
+            <span class="service-chip__dot"></span>
+            <div>
+              <p class="pref-title">Servicio principal (Core)</p>
+              <p class="pref-desc">Torneos, equipos, robots y combates.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>

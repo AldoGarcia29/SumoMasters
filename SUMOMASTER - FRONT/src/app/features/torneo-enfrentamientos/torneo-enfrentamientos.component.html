@@ -1,0 +1,117 @@
+<div class="app-shell">
+  <app-sidebar [isOpen]="sidebarOpen()" (closeRequested)="closeSidebar()" />
+  <div class="app-shell__backdrop" *ngIf="sidebarOpen()" (click)="closeSidebar()"></div>
+
+  <div class="app-shell__main">
+    <app-topbar
+      title="Generación automática de enfrentamientos"
+      [subtitle]="'Dashboard › Torneos › ' + (torneo()?.nombre ?? '') + ' › Generación de enfrentamientos'"
+      [notificationCount]="3"
+      (menuToggle)="toggleSidebar()"
+    />
+
+    <main class="enfrentamientos-page">
+      <section class="panel panel--header">
+        <div class="panel--header__info">
+          <span class="panel--header__icon">
+            <svg viewBox="0 0 24 24" width="18" height="18">
+              <path d="M6 4 18 16M6 16 18 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+            </svg>
+          </span>
+          <div>
+            <h2>{{ torneo()?.nombre ?? 'Torneo' }}</h2>
+            <p>Bloques: {{ bloques().length }} · Fase: {{ activeFase() }}</p>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn--primary" [disabled]="generating() || bloques().length === 0" (click)="generar()">
+          <svg viewBox="0 0 24 24" width="16" height="16">
+            <path d="M4 12a8 8 0 0 1 14-5.2M20 12a8 8 0 0 1-14 5.2M4 4v5h5M20 20v-5h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          {{ generating() ? 'Generando…' : 'Generar enfrentamientos' }}
+        </button>
+      </section>
+
+      <section class="panel panel--tabs">
+        <button
+          type="button"
+          *ngFor="let fase of fases"
+          [class.tab--active]="activeFase() === fase"
+          (click)="setFase(fase)"
+        >
+          {{ fase }}
+        </button>
+      </section>
+
+      <p class="panel__error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+      <p class="panel__success" *ngIf="successMessage()">{{ successMessage() }}</p>
+
+      <div class="enfrentamientos-layout">
+        <aside class="panel enfrentamientos-side">
+          <label class="field">
+            <span>Seleccionar bloque</span>
+            <select [value]="selectedBloqueId()" (change)="onBloqueChange($any($event.target).value)">
+              <option *ngFor="let bloque of bloques()" [value]="bloque._id">
+                {{ bloque.nombre }} ({{ bloque.robots.length }} robots)
+              </option>
+            </select>
+          </label>
+
+          <div class="info-box" *ngIf="bloques().length === 0">
+            No hay bloques generados. Ve primero a "Generación de bloques".
+          </div>
+
+          <div class="info-box" *ngIf="bloques().length > 0">
+            Cada robot se enfrentará contra todos los demás de su bloque una sola vez.
+          </div>
+        </aside>
+
+        <section class="panel enfrentamientos-main">
+          <div class="panel__title-row">
+            <h4>Enfrentamientos generados — {{ bloqueNombre(selectedBloqueId()) }}</h4>
+            <span class="badge badge--info">{{ combates().length }} combates</span>
+          </div>
+
+          <p class="table__loading" *ngIf="loading()">Cargando enfrentamientos…</p>
+          <p class="empty-hint" *ngIf="!loading() && combates().length === 0">
+            Todavía no hay enfrentamientos generados para este bloque y fase.
+          </p>
+
+          <div class="table-wrapper" *ngIf="!loading() && combates().length > 0">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Combate</th>
+                  <th>Robot 1</th>
+                  <th></th>
+                  <th>Robot 2</th>
+                  <th>Dojo asignado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let combate of combates()">
+                  <td>{{ combate.numero }}</td>
+                  <td><app-robot-chip [robot]="combate.robot1" /></td>
+                  <td class="table__vs">VS</td>
+                  <td><app-robot-chip [robot]="combate.robot2" /></td>
+                  <td>
+                    <span class="badge" [class]="combate.dojo ? 'badge--success' : 'badge--neutral'">
+                      {{ combate.dojo?.nombre ?? 'Sin asignar' }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <div class="panel--footer-actions">
+        <a class="btn btn--ghost" [routerLink]="['/torneos', torneoId, 'bloques']">← Volver</a>
+        <button type="button" class="btn btn--primary" [disabled]="combates().length === 0" (click)="continuar()">
+          Continuar a asignación de dojos →
+        </button>
+      </div>
+    </main>
+  </div>
+</div>

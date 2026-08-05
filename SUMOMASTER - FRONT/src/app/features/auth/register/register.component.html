@@ -1,0 +1,268 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <app-auth-branding-panel class="auth-card__branding" />
+
+    <div class="auth-card__form">
+      <div class="auth-form">
+        <h1 class="auth-form__title">Crear cuenta</h1>
+        <p class="auth-form__subtitle">
+          Regístrate para organizar y seguir tus torneos de sumo.
+        </p>
+
+        <form
+          class="auth-form__fields"
+          [formGroup]="form"
+          (ngSubmit)="submit()"
+          novalidate
+        >
+          <div *ngIf="errorMessage()" class="auth-form__alert" role="alert">
+            {{ errorMessage() }}
+          </div>
+
+          <label class="field">
+            <span class="field__label">Nombre completo</span>
+            <span class="field__control">
+              <svg class="field__icon" viewBox="0 0 24 24" width="18" height="18">
+                <circle cx="12" cy="8" r="3.4" fill="none" stroke="currentColor" stroke-width="1.6" />
+                <path
+                  d="M5 20c0-3.6 3.1-6.4 7-6.4s7 2.8 7 6.4"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                />
+              </svg>
+              <input type="text" formControlName="name" placeholder="Ej. Ana Torres" autocomplete="name" />
+            </span>
+            <span class="field__error" *ngIf="form.controls.name.touched && form.controls.name.errors?.['required']">
+              El nombre es obligatorio
+            </span>
+            <span class="field__error" *ngIf="form.controls.name.touched && form.controls.name.errors?.['minlength']">
+              El nombre debe contener al menos 3 caracteres
+            </span>
+          </label>
+
+          <label class="field">
+            <span class="field__label">Correo electrónico</span>
+            <span class="field__control">
+              <svg class="field__icon" viewBox="0 0 24 24" width="18" height="18">
+                <path
+                  d="M3 6.5A2.5 2.5 0 0 1 5.5 4h13A2.5 2.5 0 0 1 21 6.5v11a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5v-11Z"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                />
+                <path
+                  d="m4 7 8 6 8-6"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <input type="email" formControlName="email" placeholder="ejemplo@correo.com" autocomplete="email" />
+            </span>
+            <span class="field__error" *ngIf="form.controls.email.touched && form.controls.email.errors?.['required']">
+              El correo es obligatorio
+            </span>
+            <span class="field__error" *ngIf="form.controls.email.touched && form.controls.email.errors?.['email']">
+              El correo no tiene un formato válido
+            </span>
+          </label>
+
+          <label class="field">
+            <span class="field__label">Usuario</span>
+            <span class="field__control">
+              <svg class="field__icon" viewBox="0 0 24 24" width="18" height="18">
+                <path d="M4 5h16M4 12h16M4 19h10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+              </svg>
+              <input type="text" formControlName="username" placeholder="usuario.sumo" autocomplete="username" />
+            </span>
+            <span class="field__hint" *ngIf="form.controls.username.pristine">
+              Solo letras, números, puntos, guiones y guiones bajos
+            </span>
+            <span class="field__error" *ngIf="form.controls.username.touched && form.controls.username.errors?.['required']">
+              El username es obligatorio
+            </span>
+            <span class="field__error" *ngIf="form.controls.username.touched && form.controls.username.errors?.['minlength']">
+              El username debe contener al menos 4 caracteres
+            </span>
+            <span class="field__error" *ngIf="form.controls.username.touched && form.controls.username.errors?.['pattern']">
+              Solo letras, números, puntos, guiones y guiones bajos
+            </span>
+          </label>
+
+          <label class="field">
+            <span class="field__label">Contraseña</span>
+            <span class="field__control">
+              <svg class="field__icon" viewBox="0 0 24 24" width="18" height="18">
+                <rect x="5" y="10" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.6" />
+                <path d="M8 10V7a4 4 0 1 1 8 0v3" fill="none" stroke="currentColor" stroke-width="1.6" />
+              </svg>
+              <input
+                [type]="showPassword() ? 'text' : 'password'"
+                formControlName="password"
+                placeholder="Mínimo 8 caracteres"
+                autocomplete="new-password"
+              />
+              <button
+                type="button"
+                class="field__toggle"
+                (click)="togglePasswordVisibility()"
+                [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              >
+                <svg *ngIf="!showPassword()" viewBox="0 0 24 24" width="18" height="18">
+                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" fill="none" stroke="currentColor" stroke-width="1.6" />
+                  <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6" />
+                </svg>
+                <svg *ngIf="showPassword()" viewBox="0 0 24 24" width="18" height="18">
+                  <path
+                    d="m3 3 18 18M10.6 10.7a3 3 0 0 0 4.2 4.2M6.3 6.5C4 8 2 12 2 12s3.5 7 10 7c1.8 0 3.4-.4 4.7-1.1M17.9 17.7C20.3 16 22 12 22 12s-1.6-3.2-4.6-5.3"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                  />
+                </svg>
+              </button>
+            </span>
+            <span class="field__error" *ngIf="form.controls.password.touched && form.controls.password.errors?.['required']">
+              La contraseña es obligatoria
+            </span>
+            <span class="field__error" *ngIf="form.controls.password.touched && form.controls.password.errors?.['minlength']">
+              La contraseña debe contener al menos 8 caracteres
+            </span>
+          </label>
+
+          <label class="field">
+            <span class="field__label">Confirmar contraseña</span>
+            <span class="field__control">
+              <svg class="field__icon" viewBox="0 0 24 24" width="18" height="18">
+                <rect x="5" y="10" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.6" />
+                <path d="M8 10V7a4 4 0 1 1 8 0v3" fill="none" stroke="currentColor" stroke-width="1.6" />
+              </svg>
+              <input
+                [type]="showConfirmPassword() ? 'text' : 'password'"
+                formControlName="confirmPassword"
+                placeholder="Repite tu contraseña"
+                autocomplete="new-password"
+              />
+              <button
+                type="button"
+                class="field__toggle"
+                (click)="toggleConfirmPasswordVisibility()"
+                [attr.aria-label]="showConfirmPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              >
+                <svg *ngIf="!showConfirmPassword()" viewBox="0 0 24 24" width="18" height="18">
+                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" fill="none" stroke="currentColor" stroke-width="1.6" />
+                  <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6" />
+                </svg>
+                <svg *ngIf="showConfirmPassword()" viewBox="0 0 24 24" width="18" height="18">
+                  <path
+                    d="m3 3 18 18M10.6 10.7a3 3 0 0 0 4.2 4.2M6.3 6.5C4 8 2 12 2 12s3.5 7 10 7c1.8 0 3.4-.4 4.7-1.1M17.9 17.7C20.3 16 22 12 22 12s-1.6-3.2-4.6-5.3"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                  />
+                </svg>
+              </button>
+            </span>
+            <span
+              class="field__error"
+              *ngIf="form.controls.confirmPassword.touched && form.errors?.['passwordMismatch']"
+            >
+              Las contraseñas no coinciden
+            </span>
+          </label>
+
+          <label class="checkbox">
+            <input type="checkbox" formControlName="acceptTerms" />
+            <span>
+              Acepto los
+              <a class="link" href="javascript:void(0)" (click)="openTermsModal(); $event.stopPropagation()">términos y condiciones</a>
+            </span>
+          </label>
+          <span
+            class="field__error field__error--terms"
+            *ngIf="form.controls.acceptTerms.touched && form.controls.acceptTerms.invalid"
+          >
+            Debes aceptar los términos y condiciones para crear tu cuenta
+          </span>
+
+          <button type="submit" class="btn btn--primary" [disabled]="loading()">
+            {{ loading() ? 'Creando cuenta…' : 'Crear cuenta' }}
+          </button>
+
+          <p class="auth-form__footer">
+            ¿Ya tienes cuenta?
+            <a class="link link--strong" routerLink="/auth/login">Inicia sesión</a>
+          </p>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ---------- Modal de términos y condiciones ---------- -->
+<div class="terms-modal-backdrop" *ngIf="showTermsModal()" (click)="closeTermsModal()">
+  <div class="terms-modal" (click)="$event.stopPropagation()">
+    <div class="terms-modal__header">
+      <h3>Términos y condiciones</h3>
+      <button type="button" class="terms-modal__close" (click)="closeTermsModal()" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" width="18" height="18">
+          <path d="m5 5 14 14M19 5 5 19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="terms-modal__body">
+      <p>
+        Bienvenido a Sumo Masters. Al crear una cuenta y usar la plataforma, aceptas los
+        siguientes términos:
+      </p>
+
+      <h4>1. Uso de la plataforma</h4>
+      <p>
+        Sumo Masters es una herramienta para organizar y gestionar torneos de robots de
+        combate sumo: registro de equipos, robots, categorías, generación de
+        enfrentamientos y resultados. Te comprometes a usarla de forma responsable y a
+        proporcionar información veraz sobre tu equipo y tus robots.
+      </p>
+
+      <h4>2. Cuenta de usuario</h4>
+      <p>
+        Eres responsable de mantener la confidencialidad de tu contraseña y de toda la
+        actividad que ocurra bajo tu cuenta. Notifica de inmediato cualquier uso no
+        autorizado que detectes.
+      </p>
+
+      <h4>3. Datos de torneos</h4>
+      <p>
+        La información de torneos, combates y resultados que se registre en la plataforma
+        podrá mostrarse a otros usuarios y participantes con fines de organización y
+        transparencia de las competencias.
+      </p>
+
+      <h4>4. Responsabilidad</h4>
+      <p>
+        Sumo Masters se ofrece "tal cual", sin garantías de disponibilidad ininterrumpida.
+        No nos hacemos responsables por incidentes ocurridos durante los combates físicos
+        de los robots ni por daños a los equipos participantes.
+      </p>
+
+      <h4>5. Privacidad</h4>
+      <p>
+        Los datos personales que proporciones (nombre, correo, usuario) se usan
+        exclusivamente para el funcionamiento de la plataforma y no se comparten con
+        terceros sin tu consentimiento.
+      </p>
+    </div>
+
+    <div class="terms-modal__footer">
+      <button type="button" class="btn btn--outline" (click)="closeTermsModal()">Cerrar</button>
+      <button type="button" class="btn btn--primary" (click)="acceptTermsFromModal()">Aceptar términos</button>
+    </div>
+  </div>
+</div>

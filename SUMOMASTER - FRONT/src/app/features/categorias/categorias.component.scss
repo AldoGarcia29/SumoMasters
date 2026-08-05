@@ -1,0 +1,60 @@
+@use '../../shared/styles/admin-page';
+
+.categorias {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.75rem 2rem 3rem;
+}
+
+.panel--intro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.panel--intro__left {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+
+  h2 {
+    margin: 0 0 0.2rem;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--color-text);
+  }
+
+  p {
+    margin: 0;
+    max-width: 46rem;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: var(--color-text-muted);
+  }
+}
+
+.panel--intro__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: none;
+  color: var(--color-primary);
+  background: #f1e9ff;
+  border-radius: 0.75rem;
+}
+
+.field-row--peso {
+  align-items: end;
+}
+
+@media (max-width: 720px) {
+  .categorias {
+    padding: 1.25rem;
+  }
+}

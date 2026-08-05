@@ -1,0 +1,65 @@
+@use '../../shared/styles/admin-page';
+
+.reportes-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.75rem 2rem 3rem;
+}
+
+.reportes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 1rem;
+}
+
+.reporte-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1.5rem 1.25rem;
+  text-align: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  h4 {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--color-text);
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.78rem;
+    line-height: 1.4;
+    color: var(--color-text-muted);
+    flex: 1;
+  }
+
+  .btn {
+    justify-content: center;
+  }
+}
+
+.reporte-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin: 0 auto;
+  border-radius: 0.75rem;
+}
+
+.reporte-card--purple .reporte-card__icon { color: #7c3aed; background: #ede9fe; }
+.reporte-card--blue .reporte-card__icon { color: #2563eb; background: #dbeafe; }
+.reporte-card--teal .reporte-card__icon { color: #0d9488; background: #ccfbf1; }
+.reporte-card--orange .reporte-card__icon { color: #ea580c; background: #ffedd5; }
+.reporte-card--pink .reporte-card__icon { color: #db2777; background: #fce7f3; }
+
+@media (max-width: 720px) {
+  .reportes-page {
+    padding: 1.25rem;
+  }
+}

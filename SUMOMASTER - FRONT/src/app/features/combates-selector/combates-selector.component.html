@@ -1,0 +1,69 @@
+<div class="app-shell">
+  <app-sidebar [isOpen]="sidebarOpen()" (closeRequested)="closeSidebar()" />
+  <div class="app-shell__backdrop" *ngIf="sidebarOpen()" (click)="closeSidebar()"></div>
+
+  <div class="app-shell__main">
+    <app-topbar
+      title="Combates"
+      subtitle="Dashboard › Combates"
+      [notificationCount]="3"
+      (menuToggle)="toggleSidebar()"
+    />
+
+    <main class="selector-page">
+      <section class="panel panel--header">
+        <div class="panel--header__info">
+          <span class="panel--header__icon">
+            <svg viewBox="0 0 24 24" width="18" height="18">
+              <path d="M6 4 18 16M6 16 18 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+            </svg>
+          </span>
+          <div>
+            <h2>Gestión de combates</h2>
+            <p>Elige un torneo para generar sus enfrentamientos, asignar dojos y registrar resultados.</p>
+          </div>
+        </div>
+
+        <a class="btn btn--primary" routerLink="/torneos">
+          <svg viewBox="0 0 24 24" width="16" height="16">
+            <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
+          Nuevo torneo
+        </a>
+      </section>
+
+      <section class="panel panel--table">
+        <p class="table__loading" *ngIf="loading()">Cargando torneos…</p>
+
+        <div class="table-wrapper" *ngIf="!loading()">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Torneo</th>
+                <th>Categoría</th>
+                <th>Estado</th>
+                <th class="table__actions-head">Combates</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let torneo of torneos()">
+                <td>{{ torneo.nombre }}</td>
+                <td>{{ categoriaNombre(torneo) }}</td>
+                <td><span class="badge" [class]="estadoBadgeClass(torneo.estado)">{{ torneo.estado }}</span></td>
+                <td class="table__actions">
+                  <a class="btn btn--ghost btn--sm" [routerLink]="['/torneos', torneo._id, 'bloques']">Bloques</a>
+                  <a class="btn btn--ghost btn--sm" [routerLink]="['/torneos', torneo._id, 'enfrentamientos']">Enfrentamientos</a>
+                  <a class="btn btn--primary btn--sm" [routerLink]="['/torneos', torneo._id, 'resultados']">Resultados</a>
+                </td>
+              </tr>
+
+              <tr *ngIf="torneos().length === 0">
+                <td colspan="4" class="table__empty">Todavía no hay torneos creados. Crea uno para empezar a generar combates.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>

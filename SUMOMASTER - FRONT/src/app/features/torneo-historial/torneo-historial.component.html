@@ -1,0 +1,168 @@
+<div class="app-shell">
+  <app-sidebar [isOpen]="sidebarOpen()" (closeRequested)="closeSidebar()" />
+  <div class="app-shell__backdrop" *ngIf="sidebarOpen()" (click)="closeSidebar()"></div>
+
+  <div class="app-shell__main">
+    <app-topbar
+      title="Historial de encuentros"
+      [subtitle]="'Dashboard › Torneos › ' + (torneo()?.nombre ?? '') + ' › Historial de encuentros'"
+      [notificationCount]="3"
+      (menuToggle)="toggleSidebar()"
+    />
+
+    <main class="historial-page">
+      <section class="panel panel--header">
+        <div class="panel--header__info">
+          <span class="panel--header__icon">
+            <svg viewBox="0 0 24 24" width="18" height="18">
+              <rect x="4" y="5" width="16" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.6" />
+              <path d="M4 9h16M8 3v4M16 3v4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            </svg>
+          </span>
+          <div>
+            <h2>{{ torneo()?.nombre ?? 'Torneo' }} - Fase de grupos</h2>
+            <p>Consulta el historial completo de todos los combates del torneo.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel filtros-panel">
+        <div class="search-input">
+          <svg viewBox="0 0 24 24" width="14" height="14">
+            <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="1.8" />
+            <path d="m20 20-3.2-3.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          </svg>
+          <input type="text" placeholder="Buscar por robots o equipos..." [value]="searchTerm()" (input)="onSearchChange($any($event.target).value)" />
+        </div>
+
+        <select [value]="bloqueFiltro()" (change)="onBloqueChange($any($event.target).value)">
+          <option value="">Todos los bloques</option>
+          <option *ngFor="let bloque of bloques()" [value]="bloque._id">{{ bloque.nombre }}</option>
+        </select>
+
+        <select [value]="dojoFiltro()" (change)="onDojoChange($any($event.target).value)">
+          <option value="">Todos los dojos</option>
+          <option *ngFor="let dojo of dojos()" [value]="dojo._id">{{ dojo.nombre }}</option>
+        </select>
+
+        <select [value]="estadoFiltro()" (change)="onEstadoChange($any($event.target).value)">
+          <option value="">Todos</option>
+          <option value="Pendiente">Pendiente</option>
+          <option value="En curso">En curso</option>
+          <option value="Finalizado">Finalizado</option>
+        </select>
+
+        <button type="button" class="btn btn--ghost" (click)="limpiarFiltros()">Limpiar filtros</button>
+      </section>
+
+      <div class="historial-layout">
+        <section class="panel historial-main">
+          <div class="panel__title-row">
+            <h4>Historial de combates <span class="badge badge--neutral">{{ combatesFiltrados().length }}</span></h4>
+          </div>
+
+          <p class="table__loading" *ngIf="loading()">Cargando historial…</p>
+
+          <div class="table-wrapper" *ngIf="!loading()">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Fecha y hora</th>
+                  <th>Bloque</th>
+                  <th>Dojo</th>
+                  <th>Robot 1</th>
+                  <th></th>
+                  <th>Robot 2</th>
+                  <th>Resultado</th>
+                  <th>Duración</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  *ngFor="let combate of pagedCombates()"
+                  [class.table__row--active]="selectedCombateId() === combate._id"
+                  (click)="selectCombate(combate)"
+                >
+                  <td>#{{ combate.numero }}</td>
+                  <td>{{ formatFechaHora(combate.updatedAt || combate.createdAt) }}</td>
+                  <td>{{ combate.bloque?.nombre ?? '—' }}</td>
+                  <td>{{ combate.dojo?.nombre ?? '—' }}</td>
+                  <td><app-robot-chip [robot]="combate.robot1" [showEquipo]="false" /></td>
+                  <td class="table__vs">vs</td>
+                  <td><app-robot-chip [robot]="combate.robot2" [showEquipo]="false" /></td>
+                  <td>
+                    <span class="badge" [class]="estadoBadgeClass(combate.estado)">{{ resultadoLabel(combate) }}</span>
+                  </td>
+                  <td>{{ formatDuracion(combate.duracionSegundos) }}</td>
+                  <td>
+                    <button type="button" aria-label="Ver" (click)="selectCombate(combate); $event.stopPropagation()">
+                      <svg viewBox="0 0 24 24" width="15" height="15">
+                        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" fill="none" stroke="currentColor" stroke-width="1.6" />
+                        <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6" />
+                      </svg>
+                    </button>
+                  </td>
+                </tr>
+
+                <tr *ngIf="pagedCombates().length === 0">
+                  <td colspan="10" class="table__empty">No se encontraron combates con estos filtros.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="panel__footer" *ngIf="combatesFiltrados().length > 0">
+            <span>Mostrando {{ pagedCombates().length }} de {{ combatesFiltrados().length }} combates</span>
+            <div class="pagination" *ngIf="totalPages() > 1">
+              <button type="button" (click)="goToPage(page() - 1)" [disabled]="page() === 1">‹</button>
+              <button type="button" *ngFor="let p of [].constructor(totalPages()); let i = index" [class.pagination__item--active]="page() === i + 1" (click)="goToPage(i + 1)">{{ i + 1 }}</button>
+              <button type="button" (click)="goToPage(page() + 1)" [disabled]="page() === totalPages()">›</button>
+            </div>
+          </div>
+        </section>
+
+        <aside class="panel historial-detail" *ngIf="selectedCombate() as combate">
+          <div class="detail-header">
+            <span>#{{ combate.numero }}</span>
+            <span class="badge" [class]="estadoBadgeClass(combate.estado)">{{ combate.estado }}</span>
+          </div>
+
+          <div class="detail-versus">
+            <app-robot-chip [robot]="combate.robot1" />
+            <span class="table__vs">VS</span>
+            <app-robot-chip [robot]="combate.robot2" />
+          </div>
+
+          <p class="detail-resultado" *ngIf="combate.resultado">
+            <strong>{{ resultadoLabel(combate) }}</strong>
+            <span *ngIf="combate.duracionSegundos !== null">{{ formatDuracion(combate.duracionSegundos) }} de duración</span>
+          </p>
+
+          <dl class="info-list">
+            <div><dt>Fecha y hora</dt><dd>{{ formatFechaHora(combate.createdAt) }}</dd></div>
+            <div><dt>Bloque</dt><dd>{{ combate.bloque?.nombre ?? '—' }}</dd></div>
+            <div><dt>Dojo</dt><dd>{{ combate.dojo?.nombre ?? '—' }}</dd></div>
+            <div><dt>Método de victoria</dt><dd>{{ combate.metodoVictoria ?? '—' }}</dd></div>
+            <div *ngIf="combate.jueces.length > 0"><dt>Jueces</dt><dd>{{ combate.jueces.join(', ') }}</dd></div>
+          </dl>
+
+          <h5 class="info-list__heading">Línea de tiempo</h5>
+          <ul class="timeline">
+            <li *ngFor="let evento of combate.historial" class="timeline__item" [class]="'timeline__item--' + evento.tipo">
+              <span class="timeline__dot"></span>
+              <span class="timeline__hora">{{ formatHora(evento.hora) }}</span>
+              <span class="timeline__desc">{{ evento.descripcion }}</span>
+            </li>
+            <li class="table__empty" *ngIf="combate.historial.length === 0">Sin eventos.</li>
+          </ul>
+        </aside>
+      </div>
+
+      <div class="panel--footer-actions">
+        <a class="btn btn--ghost" [routerLink]="['/torneos', torneoId, 'ranking']">← Volver a tabla de posiciones</a>
+      </div>
+    </main>
+  </div>
+</div>

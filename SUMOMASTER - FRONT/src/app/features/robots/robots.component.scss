@@ -1,0 +1,26 @@
+@use '../../shared/styles/admin-page';
+
+.robots {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.75rem 2rem 3rem;
+}
+
+.table__robot-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  flex: none;
+  color: #fff;
+  background: linear-gradient(135deg, #64748b, #334155);
+  border-radius: 0.5rem;
+}
+
+@media (max-width: 720px) {
+  .robots {
+    padding: 1.25rem;
+  }
+}

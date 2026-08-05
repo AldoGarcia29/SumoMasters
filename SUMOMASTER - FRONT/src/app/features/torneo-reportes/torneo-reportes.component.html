@@ -1,0 +1,41 @@
+<div class="app-shell">
+  <app-sidebar [isOpen]="sidebarOpen()" (closeRequested)="closeSidebar()" />
+  <div class="app-shell__backdrop" *ngIf="sidebarOpen()" (click)="closeSidebar()"></div>
+
+  <div class="app-shell__main">
+    <app-topbar
+      title="Reportes del torneo"
+      [subtitle]="'Dashboard › Torneos › ' + (torneo()?.nombre ?? '') + ' › Reportes'"
+      [notificationCount]="3"
+      (menuToggle)="toggleSidebar()"
+    />
+
+    <main class="reportes-page">
+      <section class="panel panel--header">
+        <h2>Reportes - {{ torneo()?.nombre ?? 'Torneo' }}</h2>
+      </section>
+
+      <p class="panel__error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+
+      <section class="reportes-grid">
+        <div class="reporte-card" *ngFor="let reporte of reportes" [class]="'reporte-card--' + reporte.color">
+          <span class="reporte-card__icon">
+            <svg viewBox="0 0 24 24" width="20" height="20">
+              <path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+              <path d="M14 3v5h5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+            </svg>
+          </span>
+          <h4>{{ reporte.titulo }}</h4>
+          <p>{{ reporte.descripcion }}</p>
+          <button type="button" class="btn btn--ghost" [disabled]="generando() === reporte.id" (click)="generar(reporte.id)">
+            {{ generando() === reporte.id ? 'Generando…' : 'Generar' }}
+          </button>
+        </div>
+      </section>
+
+      <div class="panel--footer-actions">
+        <a class="btn btn--ghost" [routerLink]="['/torneos', torneoId, 'ranking']">← Volver a tabla de posiciones</a>
+      </div>
+    </main>
+  </div>
+</div>

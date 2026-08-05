@@ -1,0 +1,251 @@
+<div class="app-shell">
+  <app-sidebar [isOpen]="sidebarOpen()" (closeRequested)="closeSidebar()" />
+
+  <div class="app-shell__backdrop" *ngIf="sidebarOpen()" (click)="closeSidebar()"></div>
+
+  <div class="app-shell__main">
+    <app-topbar
+      title="Gestión de categorías"
+      subtitle="Dashboard › Categorías › Gestión de categorías"
+      [notificationCount]="3"
+      (menuToggle)="toggleSidebar()"
+    />
+
+    <main class="categorias">
+      <section class="panel panel--intro">
+        <div class="panel--intro__left">
+          <span class="panel--intro__icon">
+            <svg viewBox="0 0 24 24" width="20" height="20">
+              <rect x="4" y="4" width="7" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6" />
+              <rect x="13" y="4" width="7" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6" />
+              <rect x="4" y="13" width="7" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6" />
+              <rect x="13" y="13" width="7" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6" />
+            </svg>
+          </span>
+          <div>
+            <h2>Categorías</h2>
+            <p>Administra las categorías disponibles para los torneos. Cada categoría define las reglas y parámetros de los robots participantes.</p>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn--primary" (click)="openCreateModal()">
+          <svg viewBox="0 0 24 24" width="16" height="16">
+            <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
+          Nueva categoría
+        </button>
+      </section>
+
+      <section class="panel panel--search">
+        <div class="search-input">
+          <svg viewBox="0 0 24 24" width="16" height="16">
+            <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="1.8" />
+            <path d="m20 20-3.2-3.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Buscar categoría..."
+            [value]="searchTerm()"
+            (input)="onSearchChange($any($event.target).value)"
+          />
+        </div>
+
+        <select class="select" [value]="estadoFiltro()" (change)="onEstadoFiltroChange($any($event.target).value)">
+          <option value="">Todas las categorías</option>
+          <option *ngFor="let estado of estados" [value]="estado">{{ estado }}</option>
+        </select>
+      </section>
+
+      <section class="panel panel--table">
+        <div class="table-wrapper">
+          <table class="table" *ngIf="!loading(); else loadingTpl">
+            <thead>
+              <tr>
+                <th>Nombre de la categoría</th>
+                <th>Descripción</th>
+                <th>Peso máximo</th>
+                <th>Tipo de combate</th>
+                <th>Estado</th>
+                <th class="table__actions-head">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let categoria of filteredCategorias()">
+                <td>
+                  <span class="table__name">
+                    <span class="table__icon" [class]="'table__icon--' + (categoria.color || 'purple')">
+                      <svg viewBox="0 0 24 24" width="14" height="14">
+                        <rect x="5" y="10" width="14" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="1.6" />
+                        <path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="1.6" />
+                      </svg>
+                    </span>
+                    {{ categoria.nombre }}
+                  </span>
+                </td>
+                <td class="table__wrap">{{ categoria.descripcion }}</td>
+                <td>{{ pesoLabel(categoria.pesoMaximoKg) }}</td>
+                <td>{{ categoria.tipoCombate }}</td>
+                <td>
+                  <span class="badge" [class]="estadoBadgeClass(categoria.estado)">{{ categoria.estado }}</span>
+                </td>
+                <td class="table__actions">
+                  <button type="button" aria-label="Editar" (click)="openEditModal(categoria)">
+                    <svg viewBox="0 0 24 24" width="16" height="16">
+                      <path d="M4 20h4L18 10l-4-4L4 16v4Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+                    </svg>
+                  </button>
+                  <button type="button" aria-label="Ver" (click)="openViewModal(categoria)">
+                    <svg viewBox="0 0 24 24" width="16" height="16">
+                      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" fill="none" stroke="currentColor" stroke-width="1.6" />
+                      <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6" />
+                    </svg>
+                  </button>
+                  <button type="button" class="table__actions-danger" aria-label="Eliminar" (click)="askDelete(categoria)">
+                    <svg viewBox="0 0 24 24" width="16" height="16">
+                      <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-1 13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+
+              <tr *ngIf="filteredCategorias().length === 0">
+                <td colspan="6" class="table__empty">No se encontraron categorías.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <ng-template #loadingTpl>
+            <p class="table__loading">Cargando categorías…</p>
+          </ng-template>
+        </div>
+
+        <p class="panel__error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+
+        <div class="panel__footer">Mostrando {{ filteredCategorias().length }} de {{ categorias().length }} categorías</div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- ---------- Modal crear / editar ---------- -->
+<div class="modal-backdrop" *ngIf="modalMode() === 'create' || modalMode() === 'edit'" (click)="closeModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <h3>{{ modalMode() === 'edit' ? 'Editar categoría' : 'Nueva categoría' }}</h3>
+      <button type="button" class="modal__close" (click)="closeModal()" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" width="18" height="18">
+          <path d="m5 5 14 14M19 5 5 19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
+
+    <form class="modal__body" [formGroup]="form" (ngSubmit)="submitForm()">
+      <label class="field">
+        <span>Nombre de la categoría</span>
+        <input type="text" formControlName="nombre" placeholder="Ej. Sumo 3kg" />
+        <small class="field__error" *ngIf="form.controls.nombre.touched && form.controls.nombre.invalid">
+          El nombre es obligatorio.
+        </small>
+      </label>
+
+      <label class="field">
+        <span>Descripción</span>
+        <textarea formControlName="descripcion" rows="3" placeholder="Describe las reglas de la categoría"></textarea>
+        <small class="field__error" *ngIf="form.controls.descripcion.touched && form.controls.descripcion.invalid">
+          La descripción es obligatoria.
+        </small>
+      </label>
+
+      <div class="field-row">
+        <label class="field">
+          <span>Tipo de combate</span>
+          <select formControlName="tipoCombate">
+            <option *ngFor="let tipo of tiposCombate" [value]="tipo">{{ tipo }}</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Estado</span>
+          <select formControlName="estado">
+            <option *ngFor="let estado of estados" [value]="estado">{{ estado }}</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="field-row field-row--peso">
+        <label class="field">
+          <span>Peso máximo (kg)</span>
+          <input
+            type="number"
+            step="0.01"
+            min="0"
+            formControlName="pesoMaximoKg"
+            [attr.disabled]="form.controls.sinLimite.value ? true : null"
+            placeholder="Ej. 3.00"
+          />
+        </label>
+
+        <label class="checkbox">
+          <input type="checkbox" formControlName="sinLimite" />
+          Sin límite
+        </label>
+      </div>
+
+      <p class="field__error" *ngIf="formError()">{{ formError() }}</p>
+
+      <div class="modal__footer">
+        <button type="button" class="btn btn--ghost" (click)="closeModal()">Cancelar</button>
+        <button type="submit" class="btn btn--primary" [disabled]="saving()">
+          {{ saving() ? 'Guardando…' : 'Guardar categoría' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ---------- Modal ver detalle ---------- -->
+<div class="modal-backdrop" *ngIf="modalMode() === 'view' && selectedCategoria() as categoria" (click)="closeModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <h3>{{ categoria.nombre }}</h3>
+      <button type="button" class="modal__close" (click)="closeModal()" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" width="18" height="18">
+          <path d="m5 5 14 14M19 5 5 19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal__body modal__body--view">
+      <p class="view-row"><strong>Descripción:</strong> {{ categoria.descripcion }}</p>
+      <p class="view-row"><strong>Peso máximo:</strong> {{ pesoLabel(categoria.pesoMaximoKg) }}</p>
+      <p class="view-row"><strong>Tipo de combate:</strong> {{ categoria.tipoCombate }}</p>
+      <p class="view-row">
+        <strong>Estado:</strong>
+        <span class="badge" [class]="estadoBadgeClass(categoria.estado)">{{ categoria.estado }}</span>
+      </p>
+    </div>
+
+    <div class="modal__footer">
+      <button type="button" class="btn btn--ghost" (click)="closeModal()">Cerrar</button>
+      <button type="button" class="btn btn--primary" (click)="openEditModal(categoria)">Editar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ---------- Confirmación de eliminación ---------- -->
+<div class="modal-backdrop" *ngIf="categoriaToDelete() as categoria" (click)="cancelDelete()">
+  <div class="modal modal--sm" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <h3>Eliminar categoría</h3>
+    </div>
+    <div class="modal__body">
+      <p>¿Seguro que deseas eliminar <strong>{{ categoria.nombre }}</strong>? Esta acción no se puede deshacer.</p>
+    </div>
+    <div class="modal__footer">
+      <button type="button" class="btn btn--ghost" (click)="cancelDelete()">Cancelar</button>
+      <button type="button" class="btn btn--danger" [disabled]="deleting()" (click)="confirmDelete()">
+        {{ deleting() ? 'Eliminando…' : 'Eliminar' }}
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,135 @@
+<div class="app-shell">
+  <app-sidebar [isOpen]="sidebarOpen()" (closeRequested)="closeSidebar()" />
+  <div class="app-shell__backdrop" *ngIf="sidebarOpen()" (click)="closeSidebar()"></div>
+
+  <div class="app-shell__main">
+    <app-topbar
+      title="Asignación de dojos o arenas"
+      [subtitle]="'Dashboard › Torneos › ' + (torneo()?.nombre ?? '') + ' › Asignación de dojos'"
+      [notificationCount]="3"
+      (menuToggle)="toggleSidebar()"
+    />
+
+    <main class="dojos-page">
+      <section class="panel panel--header">
+        <div class="panel--header__info">
+          <span class="panel--header__icon">
+            <svg viewBox="0 0 24 24" width="18" height="18">
+              <path d="M4 10 12 4l8 6M6 9v10h12V9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+            </svg>
+          </span>
+          <div>
+            <h2>{{ torneo()?.nombre ?? 'Torneo' }}</h2>
+            <p>Asigna los combates a los dojos disponibles para su ejecución.</p>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn--primary" [disabled]="assigning()" (click)="asignarAutomaticamente()">
+          <svg viewBox="0 0 24 24" width="16" height="16">
+            <path d="M4 12a8 8 0 0 1 14-5.2M20 12a8 8 0 0 1-14 5.2M4 4v5h5M20 20v-5h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          Asignar automáticamente
+        </button>
+      </section>
+
+      <section class="stats-row">
+        <div class="stat-chip"><strong>{{ stats().pendientes }}</strong><span>Combates pendientes</span></div>
+        <div class="stat-chip stat-chip--success"><strong>{{ stats().asignados }}</strong><span>Combates asignados</span></div>
+        <div class="stat-chip"><strong>{{ stats().disponibles }}</strong><span>Dojos disponibles</span></div>
+        <div class="stat-chip stat-chip--warning"><strong>{{ stats().ocupados }}</strong><span>Dojos ocupados</span></div>
+        <div class="stat-chip stat-chip--neutral"><strong>{{ stats().mantenimiento }}</strong><span>En mantenimiento</span></div>
+      </section>
+
+      <p class="panel__error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+      <p class="panel__success" *ngIf="successMessage()">{{ successMessage() }}</p>
+
+      <div class="dojos-layout">
+        <!-- 1. Combates por asignar -->
+        <section class="panel dojos-col">
+          <h4>1. Combates por asignar <span class="badge badge--neutral">{{ combatesPendientesSinDojo().length }}</span></h4>
+
+          <div class="search-input">
+            <svg viewBox="0 0 24 24" width="14" height="14">
+              <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="1.8" />
+              <path d="m20 20-3.2-3.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+            </svg>
+            <input type="text" placeholder="Buscar combate..." (input)="onSearchChange($any($event.target).value)" />
+          </div>
+
+          <ul class="combate-list">
+            <li
+              *ngFor="let combate of combatesPendientesSinDojo()"
+              class="combate-list__item"
+              [class.combate-list__item--active]="selectedCombateId() === combate._id"
+              (click)="selectCombate(combate._id)"
+            >
+              <span class="combate-list__num">{{ combate.numero }}</span>
+              <app-robot-chip [robot]="combate.robot1" [showEquipo]="false" />
+              <span class="table__vs">vs</span>
+              <app-robot-chip [robot]="combate.robot2" [showEquipo]="false" />
+            </li>
+
+            <li class="table__empty" *ngIf="combatesPendientesSinDojo().length === 0">Todos los combates ya tienen dojo asignado.</li>
+          </ul>
+        </section>
+
+        <!-- 2. Dojos disponibles -->
+        <section class="panel dojos-col">
+          <h4>2. Dojos o arenas disponibles</h4>
+
+          <ul class="dojo-list">
+            <li
+              *ngFor="let item of dojosResumen()"
+              class="dojo-list__item"
+              [class.dojo-list__item--active]="selectedDojoId() === item.dojo._id"
+              (click)="selectDojo(item.dojo._id)"
+            >
+              <span class="dojo-list__name">{{ item.dojo.nombre }}</span>
+              <span class="badge" [class]="dojoEstadoClass(item.dojo.estado)">{{ item.dojo.estado }}</span>
+              <span class="dojo-list__capacity">{{ item.combatesAsignados }}/{{ item.dojo.capacidad }}</span>
+            </li>
+          </ul>
+        </section>
+
+        <!-- 3. Asignación actual -->
+        <section class="panel dojos-col">
+          <h4>3. Asignación actual <span class="badge badge--info">{{ combatesDelDojoSeleccionado().length }}</span></h4>
+
+          <p class="field__hint">Combates asignados a este dojo:</p>
+
+          <ul class="combate-list">
+            <li class="combate-list__item combate-list__item--assigned" *ngFor="let combate of combatesDelDojoSeleccionado()">
+              <app-robot-chip [robot]="combate.robot1" [showEquipo]="false" />
+              <span class="table__vs">vs</span>
+              <app-robot-chip [robot]="combate.robot2" [showEquipo]="false" />
+              <button type="button" class="combate-list__remove" (click)="quitarAsignacion(combate._id)" aria-label="Quitar">
+                <svg viewBox="0 0 24 24" width="14" height="14">
+                  <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-1 13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+            </li>
+
+            <li class="table__empty" *ngIf="combatesDelDojoSeleccionado().length === 0">Este dojo aún no tiene combates asignados.</li>
+          </ul>
+
+          <button
+            type="button"
+            class="btn btn--primary drop-target"
+            [disabled]="!selectedCombateId() || !selectedDojoId() || assigning()"
+            (click)="asignarSeleccionado()"
+          >
+            + Asignar combate seleccionado a este dojo
+          </button>
+        </section>
+      </div>
+
+      <div class="panel--footer-actions">
+        <a class="btn btn--ghost" [routerLink]="['/torneos', torneoId, 'enfrentamientos']">← Volver al torneo</a>
+        <div class="panel--footer-actions__right">
+          <button type="button" class="btn btn--ghost" [disabled]="assigning()" (click)="limpiarAsignaciones()">Limpiar asignaciones</button>
+          <a class="btn btn--primary" [routerLink]="['/torneos', torneoId, 'resultados']">✓ Guardar asignaciones</a>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>

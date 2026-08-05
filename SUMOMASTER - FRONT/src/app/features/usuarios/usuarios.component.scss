@@ -1,0 +1,27 @@
+@use '../../shared/styles/admin-page';
+
+.usuarios-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.75rem 2rem 3rem;
+}
+
+.you-tag {
+  padding: 0.1rem 0.4rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  background: #f1e9ff;
+  border-radius: 999px;
+}
+
+.table__actions td .badge + .badge {
+  margin-left: 0.25rem;
+}
+
+@media (max-width: 720px) {
+  .usuarios-page {
+    padding: 1.25rem;
+  }
+}
