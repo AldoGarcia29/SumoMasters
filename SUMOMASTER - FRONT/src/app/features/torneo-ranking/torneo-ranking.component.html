@@ -94,15 +94,7 @@
                   </td>
                   <td>{{ fila.equipoNombre }}</td>
                   <td>
-                    <span class="robot-chip">
-                      <img *ngIf="fila.robotImagenUrl" class="robot-chip__avatar" [src]="fila.robotImagenUrl" [alt]="fila.robotNombre" />
-                      <span *ngIf="!fila.robotImagenUrl" class="robot-chip__avatar robot-chip__avatar--placeholder">
-                        <svg viewBox="0 0 24 24" width="13" height="13">
-                          <rect x="5" y="9" width="14" height="10" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.6" />
-                        </svg>
-                      </span>
-                      {{ fila.robotNombre }}
-                    </span>
+                    <app-robot-chip [robot]="robotChipData(fila)" [showEquipo]="false" />
                   </td>
                   <td>{{ fila.combates }}</td>
                   <td>{{ fila.victorias }}</td>

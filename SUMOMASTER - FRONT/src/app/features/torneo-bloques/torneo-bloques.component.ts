@@ -1,3 +1,4 @@
+import { extractErrorMessage } from '../../core/utils/error-message.util';
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
@@ -7,6 +8,7 @@ import { TopbarComponent } from '../../shared/components/topbar/topbar.component
 import { RobotChipComponent } from '../../shared/components/robot-chip/robot-chip.component';
 import { TorneoService } from '../../core/services/torneo.service';
 import { BloqueService } from '../../core/services/bloque.service';
+import { TorneoFlowCacheService } from '../../core/services/torneo-flow-cache.service';
 import { Torneo } from '../../core/models/torneo.model';
 import { Bloque } from '../../core/models/bloque.model';
 
@@ -29,6 +31,7 @@ export class TorneoBloquesComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly torneoService = inject(TorneoService);
   private readonly bloqueService = inject(BloqueService);
+  private readonly flowCache = inject(TorneoFlowCacheService);
   private readonly fb = inject(FormBuilder);
 
   readonly sidebarOpen = signal(false);
@@ -67,6 +70,15 @@ export class TorneoBloquesComponent implements OnInit {
         this.form.controls.tamanioBloque.setValue(torneo.tamanioBloque);
       },
     });
+
+    // Si ya teníamos bloques en caché para este torneo (de una visita
+    // anterior en esta misma sesión), los mostramos de inmediato en vez de
+    // esperar la red — y de todas formas refrescamos en segundo plano.
+    const cacheados = this.flowCache.getBloques(this.torneoId);
+    if (cacheados && cacheados.length > 0) {
+      this.bloques.set(cacheados);
+    }
+
     this.loadBloques();
   }
 
@@ -74,8 +86,14 @@ export class TorneoBloquesComponent implements OnInit {
     this.loading.set(true);
     this.bloqueService.findByTorneo(this.torneoId).subscribe({
       next: (data) => {
-        this.bloques.set(data);
         this.loading.set(false);
+        if (data.length > 0) {
+          this.bloques.set(data);
+          this.flowCache.setBloques(this.torneoId, data);
+        }
+        // Si vuelve vacío pero ya teníamos algo en pantalla (de caché),
+        // no lo pisamos — probablemente es la misma inconsistencia de
+        // lectura que venimos blindando en todo el flujo.
       },
       error: () => {
         this.loading.set(false);
@@ -101,12 +119,13 @@ export class TorneoBloquesComponent implements OnInit {
       .subscribe({
         next: (bloques) => {
           this.bloques.set(bloques);
+          this.flowCache.setBloques(this.torneoId, bloques);
           this.generating.set(false);
         },
         error: (err) => {
           this.generating.set(false);
           this.errorMessage.set(
-            err?.error?.message ?? 'No se pudieron generar los bloques.',
+            extractErrorMessage(err, 'No se pudieron generar los bloques.'),
           );
         },
       });
@@ -119,6 +138,11 @@ export class TorneoBloquesComponent implements OnInit {
   }
 
   continuar(): void {
-    this.router.navigate(['/torneos', this.torneoId, 'enfrentamientos']);
+    // Pasamos los bloques recién generados directamente por el estado de
+    // navegación, para que la siguiente pantalla los muestre de inmediato
+    // sin depender de una nueva consulta de red que podría demorar o fallar.
+    this.router.navigate(['/torneos', this.torneoId, 'enfrentamientos'], {
+      state: { bloques: this.bloques() },
+    });
   }
 }

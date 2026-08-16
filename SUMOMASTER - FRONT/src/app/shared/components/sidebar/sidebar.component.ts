@@ -45,6 +45,7 @@ export class SidebarComponent {
     { icon: 'robot', label: 'Robots', route: '/robots' },
     { icon: 'grid', label: 'Categorías', route: '/categorias' },
     { icon: 'swords', label: 'Combates', route: '/combates' },
+    { icon: 'building', label: 'Dojos', route: '/dojos' },
     { icon: 'file', label: 'Reportes', route: '/reportes' },
     { icon: 'user', label: 'Usuarios', route: '/usuarios' },
     { icon: 'settings', label: 'Configuración', route: '/configuracion' },

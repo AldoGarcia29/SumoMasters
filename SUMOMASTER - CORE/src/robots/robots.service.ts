@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { EquiposService } from '../equipos/equipos.service';
+import { Torneo, TorneoDocument } from '../torneos/schemas/torneo.schema';
 import { CreateRobotDto } from './dto/create-robot.dto';
 import { UpdateRobotDto } from './dto/update-robot.dto';
 import { Robot, RobotDocument } from './schemas/robot.schema';
@@ -15,6 +16,7 @@ const POPULATE = [
 export class RobotsService {
   constructor(
     @InjectModel(Robot.name) private readonly robotModel: Model<RobotDocument>,
+    @InjectModel(Torneo.name) private readonly torneoModel: Model<TorneoDocument>,
     private readonly equiposService: EquiposService,
   ) {}
 
@@ -98,6 +100,13 @@ export class RobotsService {
     }
 
     await this.equiposService.incrementRobotsCount(result.equipo.toString(), -1);
+
+    // Limpia cualquier referencia a este robot en la lista de inscritos de
+    // los torneos, para que no queden referencias "fantasma" que rompan la
+    // generación de bloques u otras operaciones más adelante.
+    await this.torneoModel
+      .updateMany({ robotsInscritos: id }, { $pull: { robotsInscritos: id } })
+      .exec();
 
     return { deleted: true };
   }

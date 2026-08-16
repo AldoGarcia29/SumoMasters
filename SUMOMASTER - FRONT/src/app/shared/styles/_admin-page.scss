@@ -641,6 +641,9 @@
 }
 
 .info-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
   padding: 0.85rem;
   font-size: 0.8rem;
   line-height: 1.4;
@@ -719,4 +722,54 @@
 
 .table__row--active {
   background: #f1e9ff;
+}
+
+/* Variante de .table__actions para celdas con botones de texto (no solo íconos) */
+.table__actions-wide {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  white-space: normal;
+}
+
+.info-box--warning {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.link {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.link--button {
+  padding: 0;
+  font-size: inherit;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+/* Blindaje adicional: app-robot-chip es un custom element (Angular),
+   y en algunos contenedores flex anidados necesita min-width:0 explícito
+   en el punto de uso (además del que ya trae en su propio :host) para
+   que el navegador lo deje encoger y truncar el texto en vez de
+   desbordarse o partir palabras en varias líneas. */
+app-robot-chip {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
 }

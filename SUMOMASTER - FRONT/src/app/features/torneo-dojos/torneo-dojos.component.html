@@ -88,6 +88,11 @@
               <span class="badge" [class]="dojoEstadoClass(item.dojo.estado)">{{ item.dojo.estado }}</span>
               <span class="dojo-list__capacity">{{ item.combatesAsignados }}/{{ item.dojo.capacidad }}</span>
             </li>
+
+            <li class="table__empty" *ngIf="dojosResumen().length === 0">
+              No hay dojos creados todavía.
+              <a class="link" routerLink="/dojos">Crear el primer dojo →</a>
+            </li>
           </ul>
         </section>
 

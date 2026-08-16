@@ -1,3 +1,4 @@
+import { extractErrorMessage } from '../../core/utils/error-message.util';
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -6,6 +7,7 @@ import { TopbarComponent } from '../../shared/components/topbar/topbar.component
 import { RobotChipComponent } from '../../shared/components/robot-chip/robot-chip.component';
 import { TorneoService } from '../../core/services/torneo.service';
 import { CombateService } from '../../core/services/combate.service';
+import { TorneoFlowCacheService } from '../../core/services/torneo-flow-cache.service';
 import { Torneo } from '../../core/models/torneo.model';
 import { Combate } from '../../core/models/combate.model';
 import { DojoResumen, EstadoDojo } from '../../core/models/dojo.model';
@@ -21,6 +23,7 @@ export class TorneoDojosComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly torneoService = inject(TorneoService);
   private readonly combateService = inject(CombateService);
+  private readonly flowCache = inject(TorneoFlowCacheService);
 
   readonly sidebarOpen = signal(false);
   toggleSidebar(): void {
@@ -82,6 +85,15 @@ export class TorneoDojosComponent implements OnInit {
 
   ngOnInit(): void {
     this.torneoService.findOne(this.torneoId).subscribe({ next: (t) => this.torneo.set(t) });
+
+    // Mostramos primero lo que haya en caché de esta sesión (de una visita
+    // anterior a Bloques/Enfrentamientos/aquí mismo) mientras confirmamos
+    // con el backend en segundo plano.
+    const cacheados = this.flowCache.getCombates(this.torneoId);
+    if (cacheados && cacheados.length > 0) {
+      this.combates.set(cacheados);
+    }
+
     this.load();
   }
 
@@ -90,8 +102,13 @@ export class TorneoDojosComponent implements OnInit {
 
     this.combateService.findByTorneo(this.torneoId).subscribe({
       next: (data) => {
-        this.combates.set(data);
         this.loading.set(false);
+        if (data.length > 0) {
+          this.combates.set(data);
+          this.flowCache.setCombates(this.torneoId, data);
+        }
+        // Si vuelve vacío pero ya había combates en pantalla (de caché), los
+        // dejamos — evita que una lectura inconsistente "borre" la vista.
       },
       error: () => this.loading.set(false),
     });
@@ -118,6 +135,13 @@ export class TorneoDojosComponent implements OnInit {
     this.searchTerm.set(value);
   }
 
+  private patchCombate(actualizado: Combate): void {
+    this.combates.update((lista) =>
+      lista.map((c) => (c._id === actualizado._id ? actualizado : c)),
+    );
+    this.flowCache.setCombates(this.torneoId, this.combates());
+  }
+
   asignarSeleccionado(): void {
     if (!this.selectedCombateId() || !this.selectedDojoId()) return;
 
@@ -125,20 +149,26 @@ export class TorneoDojosComponent implements OnInit {
     this.errorMessage.set(null);
 
     this.combateService.asignarDojo(this.selectedCombateId(), this.selectedDojoId()).subscribe({
-      next: () => {
+      next: (actualizado) => {
         this.assigning.set(false);
         this.selectedCombateId.set('');
-        this.load();
+        this.patchCombate(actualizado);
+        this.load(); // refresca conteos de dojosResumen
       },
       error: (err) => {
         this.assigning.set(false);
-        this.errorMessage.set(err?.error?.message ?? 'No se pudo asignar el combate.');
+        this.errorMessage.set(extractErrorMessage(err, 'No se pudo asignar el combate.'));
       },
     });
   }
 
   quitarAsignacion(combateId: string): void {
-    this.combateService.quitarDojo(combateId).subscribe({ next: () => this.load() });
+    this.combateService.quitarDojo(combateId).subscribe({
+      next: (actualizado) => {
+        this.patchCombate(actualizado);
+        this.load();
+      },
+    });
   }
 
   asignarAutomaticamente(): void {
@@ -147,15 +177,24 @@ export class TorneoDojosComponent implements OnInit {
     this.successMessage.set(null);
 
     this.combateService.asignarDojosAutomatico(this.torneoId).subscribe({
-      next: () => {
+      next: (actualizados) => {
         this.assigning.set(false);
         this.successMessage.set('Combates asignados automáticamente.');
+        // Usamos directamente la respuesta del POST (los combates que quedaron
+        // asignados) para actualizar la vista, sin depender de un GET aparte.
+        if (actualizados.length > 0) {
+          const porId = new Map(actualizados.map((c) => [c._id, c]));
+          this.combates.update((lista) =>
+            lista.map((c) => porId.get(c._id) ?? c),
+          );
+          this.flowCache.setCombates(this.torneoId, this.combates());
+        }
         this.load();
       },
       error: (err) => {
         this.assigning.set(false);
         this.errorMessage.set(
-          err?.error?.message ?? 'No se pudieron asignar los combates automáticamente.',
+          extractErrorMessage(err, 'No se pudieron asignar los combates automáticamente.'),
         );
       },
     });
@@ -168,10 +207,16 @@ export class TorneoDojosComponent implements OnInit {
     this.assigning.set(true);
     Promise.all(
       asignados.map((c) => this.combateService.quitarDojo(c._id).toPromise()),
-    ).finally(() => {
-      this.assigning.set(false);
-      this.load();
-    });
+    )
+      .then((resultados) => {
+        for (const actualizado of resultados) {
+          if (actualizado) this.patchCombate(actualizado);
+        }
+      })
+      .finally(() => {
+        this.assigning.set(false);
+        this.load();
+      });
   }
 
   dojoEstadoClass(estado: EstadoDojo): string {

@@ -40,13 +40,14 @@
 
 .bloques-layout {
   display: grid;
-  grid-template-columns: 1fr 18rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 18rem);
   gap: 1.25rem;
   align-items: start;
 }
 
 .bloques-main {
   padding: 1.25rem;
+  min-width: 0;
 }
 
 .bloques-grid {

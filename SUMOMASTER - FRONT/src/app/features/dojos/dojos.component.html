@@ -1,0 +1,145 @@
+<div class="app-shell">
+  <app-sidebar [isOpen]="sidebarOpen()" (closeRequested)="closeSidebar()" />
+  <div class="app-shell__backdrop" *ngIf="sidebarOpen()" (click)="closeSidebar()"></div>
+
+  <div class="app-shell__main">
+    <app-topbar
+      title="Gestión de dojos"
+      subtitle="Dashboard › Dojos"
+      [notificationCount]="3"
+      (menuToggle)="toggleSidebar()"
+    />
+
+    <main class="dojos-page">
+      <section class="panel panel--header">
+        <h2>Dojos / Arenas</h2>
+        <button type="button" class="btn btn--primary" (click)="openCreateModal()">
+          <svg viewBox="0 0 24 24" width="16" height="16">
+            <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
+          Nuevo dojo
+        </button>
+      </section>
+
+      <section class="panel panel--search">
+        <div class="search-input">
+          <svg viewBox="0 0 24 24" width="16" height="16">
+            <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="1.8" />
+            <path d="m20 20-3.2-3.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          </svg>
+          <input type="text" placeholder="Buscar dojo..." [value]="searchTerm()" (input)="onSearchChange($any($event.target).value)" />
+        </div>
+      </section>
+
+      <p class="panel__error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+
+      <section class="panel panel--table">
+        <div class="table-wrapper">
+          <table class="table" *ngIf="!loading(); else loadingTpl">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Estado</th>
+                <th>Capacidad</th>
+                <th class="table__actions-head">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let dojo of dojosFiltrados()">
+                <td>{{ dojo.nombre }}</td>
+                <td><span class="badge" [class]="estadoBadgeClass(dojo.estado)">{{ dojo.estado }}</span></td>
+                <td>{{ dojo.capacidad }} combates simultáneos</td>
+                <td class="table__actions">
+                  <button type="button" aria-label="Editar" (click)="openEditModal(dojo)">
+                    <svg viewBox="0 0 24 24" width="16" height="16">
+                      <path d="M4 20h4L18 10l-4-4L4 16v4Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+                    </svg>
+                  </button>
+                  <button type="button" class="table__actions-danger" aria-label="Eliminar" (click)="askDelete(dojo)">
+                    <svg viewBox="0 0 24 24" width="16" height="16">
+                      <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-1 13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+
+              <tr *ngIf="dojosFiltrados().length === 0">
+                <td colspan="4" class="table__empty">
+                  Todavía no hay dojos creados. Crea al menos uno para poder asignar combates.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <ng-template #loadingTpl>
+            <p class="table__loading">Cargando dojos…</p>
+          </ng-template>
+        </div>
+
+        <div class="panel__footer" *ngIf="dojosFiltrados().length > 0">
+          <span>Mostrando {{ dojosFiltrados().length }} de {{ dojos().length }} dojos</span>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- ---------- Modal crear / editar ---------- -->
+<div class="modal-backdrop" *ngIf="modalMode()" (click)="closeModal()">
+  <div class="modal modal--sm" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <h3>{{ modalMode() === 'edit' ? 'Editar dojo' : 'Nuevo dojo' }}</h3>
+      <button type="button" class="modal__close" (click)="closeModal()" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" width="18" height="18">
+          <path d="m5 5 14 14M19 5 5 19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
+
+    <form class="modal__body" [formGroup]="form" (ngSubmit)="submitForm()">
+      <label class="field">
+        <span>Nombre del dojo</span>
+        <input type="text" formControlName="nombre" placeholder="Ej. Dojo 1" />
+      </label>
+
+      <label class="field">
+        <span>Estado</span>
+        <select formControlName="estado">
+          <option *ngFor="let estado of estados" [value]="estado">{{ estado }}</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>Capacidad (combates simultáneos)</span>
+        <input type="number" min="1" formControlName="capacidad" />
+      </label>
+
+      <p class="field__error" *ngIf="formError()">{{ formError() }}</p>
+
+      <div class="modal__footer">
+        <button type="button" class="btn btn--ghost" (click)="closeModal()">Cancelar</button>
+        <button type="submit" class="btn btn--primary" [disabled]="saving()">
+          {{ saving() ? 'Guardando…' : 'Guardar dojo' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ---------- Confirmación de eliminación ---------- -->
+<div class="modal-backdrop" *ngIf="dojoToDelete() as dojo" (click)="cancelDelete()">
+  <div class="modal modal--sm" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <h3>Eliminar dojo</h3>
+    </div>
+    <div class="modal__body">
+      <p>¿Seguro que deseas eliminar <strong>{{ dojo.nombre }}</strong>? Esta acción no se puede deshacer.</p>
+    </div>
+    <div class="modal__footer">
+      <button type="button" class="btn btn--ghost" (click)="cancelDelete()">Cancelar</button>
+      <button type="button" class="btn btn--danger" [disabled]="deleting()" (click)="confirmDelete()">
+        {{ deleting() ? 'Eliminando…' : 'Eliminar' }}
+      </button>
+    </div>
+  </div>
+</div>

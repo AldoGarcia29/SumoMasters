@@ -12,7 +12,7 @@ import { Torneo, TorneoDocument } from './schemas/torneo.schema';
 
 const POPULATE = [
   { path: 'categoria', select: 'nombre tipoCombate' },
-  { path: 'robotsInscritos', select: 'nombre equipo', populate: { path: 'equipo', select: 'nombre' } },
+  { path: 'robotsInscritos', select: 'nombre imagenUrl equipo', populate: { path: 'equipo', select: 'nombre' } },
 ];
 
 @Injectable()

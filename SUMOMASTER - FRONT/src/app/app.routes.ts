@@ -68,6 +68,12 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'dojos',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/dojos/dojos.component').then((m) => m.DojosComponent),
+  },
+  {
     path: 'reportes',
     canActivate: [authGuard],
     loadComponent: () =>

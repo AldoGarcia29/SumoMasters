@@ -40,7 +40,7 @@
 
 .enfrentamientos-layout {
   display: grid;
-  grid-template-columns: 16rem 1fr;
+  grid-template-columns: minmax(0, 16rem) minmax(0, 1fr);
   gap: 1.25rem;
   align-items: start;
 }
@@ -54,6 +54,7 @@
 
 .enfrentamientos-main {
   padding: 1.25rem;
+  min-width: 0;
 }
 
 @media (max-width: 900px) {

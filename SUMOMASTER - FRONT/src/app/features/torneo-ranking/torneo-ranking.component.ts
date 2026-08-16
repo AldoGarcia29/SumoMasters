@@ -3,22 +3,26 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { SidebarComponent } from '../../shared/components/sidebar/sidebar.component';
 import { TopbarComponent } from '../../shared/components/topbar/topbar.component';
+import { RobotChipComponent } from '../../shared/components/robot-chip/robot-chip.component';
 import { TorneoService } from '../../core/services/torneo.service';
 import { BloqueService } from '../../core/services/bloque.service';
 import { DojoService } from '../../core/services/dojo.service';
 import { CombateService } from '../../core/services/combate.service';
 import { RankingService } from '../../core/services/ranking.service';
+import { TorneoFlowCacheService } from '../../core/services/torneo-flow-cache.service';
+import { calcularRankingLocal } from '../../core/utils/ranking-local.util';
 import { Torneo } from '../../core/models/torneo.model';
 import { Bloque } from '../../core/models/bloque.model';
 import { Dojo } from '../../core/models/dojo.model';
 import { FilaRanking } from '../../core/models/ranking.model';
+import { Robot } from '../../core/models/robot.model';
 
 type TabVista = 'general' | 'bloque' | 'dojo';
 
 @Component({
   selector: 'app-torneo-ranking',
   standalone: true,
-  imports: [CommonModule, RouterLink, SidebarComponent, TopbarComponent],
+  imports: [CommonModule, RouterLink, SidebarComponent, TopbarComponent, RobotChipComponent],
   templateUrl: './torneo-ranking.component.html',
   styleUrl: './torneo-ranking.component.scss',
 })
@@ -29,6 +33,7 @@ export class TorneoRankingComponent implements OnInit {
   private readonly dojoService = inject(DojoService);
   private readonly combateService = inject(CombateService);
   private readonly rankingService = inject(RankingService);
+  private readonly flowCache = inject(TorneoFlowCacheService);
 
   readonly sidebarOpen = signal(false);
   toggleSidebar(): void {
@@ -118,14 +123,39 @@ export class TorneoRankingComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.torneoService.findOne(this.torneoId).subscribe({ next: (t) => this.torneo.set(t) });
+    this.torneoService.findOne(this.torneoId).subscribe({
+      next: (t) => {
+        this.torneo.set(t);
+        // Si el ranking ya se resolvió antes de que cargara el torneo (o
+        // viceversa) y quedó vacío, completamos con la lista de inscritos.
+        if (this.filas().length === 0) {
+          this.filas.set(this.filasVaciasDesdeInscritos());
+        }
+      },
+    });
     this.bloqueService.findByTorneo(this.torneoId).subscribe({ next: (b) => this.bloques.set(b) });
     this.dojoService.findAll().subscribe({ next: (d) => this.dojos.set(d) });
 
     this.combateService.findByTorneo(this.torneoId).subscribe({
       next: (combates) => {
-        this.totalCombates.set(combates.length);
-        this.combatesFinalizados.set(combates.filter((c) => c.estado === 'Finalizado').length);
+        if (combates.length > 0) {
+          this.flowCache.setCombates(this.torneoId, combates);
+          this.totalCombates.set(combates.length);
+          this.combatesFinalizados.set(
+            combates.filter((c) => c.estado === 'Finalizado').length,
+          );
+        } else {
+          // Si el backend devuelve vacío, usamos lo que sepamos por el
+          // caché de esta sesión (p. ej. lo que se generó/registró hace
+          // un momento en Bloques/Enfrentamientos/Resultados).
+          const cache = this.flowCache.getCombates(this.torneoId);
+          if (cache && cache.length > 0) {
+            this.totalCombates.set(cache.length);
+            this.combatesFinalizados.set(
+              cache.filter((c) => c.estado === 'Finalizado').length,
+            );
+          }
+        }
       },
     });
 
@@ -141,7 +171,31 @@ export class TorneoRankingComponent implements OnInit {
       })
       .subscribe({
         next: (data) => {
-          this.filas.set(data);
+          if (data.length > 0) {
+            this.filas.set(data);
+          } else {
+            // El backend no encontró combates finalizados para calcular el
+            // ranking — antes de mostrar la tabla vacía, intentamos
+            // calcularlo nosotros mismos con lo que haya en el caché de
+            // esta sesión (protección contra la misma inconsistencia de
+            // lectura que afecta a otras pantallas del flujo).
+            const cache = this.flowCache.getCombates(this.torneoId);
+            if (cache && cache.length > 0) {
+              let combatesParaCalculo = cache;
+              if (this.activeTab() === 'bloque' && this.selectedBloqueId()) {
+                combatesParaCalculo = cache.filter(
+                  (c) => c.bloque?._id === this.selectedBloqueId(),
+                );
+              } else if (this.activeTab() === 'dojo' && this.selectedDojoId()) {
+                combatesParaCalculo = cache.filter(
+                  (c) => c.dojo?._id === this.selectedDojoId(),
+                );
+              }
+              this.filas.set(calcularRankingLocal(combatesParaCalculo));
+            } else {
+              this.filas.set(this.filasVaciasDesdeInscritos());
+            }
+          }
           this.lastUpdated.set(new Date());
           this.loading.set(false);
         },
@@ -189,7 +243,51 @@ export class TorneoRankingComponent implements OnInit {
     }
   }
 
+  /**
+   * Cuando todavía no hay ningún combate finalizado (ni siquiera en el
+   * caché), en vez de mostrar la tabla completamente vacía, listamos a
+   * todos los robots inscritos con sus estadísticas en cero — como una
+   * tabla de posiciones normal antes de que arranque la competencia.
+   */
+  private filasVaciasDesdeInscritos(): FilaRanking[] {
+    const robots = this.torneo()?.robotsInscritos ?? [];
+
+    return robots
+      .filter((r): r is Robot => !!r && typeof r !== 'string')
+      .map((robot, index) => {
+        const equipo = robot.equipo;
+        const equipoId = typeof equipo === 'string' ? equipo : equipo?._id ?? '';
+        const equipoNombre = typeof equipo === 'string' ? equipo : equipo?.nombre ?? '—';
+
+        return {
+          posicion: index + 1,
+          robotId: robot._id,
+          robotNombre: robot.nombre,
+          robotImagenUrl: robot.imagenUrl ?? '',
+          equipoId,
+          equipoNombre,
+          combates: 0,
+          victorias: 0,
+          empates: 0,
+          derrotas: 0,
+          puntos: 0,
+          diferencia: 0,
+          ultimoResultado: null,
+        };
+      });
+  }
+
   diferenciaLabel(valor: number): string {
     return valor > 0 ? `+${valor}` : `${valor}`;
+  }
+
+  /** Adapta una fila del ranking al shape que espera `app-robot-chip`, para reusar el mismo diseño de foto+nombre en toda la app. */
+  robotChipData(fila: FilaRanking): Robot {
+    return {
+      _id: fila.robotId,
+      nombre: fila.robotNombre,
+      imagenUrl: fila.robotImagenUrl,
+      equipo: fila.equipoId,
+    } as Robot;
   }
 }

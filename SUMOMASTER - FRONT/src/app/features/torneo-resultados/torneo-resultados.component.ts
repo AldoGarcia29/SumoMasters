@@ -1,3 +1,4 @@
+import { extractErrorMessage } from '../../core/utils/error-message.util';
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -7,6 +8,7 @@ import { TopbarComponent } from '../../shared/components/topbar/topbar.component
 import { RobotChipComponent } from '../../shared/components/robot-chip/robot-chip.component';
 import { TorneoService } from '../../core/services/torneo.service';
 import { CombateService } from '../../core/services/combate.service';
+import { TorneoFlowCacheService } from '../../core/services/torneo-flow-cache.service';
 import { Torneo } from '../../core/models/torneo.model';
 import {
   Combate,
@@ -35,6 +37,7 @@ export class TorneoResultadosComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly torneoService = inject(TorneoService);
   private readonly combateService = inject(CombateService);
+  private readonly flowCache = inject(TorneoFlowCacheService);
   private readonly fb = inject(FormBuilder);
 
   readonly sidebarOpen = signal(false);
@@ -87,6 +90,12 @@ export class TorneoResultadosComponent implements OnInit {
 
   ngOnInit(): void {
     this.torneoService.findOne(this.torneoId).subscribe({ next: (t) => this.torneo.set(t) });
+
+    const cacheados = this.flowCache.getCombates(this.torneoId);
+    if (cacheados && cacheados.length > 0) {
+      this.combates.set(cacheados);
+    }
+
     this.load();
   }
 
@@ -94,8 +103,13 @@ export class TorneoResultadosComponent implements OnInit {
     this.loading.set(true);
     this.combateService.findByTorneo(this.torneoId).subscribe({
       next: (data) => {
-        this.combates.set(data);
         this.loading.set(false);
+        if (data.length > 0) {
+          this.combates.set(data);
+          this.flowCache.setCombates(this.torneoId, data);
+        }
+        // Si vuelve vacío pero ya había combates en pantalla (de caché), los
+        // dejamos — evita que una lectura inconsistente "borre" la vista.
       },
       error: () => this.loading.set(false),
     });
@@ -165,7 +179,7 @@ export class TorneoResultadosComponent implements OnInit {
         error: (err) => {
           this.saving.set(false);
           this.formError.set(
-            err?.error?.message ?? 'No se pudo guardar el resultado.',
+            extractErrorMessage(err, 'No se pudo guardar el resultado.'),
           );
         },
       });
@@ -188,6 +202,7 @@ export class TorneoResultadosComponent implements OnInit {
     this.combates.update((lista) =>
       lista.map((c) => (c._id === actualizado._id ? actualizado : c)),
     );
+    this.flowCache.setCombates(this.torneoId, this.combates());
   }
 
   private parseTiempo(value: string): number | null {
@@ -201,6 +216,12 @@ export class TorneoResultadosComponent implements OnInit {
     const min = Math.floor(segundos / 60);
     const sec = segundos % 60;
     return `${min}:${sec.toString().padStart(2, '0')}`;
+  }
+
+  equipoNombre(robot: Combate['robot1']): string {
+    const equipo = robot?.equipo;
+    if (!equipo) return '';
+    return typeof equipo === 'string' ? equipo : equipo.nombre;
   }
 
   estadoBadgeClass(estado: EstadoCombate): string {

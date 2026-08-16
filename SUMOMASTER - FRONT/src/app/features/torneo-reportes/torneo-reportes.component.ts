@@ -1,11 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Observable, catchError, map, of } from 'rxjs';
 import { SidebarComponent } from '../../shared/components/sidebar/sidebar.component';
 import { TopbarComponent } from '../../shared/components/topbar/topbar.component';
 import { TorneoService } from '../../core/services/torneo.service';
 import { CombateService } from '../../core/services/combate.service';
 import { RankingService } from '../../core/services/ranking.service';
+import { EquipoService } from '../../core/services/equipo.service';
+import { TorneoFlowCacheService } from '../../core/services/torneo-flow-cache.service';
 import { Torneo } from '../../core/models/torneo.model';
 import { Combate } from '../../core/models/combate.model';
 import { FilaRanking } from '../../core/models/ranking.model';
@@ -30,6 +33,8 @@ export class TorneoReportesComponent implements OnInit {
   private readonly torneoService = inject(TorneoService);
   private readonly combateService = inject(CombateService);
   private readonly rankingService = inject(RankingService);
+  private readonly equipoService = inject(EquipoService);
+  private readonly flowCache = inject(TorneoFlowCacheService);
 
   readonly sidebarOpen = signal(false);
   toggleSidebar(): void {
@@ -44,6 +49,9 @@ export class TorneoReportesComponent implements OnInit {
   readonly generando = signal<ReporteId | null>(null);
   readonly errorMessage = signal<string | null>(null);
 
+  /** institución por ID de equipo, para completar el reporte de "Equipos participantes". */
+  private readonly institucionPorEquipoId = new Map<string, string>();
+
   readonly reportes: { id: ReporteId; titulo: string; descripcion: string; color: string }[] = [
     { id: 'ranking', titulo: 'Ranking general', descripcion: 'Exportar ranking completo del torneo', color: 'purple' },
     { id: 'resultados-ronda', titulo: 'Resultados por ronda', descripcion: 'Reporte de resultados de cada ronda', color: 'blue' },
@@ -54,6 +62,16 @@ export class TorneoReportesComponent implements OnInit {
 
   ngOnInit(): void {
     this.torneoService.findOne(this.torneoId).subscribe({ next: (t) => this.torneo.set(t) });
+
+    // Precargamos institución de todos los equipos una vez, para no tener
+    // que ir a buscarla equipo por equipo al armar el reporte.
+    this.equipoService.findAll().subscribe({
+      next: (equipos) => {
+        for (const e of equipos) {
+          this.institucionPorEquipoId.set(e._id, e.institucion || '—');
+        }
+      },
+    });
   }
 
   generar(reporteId: ReporteId): void {
@@ -79,9 +97,31 @@ export class TorneoReportesComponent implements OnInit {
     }
   }
 
+  /** Combates del torneo, usando primero el caché de la sesión si el backend devuelve vacío. */
+  private combatesConRespaldo(): Observable<Combate[]> {
+    return this.combateService.findByTorneo(this.torneoId).pipe(
+      map((data) => {
+        if (data.length > 0) return data;
+        const cache = this.flowCache.getCombates(this.torneoId);
+        return cache && cache.length > 0 ? cache : data;
+      }),
+      catchError(() => {
+        const cache = this.flowCache.getCombates(this.torneoId);
+        return cache && cache.length > 0 ? of(cache) : of([]);
+      }),
+    );
+  }
+
   private generarRanking(): void {
     this.rankingService.calcular(this.torneoId).subscribe({
       next: (filas) => {
+        if (filas.length === 0) {
+          this.generando.set(null);
+          this.errorMessage.set(
+            'Todavía no hay combates finalizados en este torneo para calcular el ranking.',
+          );
+          return;
+        }
         const rows = filas.map((f) => [
           f.posicion,
           f.equipoNombre,
@@ -105,8 +145,13 @@ export class TorneoReportesComponent implements OnInit {
   }
 
   private generarResultadosPorRonda(): void {
-    this.combateService.findByTorneo(this.torneoId).subscribe({
+    this.combatesConRespaldo().subscribe({
       next: (combates) => {
+        if (combates.length === 0) {
+          this.generando.set(null);
+          this.errorMessage.set('Todavía no hay combates generados en este torneo.');
+          return;
+        }
         const rows = combates.map((c) => [
           c.fase,
           c.bloque?.nombre ?? '—',
@@ -129,8 +174,13 @@ export class TorneoReportesComponent implements OnInit {
   }
 
   private generarHistorial(): void {
-    this.combateService.findByTorneo(this.torneoId).subscribe({
+    this.combatesConRespaldo().subscribe({
       next: (combates) => {
+        if (combates.length === 0) {
+          this.generando.set(null);
+          this.errorMessage.set('Todavía no hay combates generados en este torneo.');
+          return;
+        }
         const rows = combates.map((c) => [
           c.numero,
           c.createdAt ? new Date(c.createdAt).toLocaleString('es-MX') : '—',
@@ -164,15 +214,24 @@ export class TorneoReportesComponent implements OnInit {
     const equiposMap = new Map<string, { nombre: string; institucion: string; robots: string[] }>();
 
     for (const r of torneo.robotsInscritos) {
+      if (!r) continue; // referencia a un robot eliminado
       const robot = r as Robot;
       if (typeof robot === 'string') continue;
+
       const equipo = robot.equipo;
       const equipoId = typeof equipo === 'string' ? equipo : equipo?._id ?? '';
       const equipoNombre = typeof equipo === 'string' ? equipo : equipo?.nombre ?? '—';
+      const institucion = this.institucionPorEquipoId.get(equipoId) ?? '—';
 
-      const actual = equiposMap.get(equipoId) ?? { nombre: equipoNombre, institucion: '—', robots: [] };
+      const actual = equiposMap.get(equipoId) ?? { nombre: equipoNombre, institucion, robots: [] };
       actual.robots.push(robot.nombre);
       equiposMap.set(equipoId, actual);
+    }
+
+    if (equiposMap.size === 0) {
+      this.generando.set(null);
+      this.errorMessage.set('Este torneo todavía no tiene robots (ni equipos) inscritos.');
+      return;
     }
 
     const rows = Array.from(equiposMap.values()).map((e) => [e.nombre, e.institucion, e.robots.join(', ')]);
@@ -185,15 +244,20 @@ export class TorneoReportesComponent implements OnInit {
     this.rankingService.calcular(this.torneoId).subscribe({
       next: (filas: FilaRanking[]) => {
         const campeon = filas[0];
-        const rows = campeon
-          ? [[
-              (torneo?.categoria as any)?.nombre ?? '—',
-              campeon.robotNombre,
-              campeon.equipoNombre,
-              campeon.puntos,
-              campeon.victorias,
-            ]]
-          : [];
+        if (!campeon) {
+          this.generando.set(null);
+          this.errorMessage.set(
+            'Todavía no hay combates finalizados en este torneo para determinar un ganador.',
+          );
+          return;
+        }
+        const rows = [[
+          (torneo?.categoria as any)?.nombre ?? '—',
+          campeon.robotNombre,
+          campeon.equipoNombre,
+          campeon.puntos,
+          campeon.victorias,
+        ]];
         this.descargarCsv(
           'ganadores-por-categoria',
           ['Categoría', 'Robot campeón', 'Equipo', 'Puntos', 'Victorias'],

@@ -29,7 +29,7 @@ export class CombateService {
 
   generar(
     torneoId: string,
-    payload: { bloqueId?: string; fase?: string },
+    payload: { bloqueId?: string; bloqueIds?: string[]; fase?: string },
   ): Observable<Combate[]> {
     return this.http.post<Combate[]>(
       `${this.baseUrl}/torneos/${torneoId}/combates/generar`,

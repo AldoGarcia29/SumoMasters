@@ -26,11 +26,68 @@ import { Robot } from '../../../core/models/robot.model';
       </ng-template>
 
       <span class="robot-chip__meta">
-        <span>{{ robot?.nombre ?? '—' }}</span>
-        <small *ngIf="showEquipo && equipoNombre">{{ equipoNombre }}</small>
+        <span class="robot-chip__name">{{ robot?.nombre ?? '—' }}</span>
+        <small class="robot-chip__team" *ngIf="showEquipo && equipoNombre">{{ equipoNombre }}</small>
       </span>
     </span>
   `,
+  styles: [
+    `
+      :host {
+        display: inline-flex;
+        min-width: 0;
+        max-width: 100%;
+      }
+
+      .robot-chip {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        min-width: 0;
+        max-width: 100%;
+      }
+
+      .robot-chip__avatar {
+        width: 1.8rem;
+        height: 1.8rem;
+        flex: none;
+        object-fit: cover;
+        background: var(--color-bg, #f5f3fa);
+        border: 1px solid var(--color-border, #e4e0ef);
+        border-radius: 0.4rem;
+      }
+
+      .robot-chip__avatar--placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--color-text-muted, #6b7280);
+      }
+
+      .robot-chip__meta {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        line-height: 1.25;
+      }
+
+      .robot-chip__name {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        color: var(--color-text, #1f2937);
+      }
+
+      .robot-chip__team {
+        overflow: hidden;
+        font-size: 0.72rem;
+        font-weight: 400;
+        color: var(--color-text-muted, #6b7280);
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+    `,
+  ],
 })
 export class RobotChipComponent {
   @Input() robot: Robot | null | undefined;

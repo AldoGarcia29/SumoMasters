@@ -1,3 +1,4 @@
+import { extractErrorMessage } from '../../core/utils/error-message.util';
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -196,7 +197,7 @@ export class RobotsComponent implements OnInit {
       error: (err) => {
         this.saving.set(false);
         this.formError.set(
-          err?.error?.message ?? 'Ocurrió un error al guardar el robot',
+          extractErrorMessage(err, 'Ocurrió un error al guardar el robot'),
         );
       },
     });

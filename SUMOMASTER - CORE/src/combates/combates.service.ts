@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -15,14 +16,17 @@ import { RegistrarResultadoDto } from './dto/registrar-resultado.dto';
 import { Combate, CombateDocument } from './schemas/combate.schema';
 
 const POPULATE = [
-  { path: 'robot1', select: 'nombre equipo', populate: { path: 'equipo', select: 'nombre' } },
-  { path: 'robot2', select: 'nombre equipo', populate: { path: 'equipo', select: 'nombre' } },
+  { path: 'robot1', select: 'nombre imagenUrl equipo', populate: { path: 'equipo', select: 'nombre' } },
+  { path: 'robot2', select: 'nombre imagenUrl equipo', populate: { path: 'equipo', select: 'nombre' } },
   { path: 'dojo', select: 'nombre estado' },
   { path: 'bloque', select: 'nombre' },
 ];
 
 @Injectable()
 export class CombatesService {
+  /** Mismo propósito que en BloquesService: evitar generaciones duplicadas por doble clic o pestañas paralelas. */
+  private readonly generandoPorTorneo = new Set<string>();
+
   constructor(
     @InjectModel(Combate.name) private readonly combateModel: Model<CombateDocument>,
     @InjectModel(Bloque.name) private readonly bloqueModel: Model<BloqueDocument>,
@@ -55,11 +59,40 @@ export class CombatesService {
 
   /** Genera los enfrentamientos round-robin (todos contra todos) de uno o todos los bloques del torneo. */
   async generar(torneoId: string, dto: GenerarCombatesDto): Promise<CombateDocument[]> {
+    const lockKey = `${torneoId}:${dto.fase ?? FaseCombate.FASE_GRUPOS}`;
+
+    if (this.generandoPorTorneo.has(lockKey)) {
+      throw new ConflictException(
+        'Ya se están generando los enfrentamientos de este torneo. Espera a que termine.',
+      );
+    }
+
+    this.generandoPorTorneo.add(lockKey);
+
+    try {
+      return await this.generarInterno(torneoId, dto);
+    } finally {
+      this.generandoPorTorneo.delete(lockKey);
+    }
+  }
+
+  private async generarInterno(
+    torneoId: string,
+    dto: GenerarCombatesDto,
+  ): Promise<CombateDocument[]> {
     const fase = dto.fase ?? FaseCombate.FASE_GRUPOS;
 
-    const bloques = dto.bloqueId
-      ? await this.bloqueModel.find({ _id: dto.bloqueId, torneo: torneoId }).exec()
-      : await this.bloqueModel.find({ torneo: torneoId }).exec();
+    let bloques;
+    if (dto.bloqueIds && dto.bloqueIds.length > 0) {
+      // Vía preferida: el frontend ya tiene los bloques cargados (p. ej.
+      // recién generados) y nos manda sus IDs directamente, sin depender de
+      // una nueva búsqueda por torneoId.
+      bloques = await this.bloqueModel.find({ _id: { $in: dto.bloqueIds } }).exec();
+    } else if (dto.bloqueId) {
+      bloques = await this.bloqueModel.find({ _id: dto.bloqueId, torneo: torneoId }).exec();
+    } else {
+      bloques = await this.bloqueModel.find({ torneo: torneoId }).exec();
+    }
 
     if (bloques.length === 0) {
       throw new BadRequestException(

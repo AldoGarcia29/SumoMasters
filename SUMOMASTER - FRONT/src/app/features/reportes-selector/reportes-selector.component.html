@@ -44,7 +44,7 @@
                 <td>{{ torneo.nombre }}</td>
                 <td>{{ categoriaNombre(torneo) }}</td>
                 <td><span class="badge" [class]="estadoBadgeClass(torneo.estado)">{{ torneo.estado }}</span></td>
-                <td class="table__actions">
+                <td class="table__actions-wide">
                   <a class="btn btn--primary btn--sm" [routerLink]="['/torneos', torneo._id, 'reportes']">Ver reportes</a>
                 </td>
               </tr>

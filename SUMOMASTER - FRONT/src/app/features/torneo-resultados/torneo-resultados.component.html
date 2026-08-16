@@ -94,12 +94,48 @@
             <div class="versus-box">
               <div class="versus-box__side">
                 <span class="versus-box__tag versus-box__tag--blue">Robot 1 (Azul)</span>
-                <app-robot-chip [robot]="combate.robot1" />
+                <img
+                  *ngIf="combate.robot1.imagenUrl; else placeholder1"
+                  class="versus-box__photo"
+                  [src]="combate.robot1.imagenUrl"
+                  [alt]="combate.robot1.nombre"
+                />
+                <ng-template #placeholder1>
+                  <span class="versus-box__photo versus-box__photo--placeholder">
+                    <svg viewBox="0 0 24 24" width="26" height="26">
+                      <rect x="5" y="9" width="14" height="10" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.6" />
+                      <circle cx="9.5" cy="14" r="1.2" fill="currentColor" />
+                      <circle cx="14.5" cy="14" r="1.2" fill="currentColor" />
+                      <path d="M12 9V6m-3.5 0h7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                    </svg>
+                  </span>
+                </ng-template>
+                <span class="versus-box__name">{{ combate.robot1.nombre }}</span>
+                <span class="versus-box__team" *ngIf="equipoNombre(combate.robot1)">{{ equipoNombre(combate.robot1) }}</span>
               </div>
+
               <span class="versus-box__vs">VS</span>
+
               <div class="versus-box__side">
                 <span class="versus-box__tag versus-box__tag--red">Robot 2 (Rojo)</span>
-                <app-robot-chip [robot]="combate.robot2" />
+                <img
+                  *ngIf="combate.robot2.imagenUrl; else placeholder2"
+                  class="versus-box__photo"
+                  [src]="combate.robot2.imagenUrl"
+                  [alt]="combate.robot2.nombre"
+                />
+                <ng-template #placeholder2>
+                  <span class="versus-box__photo versus-box__photo--placeholder">
+                    <svg viewBox="0 0 24 24" width="26" height="26">
+                      <rect x="5" y="9" width="14" height="10" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.6" />
+                      <circle cx="9.5" cy="14" r="1.2" fill="currentColor" />
+                      <circle cx="14.5" cy="14" r="1.2" fill="currentColor" />
+                      <path d="M12 9V6m-3.5 0h7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                    </svg>
+                  </span>
+                </ng-template>
+                <span class="versus-box__name">{{ combate.robot2.nombre }}</span>
+                <span class="versus-box__team" *ngIf="equipoNombre(combate.robot2)">{{ equipoNombre(combate.robot2) }}</span>
               </div>
             </div>
 

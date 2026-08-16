@@ -56,13 +56,14 @@
 
 .historial-layout {
   display: grid;
-  grid-template-columns: 1fr 20rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 20rem);
   gap: 1.25rem;
   align-items: start;
 }
 
 .historial-main {
   padding: 1.1rem;
+  min-width: 0;
 }
 
 .historial-main tbody tr {

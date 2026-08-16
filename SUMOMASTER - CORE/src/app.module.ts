@@ -24,6 +24,16 @@ import { AppService } from './app.service';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         uri: configService.getOrThrow<string>('MONGODB_URI'),
+        // Fuerza a leer siempre del nodo primario con la confirmación de
+        // escritura más estricta disponible. Si la base de datos corre como
+        // replica set (algo común incluso en instalaciones locales, p. ej.
+        // MongoDB Atlas Local o Docker con réplica de un solo nodo), sin
+        // esto una lectura inmediatamente después de un guardado podía caer
+        // en un nodo secundario que todavía no había replicado ese dato —
+        // lo que explica que un "generar" recién hecho no apareciera al
+        // consultarlo justo después.
+        readPreference: 'primary',
+        writeConcern: { w: 'majority' },
       }),
     }),
 
