@@ -112,10 +112,28 @@ export class EquiposComponent implements OnInit {
   }
 
   loadCategorias(): void {
-    this.categoriaService.findAll().subscribe({
-      next: (data) => this.categorias.set(data),
-    });
-  }
+  this.categoriaService.findAll().subscribe({
+    next: (response: any) => {
+      console.log('RESPUESTA DE CATEGORÍAS:', response);
+
+      const data = Array.isArray(response)
+        ? response
+        : response.data ?? response.categorias ?? [];
+
+      console.log('ARREGLO UTILIZADO:', data);
+
+      this.categorias.set(data);
+    },
+    error: (error) => {
+      console.error('ERROR AL CARGAR CATEGORÍAS:', error);
+
+      this.categorias.set([]);
+      this.errorMessage.set(
+        'No se pudieron cargar las categorías.',
+      );
+    },
+  });
+}
 
   loadEquipos(): void {
     this.loading.set(true);

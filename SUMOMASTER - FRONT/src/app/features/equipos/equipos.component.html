@@ -54,9 +54,11 @@
               <tr *ngFor="let equipo of pagedEquipos()">
                 <td>
                   <span class="table__name">
-                    <span class="table__avatar" *ngIf="!equipo.logoUrl">{{ equipo.logoIniciales || equipo.nombre.charAt(0) }}</span>
+                    <span class="table__avatar" *ngIf="!equipo.logoUrl">
+  {{ equipo.logoIniciales || equipo.nombre?.charAt(0) || 'E' }}
+</span>
                     <img class="table__avatar-img" *ngIf="equipo.logoUrl" [src]="equipo.logoUrl" [alt]="equipo.nombre" />
-                    {{ equipo.nombre }}
+                    {{ equipo.nombre || 'Sin nombre' }}
                   </span>
                 </td>
                 <td>{{ equipo.institucion }}</td>
