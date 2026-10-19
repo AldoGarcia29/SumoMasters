@@ -7,8 +7,8 @@ import { LiveData, TorneoResumen } from '../models/live.model';
 
 @Injectable({ providedIn: 'root' })
 export class PublicApiService {
-  // AJUSTA: environment.apiUrl debe ser la URL base de tu API, ej. 'http://localhost:3000'
-  private readonly base = `${environment.apiUrl}/public`;
+  // AJUSTA: environment.coreApiUrl debe ser la URL base de tu API, ej. 'http://localhost:3000'
+  private readonly base = `${environment.coreApiUrl}/public`;
 
   constructor(private http: HttpClient) {}
 

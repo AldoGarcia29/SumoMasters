@@ -8,7 +8,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ThrottlerGuard } from '@nestjs/throttler';
-
+import { Public } from '../common/decorators/public.decorator';
 import { PublicService } from './public.service';
 import { PublicCacheService } from './public-cache.service';
 import {
@@ -28,6 +28,7 @@ import {
  * marca este controller como público con el decorador que ya uses,
  * por ejemplo @Public() — AJUSTA importándolo aquí.
  */
+@Public()
 @Controller('public')
 @UseGuards(ThrottlerGuard)
 export class PublicController {
@@ -47,7 +48,8 @@ export class PublicController {
   @Get('torneos/:id/live')
   @Header('Cache-Control', 'public, max-age=5')
   async live(@Param('id') id: string) {
-    if (!/^[a-f\d]{24}$/i.test(id)) throw new BadRequestException('id inválido');
+    if (!/^[a-f\d]{24}$/i.test(id))
+      throw new BadRequestException('id inválido');
 
     const data = await this.cache.wrap(liveKey(id), LIVE_TTL_MS, () =>
       this.service.armarLive(id),
