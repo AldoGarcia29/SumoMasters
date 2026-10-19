@@ -1,0 +1,728 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  color: #f8faff;
+  background: #060812;
+  font-family: 'Segoe UI', Arial, sans-serif;
+
+  --blue: #3288ff;
+  --red: #ff375f;
+  --gold: #ffd66b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+main {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  overflow: hidden;
+  padding: 26px clamp(18px, 4vw, 80px);
+
+  background:
+    radial-gradient(
+      ellipse at 10% 55%,
+      rgba(30, 104, 255, 0.2),
+      transparent 48%
+    ),
+    radial-gradient(
+      ellipse at 90% 55%,
+      rgba(255, 40, 88, 0.18),
+      transparent 48%
+    ),
+    linear-gradient(180deg, #111329 0%, #080b17 55%, #050710 100%);
+
+  // Cuadrícula del fondo.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+
+    background-image:
+      linear-gradient(#ffffff06 1px, transparent 1px),
+      linear-gradient(90deg, #ffffff06 1px, transparent 1px);
+    background-size: 64px 64px;
+
+    mask-image: linear-gradient(
+      to bottom,
+      transparent,
+      #000 30%,
+      transparent
+    );
+  }
+
+  // Luz superior.
+  &::after {
+    content: '';
+    position: absolute;
+    top: -250px;
+    left: 50%;
+    width: 800px;
+    height: 400px;
+    z-index: -1;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: #7855ff24;
+    filter: blur(90px);
+    pointer-events: none;
+  }
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid #ffffff12;
+}
+
+.marca {
+  font-size: clamp(17px, 1.6vw, 25px);
+  font-weight: 900;
+  letter-spacing: 4px;
+
+  b {
+    color: #ba9aff;
+    text-shadow: 0 0 25px #9a6cff55;
+  }
+}
+
+button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border: 1px solid #ffffff25;
+  border-radius: 12px;
+  color: #dedff6;
+  background: #ffffff08;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease;
+
+  &:hover {
+    border-color: #b49aff;
+    background: #9670ff20;
+    transform: translateY(-2px);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 4px;
+  }
+}
+
+.encabezado {
+  margin: clamp(25px, 4vh, 50px) auto 22px;
+  text-align: center;
+  animation: aparecer 650ms ease both;
+
+  h1 {
+    margin: 12px 0 0;
+    font-size: clamp(26px, 3.4vw, 60px);
+    font-weight: 900;
+    line-height: 1.12;
+    letter-spacing: -1px;
+    overflow-wrap: anywhere;
+    text-shadow: 0 4px 25px #0008;
+  }
+}
+
+.etiqueta {
+  display: inline-block;
+  color: #b2a6d8;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+}
+
+.detalles {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 9px;
+  margin: 0 auto;
+  animation: aparecer 750ms ease both;
+
+  span {
+    padding: 9px 16px;
+    border: 1px solid #ffffff16;
+    border-radius: 30px;
+    background: #ffffff06;
+    color: #c2c6df;
+    font-size: clamp(11px, 1vw, 14px);
+    font-weight: 600;
+    backdrop-filter: blur(10px);
+  }
+}
+
+.versus {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(16px, 2vw, 36px);
+  max-width: 1600px;
+  margin: clamp(30px, 5vh, 60px) auto;
+}
+
+.robot {
+  position: relative;
+  min-width: 0;
+  padding: clamp(20px, 2.5vw, 42px);
+  overflow: hidden;
+  border: 1px solid;
+  border-radius: 28px;
+  text-align: center;
+
+  transition:
+    border-color 500ms ease,
+    box-shadow 500ms ease,
+    background 500ms ease;
+
+  // Reflejo diagonal.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      125deg,
+      #ffffff0a,
+      transparent 35%,
+      transparent 70%,
+      #ffffff03
+    );
+  }
+
+  // Línea de luz superior.
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 12%;
+    right: 12%;
+    height: 3px;
+    background: var(--accent);
+    box-shadow: 0 0 22px var(--accent);
+  }
+
+  h2 {
+    position: relative;
+    margin: 20px 0 8px;
+    font-size: clamp(28px, 3.8vw, 68px);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -1px;
+    overflow-wrap: anywhere;
+    text-shadow: 0 4px 18px #0008;
+  }
+
+  > p {
+    margin: 0;
+    min-height: 28px;
+    color: #b9c1db;
+    font-size: clamp(15px, 1.6vw, 25px);
+    font-weight: 500;
+    overflow-wrap: anywhere;
+  }
+
+  > strong {
+    display: inline-block;
+    margin-top: 22px;
+    padding: 12px 24px;
+    border: 1px solid #ffd66b80;
+    border-radius: 40px;
+    color: #ffe7a5;
+    background: #b8861826;
+    font-size: clamp(16px, 1.7vw, 28px);
+    font-weight: 900;
+    letter-spacing: 3px;
+    animation: coronar 650ms ease both;
+  }
+}
+
+.azul {
+  --accent: #3288ff;
+
+  border-color: #3288ff66;
+  background:
+    radial-gradient(ellipse at 50% 15%, #2877ff25, transparent 70%),
+    linear-gradient(160deg, #122442, #0c1425);
+
+  box-shadow:
+    0 20px 70px #0005,
+    -15px 0 80px #1466ff10,
+    inset 0 0 50px #2b76ff08;
+
+  animation: entrarAzul 750ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+
+  .lado {
+    color: #89bbff;
+  }
+}
+
+.rojo {
+  --accent: #ff375f;
+
+  border-color: #ff375f66;
+  background:
+    radial-gradient(ellipse at 50% 15%, #ff375f25, transparent 70%),
+    linear-gradient(200deg, #351829, #1d101e);
+
+  box-shadow:
+    0 20px 70px #0005,
+    15px 0 80px #ff375f10,
+    inset 0 0 50px #ff375f08;
+
+  animation: entrarRojo 750ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+
+  .lado {
+    color: #ff93aa;
+  }
+}
+
+.lado {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 4px;
+
+  &::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 12px var(--accent);
+  }
+}
+
+.foto {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 8px;
+
+  height: clamp(180px, 29vh, 350px);
+  margin-top: 25px;
+  overflow: hidden;
+  border: 1px solid #ffffff0c;
+  border-radius: 20px;
+
+  background:
+    radial-gradient(ellipse at center, #ffffff0a, transparent 75%),
+    #00000025;
+
+  // Plataforma debajo del robot.
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 12px;
+    width: 65%;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.14;
+    filter: blur(12px);
+    pointer-events: none;
+  }
+
+  img {
+    position: relative;
+    z-index: 1;
+    display: block;
+    max-width: 92%;
+    max-height: 90%;
+    object-fit: contain;
+    filter: drop-shadow(0 18px 18px #0008);
+    animation: revelarRobot 800ms ease both;
+  }
+
+  .etiqueta {
+    font-size: 9px;
+    letter-spacing: 2px;
+  }
+}
+
+.inicial {
+  font-size: clamp(70px, 8vw, 130px);
+  font-weight: 900;
+  color: #ffffff18;
+  letter-spacing: -5px;
+}
+
+.centro {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  animation: aparecer 900ms ease both;
+
+  > p {
+    margin-top: 20px;
+    color: #929bb9;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  > strong {
+    display: inline-block;
+    padding: 10px 16px;
+    border: 1px solid #ffd66b50;
+    border-radius: 12px;
+    color: var(--gold);
+    background: #ffd66b10;
+    font-size: 20px;
+    letter-spacing: 3px;
+  }
+}
+
+.estado {
+  display: inline-block;
+  padding: 9px 12px;
+  border: 1px solid #ba9aff40;
+  border-radius: 30px;
+  color: #dccaff;
+  background: #a270ff12;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  line-height: 1.5;
+}
+
+.vs {
+  position: relative;
+  margin: 20px 0;
+  color: #fff;
+  font-size: clamp(75px, 8vw, 140px);
+  font-weight: 950;
+  font-style: italic;
+  line-height: 1;
+  letter-spacing: -10px;
+  transform: translateX(-4px);
+
+  text-shadow:
+    -3px 0 0 #3288ff,
+    3px 0 0 #ff375f,
+    0 0 25px #a477ff65,
+    0 0 65px #a477ff35;
+
+  animation: brilloVersus 4s ease-in-out infinite;
+
+  &::after {
+    content: '';
+    display: block;
+    width: 70px;
+    height: 3px;
+    margin: 18px auto 0;
+    transform: skewX(-30deg);
+    background: linear-gradient(90deg, var(--blue), #fff, var(--red));
+    box-shadow: 0 0 20px #b08bff60;
+  }
+}
+
+.robot.ganador {
+  --accent: #ffd66b;
+
+  border-color: var(--gold);
+
+  background:
+    radial-gradient(ellipse at top, #ffd66b20, transparent 65%),
+    linear-gradient(160deg, #2a2418, #11131d);
+
+  box-shadow:
+    0 0 0 1px #ffd66b30,
+    0 0 60px #ffd66b20,
+    0 20px 70px #0005;
+
+  .lado {
+    color: #ffe6a3;
+  }
+
+  h2 {
+    color: #fff0c8;
+  }
+}
+
+.espera {
+  max-width: 900px;
+  margin: auto;
+  padding: clamp(60px, 12vh, 150px) 10px;
+  text-align: center;
+  animation: aparecer 700ms ease both;
+
+  .vs {
+    margin: 30px 0;
+  }
+
+  h2 {
+    font-size: clamp(26px, 3.5vw, 48px);
+    line-height: 1.2;
+  }
+
+  p {
+    color: #9da5c1;
+    font-size: 16px;
+    line-height: 1.7;
+  }
+}
+
+.conexion {
+  max-width: 1000px;
+  margin: 18px auto;
+  padding: 13px 20px;
+  border: 1px solid #fbbf2450;
+  border-radius: 12px;
+  color: #fde5a0;
+  background: #78350f50;
+  text-align: center;
+  font-size: 14px;
+}
+
+footer {
+  padding: 22px 0;
+  border-top: 1px solid #ffffff0b;
+  color: #777f9c;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 3px;
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes entrarAzul {
+  from {
+    opacity: 0;
+    transform: translateX(-35px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes entrarRojo {
+  from {
+    opacity: 0;
+    transform: translateX(35px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes revelarRobot {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes coronar {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes brilloVersus {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+
+  50% {
+    filter: brightness(1.2);
+  }
+}
+
+// Tablets: conserva ambos robots frente a frente.
+@media (max-width: 1000px) {
+  .versus {
+    grid-template-columns: minmax(0, 1fr) 100px minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .robot {
+    padding: 22px 16px;
+    border-radius: 20px;
+  }
+
+  .lado {
+    font-size: 10px;
+    letter-spacing: 2px;
+  }
+
+  .vs {
+    font-size: 85px;
+  }
+
+  .estado {
+    font-size: 9px;
+    padding: 7px;
+  }
+}
+
+// Celulares: robots uno debajo del otro.
+@media (max-width: 600px) {
+  main {
+    padding: 18px;
+  }
+
+  header {
+    gap: 10px;
+  }
+
+  .marca {
+    font-size: 14px;
+    letter-spacing: 2px;
+  }
+
+  button {
+    padding: 9px 10px;
+    font-size: 10px;
+  }
+
+  .encabezado {
+    margin-top: 30px;
+  }
+
+  .etiqueta {
+    font-size: 9px;
+    letter-spacing: 3px;
+  }
+
+  .detalles {
+    gap: 6px;
+
+    span {
+      padding: 7px 10px;
+      font-size: 10px;
+    }
+  }
+
+  .versus {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    margin-top: 28px;
+  }
+
+  .foto {
+    height: 210px;
+  }
+
+  .centro {
+    padding: 0;
+
+    > p {
+      margin: 0;
+    }
+  }
+
+  .vs {
+    margin: 12px 0;
+    font-size: 75px;
+
+    &::after {
+      margin-top: 10px;
+    }
+  }
+
+  .robot h2 {
+    font-size: 36px;
+  }
+
+  footer {
+    font-size: 9px;
+    letter-spacing: 2px;
+  }
+}
+
+// Pantallas horizontales con poca altura.
+@media (min-width: 1000px) and (max-height: 800px) {
+  main {
+    padding-top: 16px;
+  }
+
+  header {
+    padding-bottom: 12px;
+  }
+
+  .encabezado {
+    margin-top: 20px;
+    margin-bottom: 16px;
+  }
+
+  .versus {
+    margin-top: 24px;
+    margin-bottom: 24px;
+  }
+
+  .robot {
+    padding: 22px;
+  }
+
+  .foto {
+    height: 25vh;
+    margin-top: 16px;
+  }
+
+  .robot h2 {
+    font-size: clamp(28px, 3vw, 48px);
+  }
+
+  footer {
+    padding: 14px 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

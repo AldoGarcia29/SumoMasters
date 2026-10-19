@@ -45,6 +45,9 @@ export class Torneo {
 
   @Prop({ type: Boolean, default: false, index: true })
   publico: boolean;
+
+    @Prop({ type: Types.ObjectId, ref: 'Combate', default: null })
+  combateProyectado: Types.ObjectId | null;
 }
 
 export const TorneoSchema = SchemaFactory.createForClass(Torneo);

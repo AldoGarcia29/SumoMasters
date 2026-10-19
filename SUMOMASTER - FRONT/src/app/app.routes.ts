@@ -188,5 +188,20 @@ export const routes: Routes = [
         (m) => m.ConfiguracionComponent,
       ),
   },
+  {
+  path: 'torneos/:id/control-versus',
+  canActivate: [authGuard, ADMIN_Y_STAFF],
+  loadComponent: () =>
+    import('./features/control-versus/control-versus.component').then(
+      m => m.ControlVersusComponent,
+    ),
+},
+{
+  path: 'versus/:id',
+  loadComponent: () =>
+    import('./public/versus/versus.component').then(
+      m => m.VersusComponent,
+    ),
+},
   { path: '**', redirectTo: 'auth/login' },
 ];

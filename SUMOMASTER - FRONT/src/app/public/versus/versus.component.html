@@ -1,0 +1,291 @@
+<main>
+  <header>
+    <span class="marca">
+      SUMO <b>MASTERS</b>
+    </span>
+
+    <button type="button" (click)="pantallaCompleta()">
+      Pantalla completa ⛶
+    </button>
+  </header>
+
+  <!-- Avisos de conexión o disponibilidad -->
+  <p class="conexion" role="status" *ngIf="error()">
+    {{ error() }}
+  </p>
+
+  <ng-container *ngIf="data() as d">
+    <div class="encabezado">
+      <span class="etiqueta">
+        PANTALLA DEL TORNEO
+      </span>
+
+      <h1>{{ d.torneo.nombre }}</h1>
+    </div>
+
+    <!-- Combate seleccionado por el organizador -->
+    <ng-container *ngIf="d.combate as c; else espera">
+      <div class="detalles">
+        <span>{{ c.fase }}</span>
+
+        <span *ngIf="c.bloque">
+          {{ c.bloque.nombre }}
+        </span>
+
+        <span>
+          {{ c.dojo?.nombre || 'Dojo por asignar' }}
+        </span>
+
+        <span>
+          Arena {{ c.arena ?? '—' }}
+        </span>
+
+        <span>
+          Turno {{ c.turno ?? '—' }}
+        </span>
+
+        <span>
+          Combate #{{ c.numero }}
+        </span>
+      </div>
+
+      <section
+        class="versus"
+        aria-label="Competidores del combate seleccionado"
+      >
+        <!-- Robot del lado azul -->
+        <article
+          class="robot azul"
+          [class.ganador]="
+            c.estado === 'Finalizado' &&
+            c.resultado === 'Gana Robot 1'
+          "
+        >
+          <span class="lado">
+            LADO AZUL
+          </span>
+
+          <div class="foto">
+            <ng-container *ngIf="c.robot1 as robot; else sinRobot1">
+              <img
+                *ngIf="robot.imagenUrl; else sinFoto1"
+                [src]="robot.imagenUrl"
+                [alt]="'Robot ' + robot.nombre"
+                (load)="
+                  $any($event.target).style.display = '';
+                  fallbackAzul.hidden = true
+                "
+                (error)="
+                  $any($event.target).style.display = 'none';
+                  fallbackAzul.hidden = false
+                "
+              />
+
+              <span
+                #fallbackAzul
+                class="inicial"
+                [hidden]="!!robot.imagenUrl"
+                aria-hidden="true"
+              >
+                R1
+              </span>
+
+              <ng-template #sinFoto1>
+                <span class="etiqueta">SIN FOTOGRAFÍA</span>
+              </ng-template>
+            </ng-container>
+
+            <ng-template #sinRobot1>
+              <span class="inicial">?</span>
+            </ng-template>
+          </div>
+
+          <h2>
+            {{ c.robot1?.nombre || 'Por definir' }}
+          </h2>
+
+          <p>
+            {{ equipo(c.robot1) || 'Equipo no disponible' }}
+          </p>
+
+          <strong
+            *ngIf="
+              c.estado === 'Finalizado' &&
+              c.resultado === 'Gana Robot 1'
+            "
+          >
+            🏆 GANADOR
+          </strong>
+        </article>
+
+        <!-- Centro del versus -->
+        <div class="centro">
+          <span class="estado">
+            {{
+              c.estado === 'En curso'
+                ? '● EN CURSO'
+                : c.estado === 'Finalizado'
+                  ? 'FINALIZADO'
+                  : 'PRÓXIMO COMBATE'
+            }}
+          </span>
+
+          <div class="vs" aria-label="contra">
+            VS
+          </div>
+
+          <strong
+            *ngIf="
+              c.estado === 'Finalizado' &&
+              c.resultado === 'Empate'
+            "
+          >
+            EMPATE
+          </strong>
+
+          <p *ngIf="c.estado === 'Pendiente'">
+            Preparando competidores
+          </p>
+
+          <p *ngIf="c.estado === 'En curso'">
+            Combate en desarrollo
+          </p>
+
+          <p
+            *ngIf="
+              c.estado === 'Finalizado' &&
+              !c.resultado
+            "
+          >
+            Resultado no disponible
+          </p>
+        </div>
+
+        <!-- Robot del lado rojo -->
+        <article
+          class="robot rojo"
+          [class.ganador]="
+            c.estado === 'Finalizado' &&
+            c.resultado === 'Gana Robot 2'
+          "
+        >
+          <span class="lado">
+            LADO ROJO
+          </span>
+
+          <div class="foto">
+            <ng-container *ngIf="c.robot2 as robot; else sinRobot2">
+              <img
+                *ngIf="robot.imagenUrl; else sinFoto2"
+                [src]="robot.imagenUrl"
+                [alt]="'Robot ' + robot.nombre"
+                (load)="
+                  $any($event.target).style.display = '';
+                  fallbackRojo.hidden = true
+                "
+                (error)="
+                  $any($event.target).style.display = 'none';
+                  fallbackRojo.hidden = false
+                "
+              />
+
+              <span
+                #fallbackRojo
+                class="inicial"
+                [hidden]="!!robot.imagenUrl"
+                aria-hidden="true"
+              >
+                R2
+              </span>
+
+              <ng-template #sinFoto2>
+                <span class="etiqueta">SIN FOTOGRAFÍA</span>
+              </ng-template>
+            </ng-container>
+
+            <ng-template #sinRobot2>
+              <span class="inicial">?</span>
+            </ng-template>
+          </div>
+
+          <h2>
+            {{ c.robot2?.nombre || 'Por definir' }}
+          </h2>
+
+          <p>
+            {{ equipo(c.robot2) || 'Equipo no disponible' }}
+          </p>
+
+          <strong
+            *ngIf="
+              c.estado === 'Finalizado' &&
+              c.resultado === 'Gana Robot 2'
+            "
+          >
+            🏆 GANADOR
+          </strong>
+        </article>
+      </section>
+    </ng-container>
+
+    <!-- Torneo disponible sin combate seleccionado -->
+    <ng-template #espera>
+      <section class="espera">
+        <span class="etiqueta">
+          BIENVENIDOS
+        </span>
+
+        <div class="vs">
+          VS
+        </div>
+
+        <h2>
+          Preparando el siguiente enfrentamiento
+        </h2>
+
+        <p>
+          Los competidores se anunciarán en esta pantalla.
+        </p>
+      </section>
+    </ng-template>
+  </ng-container>
+
+  <!-- Primera carga -->
+  <section class="espera" *ngIf="!data() && !error()">
+    <div class="vs">
+      VS
+    </div>
+
+    <h2>
+      Cargando torneo…
+    </h2>
+
+    <p>
+      Consultando el combate seleccionado.
+    </p>
+  </section>
+
+  <!-- Sin datos y con error -->
+  <section class="espera" *ngIf="!data() && error()">
+    <div class="vs">
+      VS
+    </div>
+
+    <h2>
+      Pantalla en espera
+    </h2>
+
+    <p>
+      La consulta se reintentará automáticamente.
+    </p>
+  </section>
+
+  <footer>
+    SUMO MASTERS ·
+    {{
+      error()
+        ? 'CONEXIÓN PENDIENTE'
+        : 'ACTUALIZACIÓN AUTOMÁTICA'
+    }}
+  </footer>
+</main>
