@@ -11,6 +11,7 @@ import { RobotService } from '../../core/services/robot.service';
 import { EstadoTorneo, Torneo } from '../../core/models/torneo.model';
 import { Categoria } from '../../core/models/categoria.model';
 import { Robot } from '../../core/models/robot.model';
+import { CanDirective } from '../../shared/directives/can.directive';
 
 type ModalMode = 'create' | 'edit' | 'view' | null;
 type TabFilter = 'todos' | EstadoTorneo;
@@ -20,7 +21,7 @@ const PAGE_SIZE = 6;
 @Component({
   selector: 'app-torneos',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, SidebarComponent, TopbarComponent],
+  imports: [CanDirective, CommonModule, ReactiveFormsModule, RouterLink, SidebarComponent, TopbarComponent],
   templateUrl: './torneos.component.html',
   styleUrl: './torneos.component.scss',
 })

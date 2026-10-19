@@ -28,7 +28,7 @@
 
   <nav class="sidebar__nav">
     <a
-      *ngFor="let item of navItems"
+      *ngFor="let item of visibleNavItems()"
       [routerLink]="item.route ?? null"
       routerLinkActive="sidebar__item--active"
       [class.sidebar__item]="true"

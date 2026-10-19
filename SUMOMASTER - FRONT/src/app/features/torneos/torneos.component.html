@@ -14,7 +14,7 @@
     <main class="torneos">
       <section class="panel panel--header">
         <h2>Torneos</h2>
-        <button type="button" class="btn btn--primary" (click)="openCreateModal()">
+        <button *appCan="'manage'" type="button" class="btn btn--primary" (click)="openCreateModal()">
           <svg viewBox="0 0 24 24" width="16" height="16">
             <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
           </svg>
@@ -63,7 +63,7 @@
                 </td>
                 <td>{{ torneo.robotsInscritos.length }}</td>
                 <td class="table__actions">
-                  <a [routerLink]="['/torneos', torneo._id, 'bloques']" aria-label="Gestionar fases" title="Gestionar fases">
+                  <a *appCan="'manage'" [routerLink]="['/torneos', torneo._id, 'bloques']" aria-label="Gestionar fases" title="Gestionar fases">
                     <svg viewBox="0 0 24 24" width="16" height="16">
                       <rect x="4" y="4" width="7" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6" />
                       <rect x="13" y="4" width="7" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6" />
@@ -71,7 +71,7 @@
                       <rect x="13" y="13" width="7" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6" />
                     </svg>
                   </a>
-                  <button type="button" aria-label="Editar" (click)="openEditModal(torneo)">
+                  <button *appCan="'manage'" type="button" aria-label="Editar" (click)="openEditModal(torneo)">
                     <svg viewBox="0 0 24 24" width="16" height="16">
                       <path d="M4 20h4L18 10l-4-4L4 16v4Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
                     </svg>
@@ -82,7 +82,7 @@
                       <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6" />
                     </svg>
                   </button>
-                  <button type="button" class="table__actions-danger" aria-label="Eliminar" (click)="askDelete(torneo)">
+                  <button *appCan="'admin'" type="button" class="table__actions-danger" aria-label="Eliminar" (click)="askDelete(torneo)">
                     <svg viewBox="0 0 24 24" width="16" height="16">
                       <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-1 13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
@@ -270,8 +270,8 @@
 
     <div class="modal__footer">
       <button type="button" class="btn btn--ghost" (click)="closeModal()">Cerrar</button>
-      <a class="btn btn--ghost" [routerLink]="['/torneos', torneo._id, 'bloques']">Gestionar fases →</a>
-      <button type="button" class="btn btn--primary" (click)="openEditModal(torneo)">Editar</button>
+      <a *appCan="'manage'" class="btn btn--ghost" [routerLink]="['/torneos', torneo._id, 'bloques']">Gestionar fases →</a>
+      <button *appCan="'manage'" type="button" class="btn btn--primary" (click)="openEditModal(torneo)">Editar</button>
     </div>
   </div>
 </div>

@@ -13,6 +13,8 @@ import { Roles } from '../common/decorators/roles.decorator';
 import { CreateTorneoDto } from './dto/create-torneo.dto';
 import { UpdateTorneoDto } from './dto/update-torneo.dto';
 import { TorneosService } from './torneos.service';
+import { UpdateHorarioDto } from '../public/dto/update-horario.dto';
+import { UpdateVisibilidadDto } from '../public/dto/update-visibilidad.dto';
 
 @Controller('torneos')
 export class TorneosController {
@@ -48,5 +50,20 @@ export class TorneosController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.torneosService.remove(id);
+  }
+
+  @Roles(Role.USER)
+  @Patch(':id/horario')
+  actualizarHorario(@Param('id') id: string, @Body() dto: UpdateHorarioDto) {
+    return this.torneosService.actualizarHorario(id, dto);
+  }
+
+  @Roles(Role.USER)
+  @Patch(':id/publico')
+  cambiarVisibilidad(
+    @Param('id') id: string,
+    @Body() dto: UpdateVisibilidadDto,
+  ) {
+    return this.torneosService.cambiarVisibilidad(id, dto.publico);
   }
 }

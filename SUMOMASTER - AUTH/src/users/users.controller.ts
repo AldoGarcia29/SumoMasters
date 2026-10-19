@@ -3,6 +3,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from './enums/role.enum';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { UsersService } from './users.service';
+import { ParseObjectIdPipe } from '@nestjs/mongoose/dist/pipes/parse-object-id.pipe';
 
 @Controller('users')
 export class UsersController {
@@ -16,25 +17,28 @@ export class UsersController {
 
   @Roles(Role.ADMIN)
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseObjectIdPipe) id: string) {
     return this.usersService.findById(id);
   }
 
   @Roles(Role.ADMIN)
   @Patch(':id/roles')
-  updateRoles(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto) {
+  updateRoles(
+    @Param('id', ParseObjectIdPipe) id: string,
+    @Body() updateRoleDto: UpdateRoleDto,
+  ) {
     return this.usersService.updateRoles(id, updateRoleDto);
   }
 
   @Roles(Role.ADMIN)
   @Patch(':id/activate')
-  activate(@Param('id') id: string) {
+  activate(@Param('id', ParseObjectIdPipe) id: string) {
     return this.usersService.changeActiveStatus(id, true);
   }
 
   @Roles(Role.ADMIN)
   @Patch(':id/deactivate')
-  deactivate(@Param('id') id: string) {
+  deactivate(@Param('id', ParseObjectIdPipe) id: string) {
     return this.usersService.changeActiveStatus(id, false);
   }
 }

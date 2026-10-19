@@ -19,6 +19,8 @@ interface NavItem {
   label: string;
   route?: string;
   hasChevron?: boolean;
+  /** Si se define, el ítem solo se muestra a usuarios con alguno de estos roles. */
+  roles?: Role[];
 }
 
 @Component({
@@ -47,11 +49,19 @@ export class SidebarComponent {
     { icon: 'swords', label: 'Combates', route: '/combates' },
     { icon: 'building', label: 'Dojos', route: '/dojos' },
     { icon: 'file', label: 'Reportes', route: '/reportes' },
-    { icon: 'user', label: 'Usuarios', route: '/usuarios' },
+    { icon: 'user', label: 'Usuarios', route: '/usuarios', roles: [Role.ADMIN] },
     { icon: 'settings', label: 'Configuración', route: '/configuracion' },
   ];
 
   readonly currentUser = this.authService.currentUser;
+
+  /** Solo los ítems del menú a los que el usuario tiene acceso. */
+  readonly visibleNavItems = computed(() => {
+    this.currentUser(); // dependencia reactiva: se recalcula si cambia la sesión
+    return this.navItems.filter(
+      (item) => !item.roles || this.authService.hasAnyRole(item.roles),
+    );
+  });
 
   readonly displayName = computed(
     () => this.currentUser()?.name ?? this.currentUser()?.username ?? 'Invitado',

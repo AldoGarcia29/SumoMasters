@@ -10,13 +10,14 @@ import {
   EstadoCategoria,
   TipoCombate,
 } from '../../core/models/categoria.model';
+import { CanDirective } from '../../shared/directives/can.directive';
 
 type ModalMode = 'create' | 'edit' | 'view' | null;
 
 @Component({
   selector: 'app-categorias',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, SidebarComponent, TopbarComponent],
+  imports: [CanDirective, CommonModule, ReactiveFormsModule, SidebarComponent, TopbarComponent],
   templateUrl: './categorias.component.html',
   styleUrl: './categorias.component.scss',
 })

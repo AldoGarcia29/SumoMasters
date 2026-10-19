@@ -174,11 +174,16 @@
                 <app-robot-chip [robot]="combate.robot2" [showEquipo]="false" />
               </div>
 
-              <button type="button" class="btn btn--primary btn--sm" *ngIf="combate.estado === 'Pendiente'"
-                [disabled]="starting()" (click)="registrar(combate); $event.stopPropagation()">
-                Registrar
-              </button>
-              <span class="badge" [class]="estadoBadgeClass(combate.estado)" *ngIf="combate.estado !== 'Pendiente'">
+              <button
+  type="button"
+  class="btn btn--primary btn--sm"
+  *ngIf="combate.estado === 'Pendiente' && canManage()"
+  [disabled]="starting()"
+  (click)="registrar(combate); $event.stopPropagation()"
+>
+  Registrar
+</button>
+              <span class="badge" [class]="estadoBadgeClass(combate.estado)" *ngIf="combate.estado !== 'Pendiente' || !canManage()">
                 {{ combate.estado }}
               </span>
             </li>
@@ -198,10 +203,17 @@
 
         <!-- 2. Registrar resultado -->
         <section class="panel resultados-col">
-          <h4>2. Registrar resultado</h4>
+          <h4>{{ canManage() ? '2. Registrar resultado' : '2. Resultado del combate' }}</h4>
 
-          <div *ngIf="!selectedCombate()" class="empty-hint">Selecciona un combate de la lista para registrar su
-            resultado.</div>
+<div *ngIf="!selectedCombate()" class="empty-hint">
+  {{
+    canManage()
+      ? 'Selecciona un combate de la lista para registrar su resultado.'
+      : 'Selecciona un combate de la lista para consultar su resultado.'
+  }}
+</div>
+
+
 
           <ng-container *ngIf="selectedCombate() as combate">
             <p class="combate-title">
@@ -257,8 +269,11 @@
               </div>
             </div>
 
-            <form [formGroup]="form" (ngSubmit)="submitResultado()"
-              *ngIf="combate.estado !== 'Finalizado'; else soloLectura">
+
+            <form
+  [formGroup]="form"
+  (ngSubmit)="submitResultado()"
+  *ngIf="combate.estado !== 'Finalizado' && canManage(); else soloLectura">
               <div class="field">
                 <span>Resultado del combate</span>
                 <div class="radio-row">
@@ -315,7 +330,12 @@
 
             <ng-template #soloLectura>
               <div class="info-box">
-                Este combate ya fue registrado como <strong>{{ combate.resultado }}</strong> y no puede modificarse.
+                <ng-container *ngIf="combate.estado === 'Finalizado'; else sinPermiso">
+                  Este combate ya fue registrado como <strong>{{ combate.resultado }}</strong> y no puede modificarse.
+                </ng-container>
+                <ng-template #sinPermiso>
+                  Este combate está <strong>{{ combate.estado }}</strong>. Solo el personal autorizado (Staff o Administrador) puede registrar resultados.
+                </ng-template>
               </div>
             </ng-template>
           </ng-container>
@@ -371,7 +391,7 @@
             <li class="table__empty" *ngIf="combate.historial.length === 0">Sin eventos registrados todavía.</li>
           </ul>
 
-          <div class="info-box">
+          <div class="info-box" *ngIf="canManage()">
             Asegúrate de registrar el resultado correctamente. Una vez guardado, no podrá ser modificado.
           </div>
         </section>

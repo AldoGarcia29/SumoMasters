@@ -2,31 +2,24 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
-  OnModuleInit,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { MongoServerError } from 'mongodb';
-import { Model, QueryFilter } from 'mongoose';
+import { Model } from 'mongoose';
 
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { Role } from './enums/role.enum';
 import { User, UserDocument } from './schemas/user.schema';
 
 @Injectable()
-export class UsersService implements OnModuleInit {
+export class UsersService {
   private readonly saltRounds = 12;
 
   constructor(
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
-    private readonly configService: ConfigService,
   ) {}
-
-  async onModuleInit(): Promise<void> {
-    await this.createInitialAdmin();
-  }
 
   async create(
     name: string,
@@ -158,80 +151,6 @@ export class UsersService implements OnModuleInit {
     }
 
     return user;
-  }
-
-  private async createInitialAdmin(): Promise<void> {
-    const adminEmail = this.configService
-      .get<string>('ADMIN_EMAIL')
-      ?.trim()
-      .toLowerCase();
-
-    const adminUsername = this.configService
-      .get<string>('ADMIN_USERNAME')
-      ?.trim()
-      .toLowerCase();
-
-    const adminPassword = this.configService.get<string>('ADMIN_PASSWORD');
-
-    const adminName =
-      this.configService.get<string>('ADMIN_NAME')?.trim() || 'Administrador';
-
-    if (!adminEmail || !adminUsername || !adminPassword) {
-      console.warn(
-        'No se creó el administrador porque faltan variables ADMIN_*',
-      );
-
-      return;
-    }
-
-    const query: QueryFilter<UserDocument> = {
-      $or: [{ email: adminEmail }, { username: adminUsername }],
-    };
-
-    const existingAdmin = await this.userModel.findOne(query).exec();
-
-    if (existingAdmin) {
-      let requiresUpdate = false;
-
-      if (!existingAdmin.roles.includes(Role.ADMIN)) {
-        existingAdmin.roles = [
-          ...new Set([...existingAdmin.roles, Role.ADMIN]),
-        ];
-
-        requiresUpdate = true;
-      }
-
-      if (!existingAdmin.active) {
-        existingAdmin.active = true;
-        requiresUpdate = true;
-      }
-
-      if (requiresUpdate) {
-        await existingAdmin.save();
-      }
-
-      console.log('El administrador inicial ya existe');
-
-      return;
-    }
-
-    const encryptedPassword = await bcrypt.hash(adminPassword, this.saltRounds);
-
-    try {
-      await this.userModel.create({
-        name: adminName,
-        email: adminEmail,
-        username: adminUsername,
-        password: encryptedPassword,
-        roles: [Role.ADMIN],
-        active: true,
-      });
-
-      console.log('Administrador inicial creado correctamente');
-    } catch (error: unknown) {
-      this.handleDuplicateKeyError(error);
-      throw error;
-    }
   }
 
   private handleDuplicateKeyError(error: unknown): void {

@@ -36,6 +36,15 @@ export class Torneo {
   /** Tamaño de bloque usado en la fase de grupos (por defecto 16). */
   @Prop({ default: 16, min: 2 })
   tamanioBloque: number;
+
+  @Prop({ type: Date, default: null })
+  horaInicio?: Date | null;
+
+  @Prop({ type: Number, default: 15, min: 1, max: 120 })
+  duracionCombateMin: number;
+
+  @Prop({ type: Boolean, default: false, index: true })
+  publico: boolean;
 }
 
 export const TorneoSchema = SchemaFactory.createForClass(Torneo);

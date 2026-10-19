@@ -14,7 +14,7 @@
     <main class="robots">
       <section class="panel panel--header">
         <h2>Robots registrados</h2>
-        <button type="button" class="btn btn--primary" (click)="openCreateModal()">
+        <button *appCan="'manage'" type="button" class="btn btn--primary" (click)="openCreateModal()">
           <svg viewBox="0 0 24 24" width="16" height="16">
             <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
           </svg>
@@ -73,7 +73,7 @@
                   <span class="badge" [class]="estadoBadgeClass(robot.estado)">{{ robot.estado }}</span>
                 </td>
                 <td class="table__actions">
-                  <button type="button" aria-label="Editar" (click)="openEditModal(robot)">
+                  <button *appCan="'manage'" type="button" aria-label="Editar" (click)="openEditModal(robot)">
                     <svg viewBox="0 0 24 24" width="16" height="16">
                       <path d="M4 20h4L18 10l-4-4L4 16v4Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
                     </svg>
@@ -84,7 +84,7 @@
                       <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6" />
                     </svg>
                   </button>
-                  <button type="button" class="table__actions-danger" aria-label="Eliminar" (click)="askDelete(robot)">
+                  <button *appCan="'admin'" type="button" class="table__actions-danger" aria-label="Eliminar" (click)="askDelete(robot)">
                     <svg viewBox="0 0 24 24" width="16" height="16">
                       <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-1 13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
@@ -235,7 +235,7 @@
 
     <div class="modal__footer">
       <button type="button" class="btn btn--ghost" (click)="closeModal()">Cerrar</button>
-      <button type="button" class="btn btn--primary" (click)="openEditModal(robot)">Editar</button>
+      <button *appCan="'manage'" type="button" class="btn btn--primary" (click)="openEditModal(robot)">Editar</button>
     </div>
   </div>
 </div>

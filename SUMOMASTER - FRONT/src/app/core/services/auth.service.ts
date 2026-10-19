@@ -8,6 +8,7 @@ import {
   AuthUser,
   LoginRequest,
   RegisterRequest,
+  Role,
 } from '../models/auth.model';
 
 const TOKEN_KEY = 'sumo_masters_token';
@@ -26,6 +27,17 @@ export class AuthService {
   readonly isAuthenticated = computed(
     () => this.currentUserSignal() !== null,
   );
+
+  /** ADMIN: puede todo, incluida la eliminación y la gestión de usuarios. */
+  readonly isAdmin = computed(() => this.hasAnyRole([Role.ADMIN]));
+
+  /** ADMIN o STAFF: puede crear, editar y operar torneos/combates (no eliminar). */
+  readonly canManage = computed(() => this.hasAnyRole([Role.ADMIN, Role.STAFF]));
+
+  hasAnyRole(roles: Role[]): boolean {
+    const userRoles = this.currentUserSignal()?.roles ?? [];
+    return roles.some((role) => userRoles.includes(role));
+  }
 
   constructor(
     private readonly http: HttpClient,

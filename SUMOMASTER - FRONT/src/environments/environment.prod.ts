@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: '/api',
-  coreApiUrl: '/core-api',
+  apiUrl: 'https://sumomasters-auht.onrender.com/api',
+  coreApiUrl: 'https://sumomasters-core.onrender.com/api', // o el prefijo que use tu core
 };

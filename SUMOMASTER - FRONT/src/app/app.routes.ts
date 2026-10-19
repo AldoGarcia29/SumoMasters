@@ -1,8 +1,27 @@
 import { Routes } from '@angular/router';
 import { authGuard, guestGuard } from './core/guards/auth.guard';
 import { TorneoClasificadosComponent } from './features/torneo-clasificados/torneo-clasificados.component';
+import { roleGuard } from './core/guards/role.guard';
+import { Role } from './core/models/auth.model';
+
+const SOLO_ADMIN = roleGuard([Role.ADMIN]);
+const ADMIN_Y_STAFF = roleGuard([Role.ADMIN, Role.STAFF]);
 
 export const routes: Routes = [
+  {
+    path: 'live',
+    loadComponent: () =>
+      import('./public/torneos-publicos/torneos-publicos.component').then(
+        (m) => m.TorneosPublicosComponent,
+      ),
+  },
+  {
+    path: 'live/:id',
+    loadComponent: () =>
+      import('./public/live-torneo/live-torneo.component').then(
+        (m) => m.LiveTorneoComponent,
+      ),
+  },
   { path: '', pathMatch: 'full', redirectTo: 'auth/login' },
   {
     path: 'auth/login',
@@ -99,7 +118,7 @@ export const routes: Routes = [
   },
   {
     path: 'torneos/:id/bloques',
-    canActivate: [authGuard],
+    canActivate: [authGuard, ADMIN_Y_STAFF],
     loadComponent: () =>
       import('./features/torneo-bloques/torneo-bloques.component').then(
         (m) => m.TorneoBloquesComponent,
@@ -107,7 +126,7 @@ export const routes: Routes = [
   },
   {
     path: 'torneos/:id/enfrentamientos',
-    canActivate: [authGuard],
+    canActivate: [authGuard, ADMIN_Y_STAFF],
     loadComponent: () =>
       import('./features/torneo-enfrentamientos/torneo-enfrentamientos.component').then(
         (m) => m.TorneoEnfrentamientosComponent,
@@ -115,7 +134,7 @@ export const routes: Routes = [
   },
   {
     path: 'torneos/:id/dojos',
-    canActivate: [authGuard],
+    canActivate: [authGuard, ADMIN_Y_STAFF],
     loadComponent: () =>
       import('./features/torneo-dojos/torneo-dojos.component').then(
         (m) => m.TorneoDojosComponent,
@@ -155,7 +174,7 @@ export const routes: Routes = [
   },
   {
     path: 'usuarios',
-    canActivate: [authGuard],
+    canActivate: [authGuard, SOLO_ADMIN],
     loadComponent: () =>
       import('./features/usuarios/usuarios.component').then(
         (m) => m.UsuariosComponent,

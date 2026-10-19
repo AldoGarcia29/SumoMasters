@@ -12,6 +12,7 @@ import { CombatesModule } from './combates/combates.module';
 import { RankingModule } from './ranking/ranking.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { PublicModule } from './public/public.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { AppService } from './app.service';
     BloquesModule,
     CombatesModule,
     RankingModule,
+    PublicModule,
   ],
   controllers: [AppController],
   providers: [AppService],
