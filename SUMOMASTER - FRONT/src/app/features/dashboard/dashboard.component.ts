@@ -12,6 +12,7 @@ import { SidebarComponent } from '../../shared/components/sidebar/sidebar.compon
 import { TopbarComponent } from '../../shared/components/topbar/topbar.component';
 import { EstadoTorneo } from '../../core/models/torneo.model';
 import { EstadoRobot } from '../../core/models/robot.model';
+import { CanDirective } from '../../shared/directives/can.directive';
 
 interface StatCard {
   icon: 'calendar' | 'users' | 'robot' | 'swords';
@@ -77,7 +78,7 @@ function buildDonutSegments(
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, SidebarComponent, TopbarComponent],
+  imports: [CanDirective, CommonModule, RouterLink, SidebarComponent, TopbarComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })

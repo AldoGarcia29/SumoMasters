@@ -25,7 +25,7 @@
           </div>
         </div>
 
-        <a class="btn btn--primary" routerLink="/torneos">
+        <a *appCan="'manage'" class="btn btn--primary" routerLink="/torneos">
           <svg viewBox="0 0 24 24" width="16" height="16">
             <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
           </svg>
@@ -52,8 +52,8 @@
                 <td>{{ categoriaNombre(torneo) }}</td>
                 <td><span class="badge" [class]="estadoBadgeClass(torneo.estado)">{{ torneo.estado }}</span></td>
                 <td class="table__actions-wide">
-                  <a class="btn btn--ghost btn--sm" [routerLink]="['/torneos', torneo._id, 'bloques']">Bloques</a>
-                  <a class="btn btn--ghost btn--sm" [routerLink]="['/torneos', torneo._id, 'enfrentamientos']">Enfrentamientos</a>
+                  <a *appCan="'manage'" class="btn btn--ghost btn--sm" [routerLink]="['/torneos', torneo._id, 'bloques']">Bloques</a>
+                  <a *appCan="'manage'" class="btn btn--ghost btn--sm" [routerLink]="['/torneos', torneo._id, 'enfrentamientos']">Enfrentamientos</a>
                   <a class="btn btn--primary btn--sm" [routerLink]="['/torneos', torneo._id, 'resultados']">Resultados</a>
                 </td>
               </tr>

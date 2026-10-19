@@ -11,6 +11,7 @@ import { CategoriaService } from '../../core/services/categoria.service';
 import { EstadoRobot, Robot } from '../../core/models/robot.model';
 import { Equipo } from '../../core/models/equipo.model';
 import { Categoria } from '../../core/models/categoria.model';
+import { CanDirective } from '../../shared/directives/can.directive';
 
 type ModalMode = 'create' | 'edit' | 'view' | null;
 
@@ -19,7 +20,7 @@ const PAGE_SIZE = 6;
 @Component({
   selector: 'app-robots',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, SidebarComponent, TopbarComponent, ImageUploadComponent],
+  imports: [CanDirective, CommonModule, ReactiveFormsModule, SidebarComponent, TopbarComponent, ImageUploadComponent],
   templateUrl: './robots.component.html',
   styleUrl: './robots.component.scss',
 })

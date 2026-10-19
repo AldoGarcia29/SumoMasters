@@ -14,6 +14,7 @@ import { EquipoService } from '../../core/services/equipo.service';
 import { CategoriaService } from '../../core/services/categoria.service';
 import { Equipo } from '../../core/models/equipo.model';
 import { Categoria } from '../../core/models/categoria.model';
+import { CanDirective } from '../../shared/directives/can.directive';
 
 type ModalMode = 'create' | 'edit' | 'view' | null;
 
@@ -22,7 +23,7 @@ const PAGE_SIZE = 5;
 @Component({
   selector: 'app-equipos',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, SidebarComponent, TopbarComponent, ImageUploadComponent],
+  imports: [CanDirective, CommonModule, ReactiveFormsModule, SidebarComponent, TopbarComponent, ImageUploadComponent],
   templateUrl: './equipos.component.html',
   styleUrl: './equipos.component.scss',
 })

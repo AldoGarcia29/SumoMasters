@@ -92,7 +92,7 @@
                     </td>
                     <td>{{ tournament.participants }}</td>
                     <td class="table__actions">
-                      <a [routerLink]="['/torneos', tournament.id, 'bloques']" aria-label="Gestionar">
+                      <a *appCan="'manage'" [routerLink]="['/torneos', tournament.id, 'bloques']" aria-label="Gestionar">
                         <svg viewBox="0 0 24 24" width="16" height="16">
                           <path d="M5 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>

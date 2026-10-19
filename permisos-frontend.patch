@@ -1,0 +1,678 @@
+diff --git a/SUMOMASTER - FRONT/src/app/app.routes.ts b/SUMOMASTER - FRONT/src/app/app.routes.ts
+index 2690e51..673d08c 100644
+--- a/SUMOMASTER - FRONT/src/app/app.routes.ts	
++++ b/SUMOMASTER - FRONT/src/app/app.routes.ts	
+@@ -1,5 +1,10 @@
+ import { Routes } from '@angular/router';
+ import { authGuard, guestGuard } from './core/guards/auth.guard';
++import { roleGuard } from './core/guards/role.guard';
++import { Role } from './core/models/auth.model';
++
++const SOLO_ADMIN = roleGuard([Role.ADMIN]);
++const ADMIN_Y_STAFF = roleGuard([Role.ADMIN, Role.STAFF]);
+ 
+ export const routes: Routes = [
+   { path: '', pathMatch: 'full', redirectTo: 'auth/login' },
+@@ -83,7 +88,7 @@ export const routes: Routes = [
+   },
+   {
+     path: 'torneos/:id/bloques',
+-    canActivate: [authGuard],
++    canActivate: [authGuard, ADMIN_Y_STAFF],
+     loadComponent: () =>
+       import('./features/torneo-bloques/torneo-bloques.component').then(
+         (m) => m.TorneoBloquesComponent,
+@@ -91,7 +96,7 @@ export const routes: Routes = [
+   },
+   {
+     path: 'torneos/:id/enfrentamientos',
+-    canActivate: [authGuard],
++    canActivate: [authGuard, ADMIN_Y_STAFF],
+     loadComponent: () =>
+       import('./features/torneo-enfrentamientos/torneo-enfrentamientos.component').then(
+         (m) => m.TorneoEnfrentamientosComponent,
+@@ -99,7 +104,7 @@ export const routes: Routes = [
+   },
+   {
+     path: 'torneos/:id/dojos',
+-    canActivate: [authGuard],
++    canActivate: [authGuard, ADMIN_Y_STAFF],
+     loadComponent: () =>
+       import('./features/torneo-dojos/torneo-dojos.component').then(
+         (m) => m.TorneoDojosComponent,
+@@ -139,7 +144,7 @@ export const routes: Routes = [
+   },
+   {
+     path: 'usuarios',
+-    canActivate: [authGuard],
++    canActivate: [authGuard, SOLO_ADMIN],
+     loadComponent: () =>
+       import('./features/usuarios/usuarios.component').then(
+         (m) => m.UsuariosComponent,
+diff --git a/SUMOMASTER - FRONT/src/app/core/guards/role.guard.ts b/SUMOMASTER - FRONT/src/app/core/guards/role.guard.ts
+new file mode 100644
+index 0000000..5c717bd
+--- /dev/null
++++ b/SUMOMASTER - FRONT/src/app/core/guards/role.guard.ts	
+@@ -0,0 +1,23 @@
++import { inject } from '@angular/core';
++import { CanActivateFn, Router } from '@angular/router';
++import { Role } from '../models/auth.model';
++import { AuthService } from '../services/auth.service';
++
++/**
++ * Permite el acceso solo si el usuario tiene al menos uno de los roles indicados.
++ * Si no tiene sesión lo manda al login; si no tiene permiso, al dashboard.
++ */
++export const roleGuard =
++  (allowedRoles: Role[]): CanActivateFn =>
++  () => {
++    const authService = inject(AuthService);
++    const router = inject(Router);
++
++    if (!authService.isAuthenticated()) {
++      return router.createUrlTree(['/auth/login']);
++    }
++
++    return authService.hasAnyRole(allowedRoles)
++      ? true
++      : router.createUrlTree(['/dashboard']);
++  };
+diff --git a/SUMOMASTER - FRONT/src/app/core/services/auth.service.ts b/SUMOMASTER - FRONT/src/app/core/services/auth.service.ts
+index d277757..c08888b 100644
+--- a/SUMOMASTER - FRONT/src/app/core/services/auth.service.ts	
++++ b/SUMOMASTER - FRONT/src/app/core/services/auth.service.ts	
+@@ -8,6 +8,7 @@ import {
+   AuthUser,
+   LoginRequest,
+   RegisterRequest,
++  Role,
+ } from '../models/auth.model';
+ 
+ const TOKEN_KEY = 'sumo_masters_token';
+@@ -24,6 +25,17 @@ export class AuthService {
+   readonly currentUser = this.currentUserSignal.asReadonly();
+   readonly isAuthenticated = computed(() => this.currentUserSignal() !== null);
+ 
++  /** ADMIN: puede todo, incluida la eliminación y la gestión de usuarios. */
++  readonly isAdmin = computed(() => this.hasAnyRole([Role.ADMIN]));
++
++  /** ADMIN o STAFF: puede crear, editar y operar torneos/combates (no eliminar). */
++  readonly canManage = computed(() => this.hasAnyRole([Role.ADMIN, Role.STAFF]));
++
++  hasAnyRole(roles: Role[]): boolean {
++    const userRoles = this.currentUserSignal()?.roles ?? [];
++    return roles.some((role) => userRoles.includes(role));
++  }
++
+   constructor(
+     private readonly http: HttpClient,
+     private readonly router: Router,
+diff --git a/SUMOMASTER - FRONT/src/app/features/categorias/categorias.component.html b/SUMOMASTER - FRONT/src/app/features/categorias/categorias.component.html
+index 9ee8ead..101bcd0 100644
+--- a/SUMOMASTER - FRONT/src/app/features/categorias/categorias.component.html	
++++ b/SUMOMASTER - FRONT/src/app/features/categorias/categorias.component.html	
+@@ -28,7 +28,7 @@
+           </div>
+         </div>
+ 
+-        <button type="button" class="btn btn--primary" (click)="openCreateModal()">
++        <button *appCan="'manage'" type="button" class="btn btn--primary" (click)="openCreateModal()">
+           <svg viewBox="0 0 24 24" width="16" height="16">
+             <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+           </svg>
+@@ -89,7 +89,7 @@
+                   <span class="badge" [class]="estadoBadgeClass(categoria.estado)">{{ categoria.estado }}</span>
+                 </td>
+                 <td class="table__actions">
+-                  <button type="button" aria-label="Editar" (click)="openEditModal(categoria)">
++                  <button *appCan="'manage'" type="button" aria-label="Editar" (click)="openEditModal(categoria)">
+                     <svg viewBox="0 0 24 24" width="16" height="16">
+                       <path d="M4 20h4L18 10l-4-4L4 16v4Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+                     </svg>
+@@ -100,7 +100,7 @@
+                       <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6" />
+                     </svg>
+                   </button>
+-                  <button type="button" class="table__actions-danger" aria-label="Eliminar" (click)="askDelete(categoria)">
++                  <button *appCan="'admin'" type="button" class="table__actions-danger" aria-label="Eliminar" (click)="askDelete(categoria)">
+                     <svg viewBox="0 0 24 24" width="16" height="16">
+                       <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-1 13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                     </svg>
+@@ -227,7 +227,7 @@
+ 
+     <div class="modal__footer">
+       <button type="button" class="btn btn--ghost" (click)="closeModal()">Cerrar</button>
+-      <button type="button" class="btn btn--primary" (click)="openEditModal(categoria)">Editar</button>
++      <button *appCan="'manage'" type="button" class="btn btn--primary" (click)="openEditModal(categoria)">Editar</button>
+     </div>
+   </div>
+ </div>
+diff --git a/SUMOMASTER - FRONT/src/app/features/categorias/categorias.component.ts b/SUMOMASTER - FRONT/src/app/features/categorias/categorias.component.ts
+index db7b977..85d9410 100644
+--- a/SUMOMASTER - FRONT/src/app/features/categorias/categorias.component.ts	
++++ b/SUMOMASTER - FRONT/src/app/features/categorias/categorias.component.ts	
+@@ -10,13 +10,14 @@ import {
+   EstadoCategoria,
+   TipoCombate,
+ } from '../../core/models/categoria.model';
++import { CanDirective } from '../../shared/directives/can.directive';
+ 
+ type ModalMode = 'create' | 'edit' | 'view' | null;
+ 
+ @Component({
+   selector: 'app-categorias',
+   standalone: true,
+-  imports: [CommonModule, ReactiveFormsModule, SidebarComponent, TopbarComponent],
++  imports: [CanDirective, CommonModule, ReactiveFormsModule, SidebarComponent, TopbarComponent],
+   templateUrl: './categorias.component.html',
+   styleUrl: './categorias.component.scss',
+ })
+diff --git a/SUMOMASTER - FRONT/src/app/features/combates-selector/combates-selector.component.html b/SUMOMASTER - FRONT/src/app/features/combates-selector/combates-selector.component.html
+index 85c71f7..a92f00e 100644
+--- a/SUMOMASTER - FRONT/src/app/features/combates-selector/combates-selector.component.html	
++++ b/SUMOMASTER - FRONT/src/app/features/combates-selector/combates-selector.component.html	
+@@ -25,7 +25,7 @@
+           </div>
+         </div>
+ 
+-        <a class="btn btn--primary" routerLink="/torneos">
++        <a *appCan="'manage'" class="btn btn--primary" routerLink="/torneos">
+           <svg viewBox="0 0 24 24" width="16" height="16">
+             <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+           </svg>
+@@ -52,8 +52,8 @@
+                 <td>{{ categoriaNombre(torneo) }}</td>
+                 <td><span class="badge" [class]="estadoBadgeClass(torneo.estado)">{{ torneo.estado }}</span></td>
+                 <td class="table__actions-wide">
+-                  <a class="btn btn--ghost btn--sm" [routerLink]="['/torneos', torneo._id, 'bloques']">Bloques</a>
+-                  <a class="btn btn--ghost btn--sm" [routerLink]="['/torneos', torneo._id, 'enfrentamientos']">Enfrentamientos</a>
++                  <a *appCan="'manage'" class="btn btn--ghost btn--sm" [routerLink]="['/torneos', torneo._id, 'bloques']">Bloques</a>
++                  <a *appCan="'manage'" class="btn btn--ghost btn--sm" [routerLink]="['/torneos', torneo._id, 'enfrentamientos']">Enfrentamientos</a>
+                   <a class="btn btn--primary btn--sm" [routerLink]="['/torneos', torneo._id, 'resultados']">Resultados</a>
+                 </td>
+               </tr>
+diff --git a/SUMOMASTER - FRONT/src/app/features/combates-selector/combates-selector.component.ts b/SUMOMASTER - FRONT/src/app/features/combates-selector/combates-selector.component.ts
+index 0ee745b..12a5bdf 100644
+--- a/SUMOMASTER - FRONT/src/app/features/combates-selector/combates-selector.component.ts	
++++ b/SUMOMASTER - FRONT/src/app/features/combates-selector/combates-selector.component.ts	
+@@ -5,11 +5,12 @@ import { SidebarComponent } from '../../shared/components/sidebar/sidebar.compon
+ import { TopbarComponent } from '../../shared/components/topbar/topbar.component';
+ import { TorneoService } from '../../core/services/torneo.service';
+ import { Torneo, EstadoTorneo } from '../../core/models/torneo.model';
++import { CanDirective } from '../../shared/directives/can.directive';
+ 
+ @Component({
+   selector: 'app-combates-selector',
+   standalone: true,
+-  imports: [CommonModule, RouterLink, SidebarComponent, TopbarComponent],
++  imports: [CanDirective, CommonModule, RouterLink, SidebarComponent, TopbarComponent],
+   templateUrl: './combates-selector.component.html',
+   styleUrl: './combates-selector.component.scss',
+ })
+diff --git a/SUMOMASTER - FRONT/src/app/features/dashboard/dashboard.component.html b/SUMOMASTER - FRONT/src/app/features/dashboard/dashboard.component.html
+index 2418f6b..d0fca05 100644
+--- a/SUMOMASTER - FRONT/src/app/features/dashboard/dashboard.component.html	
++++ b/SUMOMASTER - FRONT/src/app/features/dashboard/dashboard.component.html	
+@@ -92,7 +92,7 @@
+                     </td>
+                     <td>{{ tournament.participants }}</td>
+                     <td class="table__actions">
+-                      <a [routerLink]="['/torneos', tournament.id, 'bloques']" aria-label="Gestionar">
++                      <a *appCan="'manage'" [routerLink]="['/torneos', tournament.id, 'bloques']" aria-label="Gestionar">
+                         <svg viewBox="0 0 24 24" width="16" height="16">
+                           <path d="M5 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                         </svg>
+diff --git a/SUMOMASTER - FRONT/src/app/features/dashboard/dashboard.component.ts b/SUMOMASTER - FRONT/src/app/features/dashboard/dashboard.component.ts
+index 1054174..dc96937 100644
+--- a/SUMOMASTER - FRONT/src/app/features/dashboard/dashboard.component.ts	
++++ b/SUMOMASTER - FRONT/src/app/features/dashboard/dashboard.component.ts	
+@@ -12,6 +12,7 @@ import { SidebarComponent } from '../../shared/components/sidebar/sidebar.compon
+ import { TopbarComponent } from '../../shared/components/topbar/topbar.component';
+ import { EstadoTorneo } from '../../core/models/torneo.model';
+ import { EstadoRobot } from '../../core/models/robot.model';
++import { CanDirective } from '../../shared/directives/can.directive';
+ 
+ interface StatCard {
+   icon: 'calendar' | 'users' | 'robot' | 'swords';
+@@ -77,7 +78,7 @@ function buildDonutSegments(
+ @Component({
+   selector: 'app-dashboard',
+   standalone: true,
+-  imports: [CommonModule, RouterLink, SidebarComponent, TopbarComponent],
++  imports: [CanDirective, CommonModule, RouterLink, SidebarComponent, TopbarComponent],
+   templateUrl: './dashboard.component.html',
+   styleUrl: './dashboard.component.scss',
+ })
+diff --git a/SUMOMASTER - FRONT/src/app/features/dojos/dojos.component.html b/SUMOMASTER - FRONT/src/app/features/dojos/dojos.component.html
+index aedd3da..96e12a1 100644
+--- a/SUMOMASTER - FRONT/src/app/features/dojos/dojos.component.html	
++++ b/SUMOMASTER - FRONT/src/app/features/dojos/dojos.component.html	
+@@ -13,7 +13,7 @@
+     <main class="dojos-page">
+       <section class="panel panel--header">
+         <h2>Dojos / Arenas</h2>
+-        <button type="button" class="btn btn--primary" (click)="openCreateModal()">
++        <button *appCan="'manage'" type="button" class="btn btn--primary" (click)="openCreateModal()">
+           <svg viewBox="0 0 24 24" width="16" height="16">
+             <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+           </svg>
+@@ -41,7 +41,7 @@
+                 <th>Nombre</th>
+                 <th>Estado</th>
+                 <th>Capacidad</th>
+-                <th class="table__actions-head">Acciones</th>
++                <th class="table__actions-head" *appCan="'manage'">Acciones</th>
+               </tr>
+             </thead>
+             <tbody>
+@@ -49,13 +49,13 @@
+                 <td>{{ dojo.nombre }}</td>
+                 <td><span class="badge" [class]="estadoBadgeClass(dojo.estado)">{{ dojo.estado }}</span></td>
+                 <td>{{ dojo.capacidad }} combates simultáneos</td>
+-                <td class="table__actions">
+-                  <button type="button" aria-label="Editar" (click)="openEditModal(dojo)">
++                <td class="table__actions" *appCan="'manage'">
++                  <button *appCan="'manage'" type="button" aria-label="Editar" (click)="openEditModal(dojo)">
+                     <svg viewBox="0 0 24 24" width="16" height="16">
+                       <path d="M4 20h4L18 10l-4-4L4 16v4Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+                     </svg>
+                   </button>
+-                  <button type="button" class="table__actions-danger" aria-label="Eliminar" (click)="askDelete(dojo)">
++                  <button *appCan="'admin'" type="button" class="table__actions-danger" aria-label="Eliminar" (click)="askDelete(dojo)">
+                     <svg viewBox="0 0 24 24" width="16" height="16">
+                       <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-1 13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                     </svg>
+diff --git a/SUMOMASTER - FRONT/src/app/features/dojos/dojos.component.ts b/SUMOMASTER - FRONT/src/app/features/dojos/dojos.component.ts
+index 07ca0dc..17a2bd0 100644
+--- a/SUMOMASTER - FRONT/src/app/features/dojos/dojos.component.ts	
++++ b/SUMOMASTER - FRONT/src/app/features/dojos/dojos.component.ts	
+@@ -6,13 +6,14 @@ import { TopbarComponent } from '../../shared/components/topbar/topbar.component
+ import { DojoService } from '../../core/services/dojo.service';
+ import { extractErrorMessage } from '../../core/utils/error-message.util';
+ import { Dojo, EstadoDojo } from '../../core/models/dojo.model';
++import { CanDirective } from '../../shared/directives/can.directive';
+ 
+ type ModalMode = 'create' | 'edit' | null;
+ 
+ @Component({
+   selector: 'app-dojos',
+   standalone: true,
+-  imports: [CommonModule, ReactiveFormsModule, SidebarComponent, TopbarComponent],
++  imports: [CanDirective, CommonModule, ReactiveFormsModule, SidebarComponent, TopbarComponent],
+   templateUrl: './dojos.component.html',
+   styleUrl: './dojos.component.scss',
+ })
+diff --git a/SUMOMASTER - FRONT/src/app/features/equipos/equipos.component.html b/SUMOMASTER - FRONT/src/app/features/equipos/equipos.component.html
+index 63b12ed..bad6c0a 100644
+--- a/SUMOMASTER - FRONT/src/app/features/equipos/equipos.component.html	
++++ b/SUMOMASTER - FRONT/src/app/features/equipos/equipos.component.html	
+@@ -14,7 +14,7 @@
+     <main class="equipos">
+       <section class="panel panel--header">
+         <h2>Equipos registrados</h2>
+-        <button type="button" class="btn btn--primary" (click)="openCreateModal()">
++        <button *appCan="'manage'" type="button" class="btn btn--primary" (click)="openCreateModal()">
+           <svg viewBox="0 0 24 24" width="16" height="16">
+             <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+           </svg>
+@@ -66,7 +66,7 @@
+                 <td>{{ equipo.integrantes.length }}</td>
+                 <td>{{ equipo.robotsCount }}</td>
+                 <td class="table__actions">
+-                  <button type="button" aria-label="Editar" (click)="openEditModal(equipo)">
++                  <button *appCan="'manage'" type="button" aria-label="Editar" (click)="openEditModal(equipo)">
+                     <svg viewBox="0 0 24 24" width="16" height="16">
+                       <path d="M4 20h4L18 10l-4-4L4 16v4Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+                     </svg>
+@@ -77,7 +77,7 @@
+                       <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6" />
+                     </svg>
+                   </button>
+-                  <button type="button" class="table__actions-danger" aria-label="Eliminar" (click)="askDelete(equipo)">
++                  <button *appCan="'admin'" type="button" class="table__actions-danger" aria-label="Eliminar" (click)="askDelete(equipo)">
+                     <svg viewBox="0 0 24 24" width="16" height="16">
+                       <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-1 13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                     </svg>
+@@ -218,7 +218,7 @@
+ 
+     <div class="modal__footer">
+       <button type="button" class="btn btn--ghost" (click)="closeModal()">Cerrar</button>
+-      <button type="button" class="btn btn--primary" (click)="openEditModal(equipo)">Editar</button>
++      <button *appCan="'manage'" type="button" class="btn btn--primary" (click)="openEditModal(equipo)">Editar</button>
+     </div>
+   </div>
+ </div>
+diff --git a/SUMOMASTER - FRONT/src/app/features/equipos/equipos.component.ts b/SUMOMASTER - FRONT/src/app/features/equipos/equipos.component.ts
+index ccb8d0a..7f85b95 100644
+--- a/SUMOMASTER - FRONT/src/app/features/equipos/equipos.component.ts	
++++ b/SUMOMASTER - FRONT/src/app/features/equipos/equipos.component.ts	
+@@ -14,6 +14,7 @@ import { EquipoService } from '../../core/services/equipo.service';
+ import { CategoriaService } from '../../core/services/categoria.service';
+ import { Equipo } from '../../core/models/equipo.model';
+ import { Categoria } from '../../core/models/categoria.model';
++import { CanDirective } from '../../shared/directives/can.directive';
+ 
+ type ModalMode = 'create' | 'edit' | 'view' | null;
+ 
+@@ -22,7 +23,7 @@ const PAGE_SIZE = 5;
+ @Component({
+   selector: 'app-equipos',
+   standalone: true,
+-  imports: [CommonModule, ReactiveFormsModule, SidebarComponent, TopbarComponent, ImageUploadComponent],
++  imports: [CanDirective, CommonModule, ReactiveFormsModule, SidebarComponent, TopbarComponent, ImageUploadComponent],
+   templateUrl: './equipos.component.html',
+   styleUrl: './equipos.component.scss',
+ })
+diff --git a/SUMOMASTER - FRONT/src/app/features/robots/robots.component.html b/SUMOMASTER - FRONT/src/app/features/robots/robots.component.html
+index a0165bb..9ed03ad 100644
+--- a/SUMOMASTER - FRONT/src/app/features/robots/robots.component.html	
++++ b/SUMOMASTER - FRONT/src/app/features/robots/robots.component.html	
+@@ -14,7 +14,7 @@
+     <main class="robots">
+       <section class="panel panel--header">
+         <h2>Robots registrados</h2>
+-        <button type="button" class="btn btn--primary" (click)="openCreateModal()">
++        <button *appCan="'manage'" type="button" class="btn btn--primary" (click)="openCreateModal()">
+           <svg viewBox="0 0 24 24" width="16" height="16">
+             <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+           </svg>
+@@ -73,7 +73,7 @@
+                   <span class="badge" [class]="estadoBadgeClass(robot.estado)">{{ robot.estado }}</span>
+                 </td>
+                 <td class="table__actions">
+-                  <button type="button" aria-label="Editar" (click)="openEditModal(robot)">
++                  <button *appCan="'manage'" type="button" aria-label="Editar" (click)="openEditModal(robot)">
+                     <svg viewBox="0 0 24 24" width="16" height="16">
+                       <path d="M4 20h4L18 10l-4-4L4 16v4Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+                     </svg>
+@@ -84,7 +84,7 @@
+                       <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6" />
+                     </svg>
+                   </button>
+-                  <button type="button" class="table__actions-danger" aria-label="Eliminar" (click)="askDelete(robot)">
++                  <button *appCan="'admin'" type="button" class="table__actions-danger" aria-label="Eliminar" (click)="askDelete(robot)">
+                     <svg viewBox="0 0 24 24" width="16" height="16">
+                       <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-1 13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                     </svg>
+@@ -235,7 +235,7 @@
+ 
+     <div class="modal__footer">
+       <button type="button" class="btn btn--ghost" (click)="closeModal()">Cerrar</button>
+-      <button type="button" class="btn btn--primary" (click)="openEditModal(robot)">Editar</button>
++      <button *appCan="'manage'" type="button" class="btn btn--primary" (click)="openEditModal(robot)">Editar</button>
+     </div>
+   </div>
+ </div>
+diff --git a/SUMOMASTER - FRONT/src/app/features/robots/robots.component.ts b/SUMOMASTER - FRONT/src/app/features/robots/robots.component.ts
+index 4b07641..c1b95d0 100644
+--- a/SUMOMASTER - FRONT/src/app/features/robots/robots.component.ts	
++++ b/SUMOMASTER - FRONT/src/app/features/robots/robots.component.ts	
+@@ -11,6 +11,7 @@ import { CategoriaService } from '../../core/services/categoria.service';
+ import { EstadoRobot, Robot } from '../../core/models/robot.model';
+ import { Equipo } from '../../core/models/equipo.model';
+ import { Categoria } from '../../core/models/categoria.model';
++import { CanDirective } from '../../shared/directives/can.directive';
+ 
+ type ModalMode = 'create' | 'edit' | 'view' | null;
+ 
+@@ -19,7 +20,7 @@ const PAGE_SIZE = 6;
+ @Component({
+   selector: 'app-robots',
+   standalone: true,
+-  imports: [CommonModule, ReactiveFormsModule, SidebarComponent, TopbarComponent, ImageUploadComponent],
++  imports: [CanDirective, CommonModule, ReactiveFormsModule, SidebarComponent, TopbarComponent, ImageUploadComponent],
+   templateUrl: './robots.component.html',
+   styleUrl: './robots.component.scss',
+ })
+diff --git a/SUMOMASTER - FRONT/src/app/features/torneo-resultados/torneo-resultados.component.html b/SUMOMASTER - FRONT/src/app/features/torneo-resultados/torneo-resultados.component.html
+index f1d1eda..5c1f59c 100644
+--- a/SUMOMASTER - FRONT/src/app/features/torneo-resultados/torneo-resultados.component.html	
++++ b/SUMOMASTER - FRONT/src/app/features/torneo-resultados/torneo-resultados.component.html	
+@@ -67,13 +67,13 @@
+               <button
+                 type="button"
+                 class="btn btn--primary btn--sm"
+-                *ngIf="combate.estado === 'Pendiente'"
++                *ngIf="combate.estado === 'Pendiente' && canManage()"
+                 [disabled]="starting()"
+                 (click)="registrar(combate); $event.stopPropagation()"
+               >
+                 Registrar
+               </button>
+-              <span class="badge" [class]="estadoBadgeClass(combate.estado)" *ngIf="combate.estado !== 'Pendiente'">
++              <span class="badge" [class]="estadoBadgeClass(combate.estado)" *ngIf="combate.estado !== 'Pendiente' || !canManage()">
+                 {{ combate.estado }}
+               </span>
+             </li>
+@@ -84,9 +84,9 @@
+ 
+         <!-- 2. Registrar resultado -->
+         <section class="panel resultados-col">
+-          <h4>2. Registrar resultado</h4>
++          <h4>{{ canManage() ? '2. Registrar resultado' : '2. Resultado del combate' }}</h4>
+ 
+-          <div *ngIf="!selectedCombate()" class="empty-hint">Selecciona un combate de la lista para registrar su resultado.</div>
++          <div *ngIf="!selectedCombate()" class="empty-hint">{{ canManage() ? 'Selecciona un combate de la lista para registrar su resultado.' : 'Selecciona un combate de la lista para consultar su resultado.' }}</div>
+ 
+           <ng-container *ngIf="selectedCombate() as combate">
+             <p class="combate-title">Combate #{{ combate.numero }} en {{ combate.dojo?.nombre ?? 'dojo sin asignar' }}</p>
+@@ -139,7 +139,7 @@
+               </div>
+             </div>
+ 
+-            <form [formGroup]="form" (ngSubmit)="submitResultado()" *ngIf="combate.estado !== 'Finalizado'; else soloLectura">
++            <form [formGroup]="form" (ngSubmit)="submitResultado()" *ngIf="combate.estado !== 'Finalizado' && canManage(); else soloLectura">
+               <div class="field">
+                 <span>Resultado del combate</span>
+                 <div class="radio-row">
+@@ -195,7 +195,12 @@
+ 
+             <ng-template #soloLectura>
+               <div class="info-box">
+-                Este combate ya fue registrado como <strong>{{ combate.resultado }}</strong> y no puede modificarse.
++                <ng-container *ngIf="combate.estado === 'Finalizado'; else sinPermiso">
++                  Este combate ya fue registrado como <strong>{{ combate.resultado }}</strong> y no puede modificarse.
++                </ng-container>
++                <ng-template #sinPermiso>
++                  Este combate está <strong>{{ combate.estado }}</strong>. Solo el personal autorizado (Staff o Administrador) puede registrar resultados.
++                </ng-template>
+               </div>
+             </ng-template>
+           </ng-container>
+@@ -226,7 +231,7 @@
+             <li class="table__empty" *ngIf="combate.historial.length === 0">Sin eventos registrados todavía.</li>
+           </ul>
+ 
+-          <div class="info-box">
++          <div class="info-box" *ngIf="canManage()">
+             Asegúrate de registrar el resultado correctamente. Una vez guardado, no podrá ser modificado.
+           </div>
+         </section>
+diff --git a/SUMOMASTER - FRONT/src/app/features/torneo-resultados/torneo-resultados.component.ts b/SUMOMASTER - FRONT/src/app/features/torneo-resultados/torneo-resultados.component.ts
+index 5397419..51c1103 100644
+--- a/SUMOMASTER - FRONT/src/app/features/torneo-resultados/torneo-resultados.component.ts	
++++ b/SUMOMASTER - FRONT/src/app/features/torneo-resultados/torneo-resultados.component.ts	
+@@ -8,6 +8,7 @@ import { TopbarComponent } from '../../shared/components/topbar/topbar.component
+ import { RobotChipComponent } from '../../shared/components/robot-chip/robot-chip.component';
+ import { TorneoService } from '../../core/services/torneo.service';
+ import { CombateService } from '../../core/services/combate.service';
++import { AuthService } from '../../core/services/auth.service';
+ import { TorneoFlowCacheService } from '../../core/services/torneo-flow-cache.service';
+ import { Torneo } from '../../core/models/torneo.model';
+ import {
+@@ -38,6 +39,9 @@ export class TorneoResultadosComponent implements OnInit {
+   private readonly torneoService = inject(TorneoService);
+   private readonly combateService = inject(CombateService);
+   private readonly flowCache = inject(TorneoFlowCacheService);
++
++  /** ADMIN/STAFF pueden iniciar combates y registrar resultados; el resto solo consulta. */
++  readonly canManage = inject(AuthService).canManage;
+   private readonly fb = inject(FormBuilder);
+ 
+   readonly sidebarOpen = signal(false);
+diff --git a/SUMOMASTER - FRONT/src/app/features/torneos/torneos.component.html b/SUMOMASTER - FRONT/src/app/features/torneos/torneos.component.html
+index bdd3804..34ed967 100644
+--- a/SUMOMASTER - FRONT/src/app/features/torneos/torneos.component.html	
++++ b/SUMOMASTER - FRONT/src/app/features/torneos/torneos.component.html	
+@@ -14,7 +14,7 @@
+     <main class="torneos">
+       <section class="panel panel--header">
+         <h2>Torneos</h2>
+-        <button type="button" class="btn btn--primary" (click)="openCreateModal()">
++        <button *appCan="'manage'" type="button" class="btn btn--primary" (click)="openCreateModal()">
+           <svg viewBox="0 0 24 24" width="16" height="16">
+             <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+           </svg>
+@@ -63,7 +63,7 @@
+                 </td>
+                 <td>{{ torneo.robotsInscritos.length }}</td>
+                 <td class="table__actions">
+-                  <a [routerLink]="['/torneos', torneo._id, 'bloques']" aria-label="Gestionar fases" title="Gestionar fases">
++                  <a *appCan="'manage'" [routerLink]="['/torneos', torneo._id, 'bloques']" aria-label="Gestionar fases" title="Gestionar fases">
+                     <svg viewBox="0 0 24 24" width="16" height="16">
+                       <rect x="4" y="4" width="7" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6" />
+                       <rect x="13" y="4" width="7" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6" />
+@@ -71,7 +71,7 @@
+                       <rect x="13" y="13" width="7" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6" />
+                     </svg>
+                   </a>
+-                  <button type="button" aria-label="Editar" (click)="openEditModal(torneo)">
++                  <button *appCan="'manage'" type="button" aria-label="Editar" (click)="openEditModal(torneo)">
+                     <svg viewBox="0 0 24 24" width="16" height="16">
+                       <path d="M4 20h4L18 10l-4-4L4 16v4Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+                     </svg>
+@@ -82,7 +82,7 @@
+                       <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6" />
+                     </svg>
+                   </button>
+-                  <button type="button" class="table__actions-danger" aria-label="Eliminar" (click)="askDelete(torneo)">
++                  <button *appCan="'admin'" type="button" class="table__actions-danger" aria-label="Eliminar" (click)="askDelete(torneo)">
+                     <svg viewBox="0 0 24 24" width="16" height="16">
+                       <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-1 13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                     </svg>
+@@ -236,8 +236,8 @@
+ 
+     <div class="modal__footer">
+       <button type="button" class="btn btn--ghost" (click)="closeModal()">Cerrar</button>
+-      <a class="btn btn--ghost" [routerLink]="['/torneos', torneo._id, 'bloques']">Gestionar fases →</a>
+-      <button type="button" class="btn btn--primary" (click)="openEditModal(torneo)">Editar</button>
++      <a *appCan="'manage'" class="btn btn--ghost" [routerLink]="['/torneos', torneo._id, 'bloques']">Gestionar fases →</a>
++      <button *appCan="'manage'" type="button" class="btn btn--primary" (click)="openEditModal(torneo)">Editar</button>
+     </div>
+   </div>
+ </div>
+diff --git a/SUMOMASTER - FRONT/src/app/features/torneos/torneos.component.ts b/SUMOMASTER - FRONT/src/app/features/torneos/torneos.component.ts
+index 2aa79fb..021575d 100644
+--- a/SUMOMASTER - FRONT/src/app/features/torneos/torneos.component.ts	
++++ b/SUMOMASTER - FRONT/src/app/features/torneos/torneos.component.ts	
+@@ -11,6 +11,7 @@ import { RobotService } from '../../core/services/robot.service';
+ import { EstadoTorneo, Torneo } from '../../core/models/torneo.model';
+ import { Categoria } from '../../core/models/categoria.model';
+ import { Robot } from '../../core/models/robot.model';
++import { CanDirective } from '../../shared/directives/can.directive';
+ 
+ type ModalMode = 'create' | 'edit' | 'view' | null;
+ type TabFilter = 'todos' | EstadoTorneo;
+@@ -20,7 +21,7 @@ const PAGE_SIZE = 6;
+ @Component({
+   selector: 'app-torneos',
+   standalone: true,
+-  imports: [CommonModule, ReactiveFormsModule, RouterLink, SidebarComponent, TopbarComponent],
++  imports: [CanDirective, CommonModule, ReactiveFormsModule, RouterLink, SidebarComponent, TopbarComponent],
+   templateUrl: './torneos.component.html',
+   styleUrl: './torneos.component.scss',
+ })
+diff --git a/SUMOMASTER - FRONT/src/app/shared/components/sidebar/sidebar.component.html b/SUMOMASTER - FRONT/src/app/shared/components/sidebar/sidebar.component.html
+index 83731a5..6a4b7c6 100644
+--- a/SUMOMASTER - FRONT/src/app/shared/components/sidebar/sidebar.component.html	
++++ b/SUMOMASTER - FRONT/src/app/shared/components/sidebar/sidebar.component.html	
+@@ -28,7 +28,7 @@
+ 
+   <nav class="sidebar__nav">
+     <a
+-      *ngFor="let item of navItems"
++      *ngFor="let item of visibleNavItems()"
+       [routerLink]="item.route ?? null"
+       routerLinkActive="sidebar__item--active"
+       [class.sidebar__item]="true"
+diff --git a/SUMOMASTER - FRONT/src/app/shared/components/sidebar/sidebar.component.ts b/SUMOMASTER - FRONT/src/app/shared/components/sidebar/sidebar.component.ts
+index 2def47a..4f41670 100644
+--- a/SUMOMASTER - FRONT/src/app/shared/components/sidebar/sidebar.component.ts	
++++ b/SUMOMASTER - FRONT/src/app/shared/components/sidebar/sidebar.component.ts	
+@@ -19,6 +19,8 @@ interface NavItem {
+   label: string;
+   route?: string;
+   hasChevron?: boolean;
++  /** Si se define, el ítem solo se muestra a usuarios con alguno de estos roles. */
++  roles?: Role[];
+ }
+ 
+ @Component({
+@@ -47,12 +49,20 @@ export class SidebarComponent {
+     { icon: 'swords', label: 'Combates', route: '/combates' },
+     { icon: 'building', label: 'Dojos', route: '/dojos' },
+     { icon: 'file', label: 'Reportes', route: '/reportes' },
+-    { icon: 'user', label: 'Usuarios', route: '/usuarios' },
++    { icon: 'user', label: 'Usuarios', route: '/usuarios', roles: [Role.ADMIN] },
+     { icon: 'settings', label: 'Configuración', route: '/configuracion' },
+   ];
+ 
+   readonly currentUser = this.authService.currentUser;
+ 
++  /** Solo los ítems del menú a los que el usuario tiene acceso. */
++  readonly visibleNavItems = computed(() => {
++    this.currentUser(); // dependencia reactiva: se recalcula si cambia la sesión
++    return this.navItems.filter(
++      (item) => !item.roles || this.authService.hasAnyRole(item.roles),
++    );
++  });
++
+   readonly displayName = computed(
+     () => this.currentUser()?.name ?? this.currentUser()?.username ?? 'Invitado',
+   );
+diff --git a/SUMOMASTER - FRONT/src/app/shared/directives/can.directive.ts b/SUMOMASTER - FRONT/src/app/shared/directives/can.directive.ts
+new file mode 100644
+index 0000000..e97e338
+--- /dev/null
++++ b/SUMOMASTER - FRONT/src/app/shared/directives/can.directive.ts	
+@@ -0,0 +1,39 @@
++import { Directive, Input, TemplateRef, ViewContainerRef, inject } from '@angular/core';
++import { AuthService } from '../../core/services/auth.service';
++
++/**
++ * Permisos de la interfaz (reflejan los @Roles del backend):
++ *  - 'manage': ADMIN o STAFF  -> crear, editar, generar, asignar, registrar resultados.
++ *  - 'admin' : solo ADMIN     -> eliminar y gestionar usuarios.
++ *
++ * Uso: <button *appCan="'manage'">Editar</button>
++ *
++ * Esto es solo experiencia de usuario: la seguridad real la aplica el backend.
++ */
++export type Permission = 'manage' | 'admin';
++
++@Directive({
++  selector: '[appCan]',
++  standalone: true,
++})
++export class CanDirective {
++  private readonly auth = inject(AuthService);
++  private readonly templateRef = inject(TemplateRef<unknown>);
++  private readonly viewContainer = inject(ViewContainerRef);
++
++  private hasView = false;
++
++  @Input({ required: true })
++  set appCan(permission: Permission) {
++    const allowed =
++      permission === 'admin' ? this.auth.isAdmin() : this.auth.canManage();
++
++    if (allowed && !this.hasView) {
++      this.viewContainer.createEmbeddedView(this.templateRef);
++      this.hasView = true;
++    } else if (!allowed && this.hasView) {
++      this.viewContainer.clear();
++      this.hasView = false;
++    }
++  }
++}

@@ -8,6 +8,7 @@ import { TopbarComponent } from '../../shared/components/topbar/topbar.component
 import { RobotChipComponent } from '../../shared/components/robot-chip/robot-chip.component';
 import { TorneoService } from '../../core/services/torneo.service';
 import { CombateService } from '../../core/services/combate.service';
+import { AuthService } from '../../core/services/auth.service';
 import { TorneoFlowCacheService } from '../../core/services/torneo-flow-cache.service';
 import { Torneo } from '../../core/models/torneo.model';
 import {
@@ -38,6 +39,9 @@ export class TorneoResultadosComponent implements OnInit {
   private readonly torneoService = inject(TorneoService);
   private readonly combateService = inject(CombateService);
   private readonly flowCache = inject(TorneoFlowCacheService);
+
+  /** ADMIN/STAFF pueden iniciar combates y registrar resultados; el resto solo consulta. */
+  readonly canManage = inject(AuthService).canManage;
   private readonly fb = inject(FormBuilder);
 
   readonly sidebarOpen = signal(false);

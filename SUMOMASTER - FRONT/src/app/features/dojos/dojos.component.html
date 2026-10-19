@@ -13,7 +13,7 @@
     <main class="dojos-page">
       <section class="panel panel--header">
         <h2>Dojos / Arenas</h2>
-        <button type="button" class="btn btn--primary" (click)="openCreateModal()">
+        <button *appCan="'manage'" type="button" class="btn btn--primary" (click)="openCreateModal()">
           <svg viewBox="0 0 24 24" width="16" height="16">
             <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
           </svg>
@@ -41,7 +41,7 @@
                 <th>Nombre</th>
                 <th>Estado</th>
                 <th>Capacidad</th>
-                <th class="table__actions-head">Acciones</th>
+                <th class="table__actions-head" *appCan="'manage'">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -49,13 +49,13 @@
                 <td>{{ dojo.nombre }}</td>
                 <td><span class="badge" [class]="estadoBadgeClass(dojo.estado)">{{ dojo.estado }}</span></td>
                 <td>{{ dojo.capacidad }} combates simultáneos</td>
-                <td class="table__actions">
-                  <button type="button" aria-label="Editar" (click)="openEditModal(dojo)">
+                <td class="table__actions" *appCan="'manage'">
+                  <button *appCan="'manage'" type="button" aria-label="Editar" (click)="openEditModal(dojo)">
                     <svg viewBox="0 0 24 24" width="16" height="16">
                       <path d="M4 20h4L18 10l-4-4L4 16v4Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
                     </svg>
                   </button>
-                  <button type="button" class="table__actions-danger" aria-label="Eliminar" (click)="askDelete(dojo)">
+                  <button *appCan="'admin'" type="button" class="table__actions-danger" aria-label="Eliminar" (click)="askDelete(dojo)">
                     <svg viewBox="0 0 24 24" width="16" height="16">
                       <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-1 13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>

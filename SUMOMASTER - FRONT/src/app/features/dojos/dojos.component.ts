@@ -6,13 +6,14 @@ import { TopbarComponent } from '../../shared/components/topbar/topbar.component
 import { DojoService } from '../../core/services/dojo.service';
 import { extractErrorMessage } from '../../core/utils/error-message.util';
 import { Dojo, EstadoDojo } from '../../core/models/dojo.model';
+import { CanDirective } from '../../shared/directives/can.directive';
 
 type ModalMode = 'create' | 'edit' | null;
 
 @Component({
   selector: 'app-dojos',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, SidebarComponent, TopbarComponent],
+  imports: [CanDirective, CommonModule, ReactiveFormsModule, SidebarComponent, TopbarComponent],
   templateUrl: './dojos.component.html',
   styleUrl: './dojos.component.scss',
 })

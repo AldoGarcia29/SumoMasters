@@ -5,11 +5,12 @@ import { SidebarComponent } from '../../shared/components/sidebar/sidebar.compon
 import { TopbarComponent } from '../../shared/components/topbar/topbar.component';
 import { TorneoService } from '../../core/services/torneo.service';
 import { Torneo, EstadoTorneo } from '../../core/models/torneo.model';
+import { CanDirective } from '../../shared/directives/can.directive';
 
 @Component({
   selector: 'app-combates-selector',
   standalone: true,
-  imports: [CommonModule, RouterLink, SidebarComponent, TopbarComponent],
+  imports: [CanDirective, CommonModule, RouterLink, SidebarComponent, TopbarComponent],
   templateUrl: './combates-selector.component.html',
   styleUrl: './combates-selector.component.scss',
 })
