@@ -43,7 +43,7 @@ export class Torneo {
   @Prop({ type: Number, default: 15, min: 1, max: 120 })
   duracionCombateMin: number;
 
-  @Prop({ type: Boolean, default: false, index: true })
+  @Prop({ type: Boolean, default: true, index: true })
   publico: boolean;
 }
 
