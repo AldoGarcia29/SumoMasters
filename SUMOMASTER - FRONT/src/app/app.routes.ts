@@ -7,6 +7,20 @@ const SOLO_ADMIN = roleGuard([Role.ADMIN]);
 const ADMIN_Y_STAFF = roleGuard([Role.ADMIN, Role.STAFF]);
 
 export const routes: Routes = [
+  {
+    path: 'live',
+    loadComponent: () =>
+      import('./public/torneos-publicos/torneos-publicos.component').then(
+        (m) => m.TorneosPublicosComponent,
+      ),
+  },
+  {
+    path: 'live/:id',
+    loadComponent: () =>
+      import('./public/live-torneo/live-torneo.component').then(
+        (m) => m.LiveTorneoComponent,
+      ),
+  },
   { path: '', pathMatch: 'full', redirectTo: 'auth/login' },
   {
     path: 'auth/login',
