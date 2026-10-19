@@ -1,0 +1,2 @@
+.lista { max-width: 720px; margin: 0 auto; padding: 16px; }
+.item { display: block; padding: 12px; border-bottom: 1px solid #ddd; color: inherit; text-decoration: none; }

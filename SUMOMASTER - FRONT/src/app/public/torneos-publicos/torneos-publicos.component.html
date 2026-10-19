@@ -1,0 +1,14 @@
+<main class="lista">
+  <h1>Torneos</h1>
+  <p *ngIf="error">No se pudo cargar la lista.</p>
+  <p *ngIf="!lista && !error">Cargando…</p>
+  <p *ngIf="lista && lista.length === 0">No hay torneos públicos por ahora.</p>
+
+  <a class="item" *ngFor="let t of lista" [routerLink]="['/live', t.id]">
+    <b>{{ t.nombre }}</b>
+    <div>
+      {{ t.fecha | date: 'mediumDate' }}
+      <ng-container *ngIf="t.estado">· {{ t.estado }}</ng-container>
+    </div>
+  </a>
+</main>

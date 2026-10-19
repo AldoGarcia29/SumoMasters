@@ -1,0 +1,49 @@
+<main class="live">
+  <p *ngIf="!data">{{ error ?? 'Cargando…' }}</p>
+
+  <ng-container *ngIf="data">
+    <h1>{{ data.torneo.nombre }}</h1>
+    <small>
+      <ng-container *ngIf="data.torneo.fase">{{ data.torneo.fase }} · </ng-container>
+      {{ error ?? 'Actualizado hace ' + seg + ' s' }}
+    </small>
+
+    <input
+      class="buscador"
+      type="search"
+      placeholder="Busca tu robot"
+      [(ngModel)]="busca"
+    />
+
+    <ng-container *ngIf="busca.trim()">
+      <p *ngIf="propios.length === 0">No encontré ese robot.</p>
+      <p *ngIf="propios.length > 0 && !proximo">Tus combates ya terminaron.</p>
+    </ng-container>
+
+    <p class="proximo" *ngIf="proximo as p">
+      <b>Tu próximo combate: #{{ p.numero }}</b> en {{ p.dojo }}<ng-container
+        *ngIf="p.combatesAntes === 0; else faltan"> — ¡es el siguiente!</ng-container>
+      <ng-template #faltan>, faltan {{ p.combatesAntes }}</ng-template>
+      <ng-container *ngIf="p.horaEstimada"> (~{{ p.horaEstimada | date: 'shortTime' }})</ng-container>
+    </p>
+
+    <div
+      class="combate"
+      *ngFor="let c of data.combates; trackBy: trackCombate"
+      [class.propio]="esPropio(c)"
+      [class.terminado]="terminado(c)"
+    >
+      <b>#{{ c.numero }}</b> · {{ c.dojo }} · {{ c.fase }}
+      <div>
+        {{ c.robots.join(' vs ') }}
+        <ng-container *ngIf="c.ganador"> → ganó {{ c.ganador }}</ng-container>
+      </div>
+      <small>
+        {{ c.estado }}
+        <ng-container *ngIf="!terminado(c) && c.horaEstimada">
+          · ~{{ c.horaEstimada | date: 'shortTime' }}
+        </ng-container>
+      </small>
+    </div>
+  </ng-container>
+</main>
