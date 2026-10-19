@@ -3,6 +3,17 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { FilaRanking } from '../models/ranking.model';
+import { PodioTorneo } from '../models/podio.model';
+
+import {
+  FaseEliminatoriaGenerada,
+  ResumenClasificados,
+} from '../models/clasificados.model';
+
+import {
+  Combate,
+  FaseCombate,
+} from '../models/combate.model';
 
 @Injectable({ providedIn: 'root' })
 export class RankingService {
@@ -22,4 +33,50 @@ export class RankingService {
       params,
     });
   }
+
+  obtenerClasificados(
+  torneoId: string,
+): Observable<ResumenClasificados> {
+  return this.http.get<ResumenClasificados>(
+    `${this.baseUrl}/torneos/${torneoId}/ranking/clasificados`,
+  );
+}
+
+obtenerPodio(
+  torneoId: string,
+): Observable<PodioTorneo> {
+  return this.http.get<PodioTorneo>(
+    `${this.baseUrl}/torneos/${torneoId}/ranking/podio`,
+  );
+}
+
+generarFaseEliminatoria(
+  torneoId: string,
+): Observable<FaseEliminatoriaGenerada> {
+  return this.http.post<FaseEliminatoriaGenerada>(
+    `${this.baseUrl}/torneos/${torneoId}/ranking/fase-eliminatoria/generar`,
+    {},
+  );
+}
+
+
+generarSiguienteRonda(
+  torneoId: string,
+  faseActual: FaseCombate,
+): Observable<{
+  faseActual: FaseCombate;
+  siguienteFase: FaseCombate;
+  participantes: number;
+  combatesGenerados: Combate[];
+}> {
+  return this.http.post<{
+    faseActual: FaseCombate;
+    siguienteFase: FaseCombate;
+    participantes: number;
+    combatesGenerados: Combate[];
+  }>(
+    `${this.baseUrl}/torneos/${torneoId}/ranking/siguiente-ronda/generar`,
+    { faseActual },
+  );
+}
 }

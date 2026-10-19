@@ -30,6 +30,12 @@
           </svg>
           {{ loading() ? 'Actualizando…' : 'Actualizar tabla' }}
         </button>
+         <a
+    class="btn btn--primary"
+    [routerLink]="['/torneos', torneoId, 'clasificados']"
+  >
+    Continuar a fase eliminatoria →
+  </a>
       </section>
 
       <section class="stats-row">

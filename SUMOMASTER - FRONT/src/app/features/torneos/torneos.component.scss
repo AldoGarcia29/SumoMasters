@@ -50,6 +50,45 @@
   border-radius: var(--radius-sm);
 }
 
+.robot-picker__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.45rem;
+}
+
+.robot-picker__header > span {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.robot-picker__select-all {
+  padding: 0.35rem 0.65rem;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: #f1e9ff;
+  border: 1px solid #ddccff;
+  border-radius: 0.4rem;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.robot-picker__select-all:hover {
+  background: #e8dcff;
+  border-color: var(--color-primary);
+}
+
+.robot-picker__select-all:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 @media (max-width: 720px) {
   .torneos {
     padding: 1.25rem;
@@ -58,4 +97,10 @@
   .robot-picker {
     grid-template-columns: 1fr;
   }
+
+  .robot-picker__header {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 0.35rem;
+}
 }

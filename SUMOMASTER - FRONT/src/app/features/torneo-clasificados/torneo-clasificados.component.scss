@@ -1,0 +1,566 @@
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 100vh;
+}
+
+.app-shell {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  min-width: 0;
+  min-height: 100vh;
+  background: var(--color-bg, #f7f5ff);
+}
+
+/* El sidebar ocupa su columna a la izquierda */
+app-sidebar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+
+  display: block;
+  flex: 0 0 240px;
+
+  width: 240px;
+  min-width: 240px;
+  height: 100vh;
+  height: 100dvh;
+
+  align-self: flex-start;
+  overflow: hidden;
+}
+
+/* El contenido se coloca junto al sidebar */
+.app-shell {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  min-width: 0;
+  min-height: 100vh;
+  background: var(--color-bg, #f7f5ff);
+}
+
+.app-shell__main {
+  flex: 1 1 auto;
+  width: calc(100% - 240px);
+  min-width: 0;
+  min-height: 100vh;
+  margin-left: 0;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+.app-shell__backdrop {
+  display: none;
+}
+
+.clasificados-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 100%;
+  padding: 2rem;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+/* Evita que los paneles hereden alturas exageradas */
+
+.panel {
+  width: 100%;
+  height: auto;
+  min-width: 0;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+/* =====================================================
+   ENCABEZADO
+   ===================================================== */
+
+.clasificados-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.5rem;
+}
+
+.clasificados-header > div {
+  min-width: 0;
+}
+
+.clasificados-header h2 {
+  margin: 0 0 0.35rem;
+  overflow-wrap: anywhere;
+}
+
+.clasificados-header p {
+  margin: 0;
+  color: var(--color-text-muted, #77718a);
+}
+
+.clasificados-header .btn {
+  flex-shrink: 0;
+}
+
+/* =====================================================
+   MENSAJES
+   ===================================================== */
+
+.panel__error,
+.panel__success {
+  width: 100%;
+  margin: 0;
+  padding: 0.9rem 1rem;
+  border-radius: var(--radius-sm, 10px);
+  box-sizing: border-box;
+}
+
+.panel__error {
+  color: #b42318;
+  background: #fee4e2;
+  border: 1px solid #fecdca;
+}
+
+.panel__success {
+  color: #067647;
+  background: #dcfae6;
+  border: 1px solid #abefc6;
+}
+
+.loading-state,
+.table__empty {
+  padding: 2rem;
+  text-align: center;
+  color: var(--color-text-muted, #77718a);
+}
+
+/* =====================================================
+   TARJETAS DE RESUMEN
+   ===================================================== */
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 1rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.summary-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.4rem;
+  min-width: 0;
+  min-height: 7rem;
+  padding: 1.25rem;
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border, #e4def5);
+  border-radius: var(--radius-md, 14px);
+  box-sizing: border-box;
+}
+
+.summary-card strong {
+  font-size: 1.75rem;
+  line-height: 1;
+  color: var(--color-primary, #7c3aed);
+}
+
+.summary-card span {
+  color: var(--color-text-muted, #77718a);
+}
+
+/* =====================================================
+   BLOQUES
+   ===================================================== */
+
+.bloques-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+  gap: 1rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.bloque-card {
+  align-self: start;
+  width: 100%;
+  height: auto;
+  min-width: 0;
+  min-height: 0;
+  padding: 1.25rem;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.bloque-card__header,
+.section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.bloque-card__header > div,
+.section-header > div {
+  min-width: 0;
+}
+
+.bloque-card__header h3,
+.section-header h3 {
+  margin: 0;
+}
+
+.bloque-card__header div > span,
+.section-header p {
+  display: block;
+  margin: 0.25rem 0 0;
+  color: var(--color-text-muted, #77718a);
+}
+
+.bloque-card__header > .badge,
+.section-header > .badge {
+  flex-shrink: 0;
+}
+
+/* =====================================================
+   LISTA DE CLASIFICADOS
+   ===================================================== */
+
+.clasificados-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.clasificado {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  height: auto;
+  min-width: 0;
+  min-height: 0;
+  padding: 0.75rem;
+  background: var(--color-bg, #f8f6ff);
+  border: 1px solid var(--color-border, #e4def5);
+  border-radius: var(--radius-sm, 10px);
+  box-sizing: border-box;
+}
+
+.clasificado--directo {
+  background: #f1fff5;
+  border-color: #b7efc5;
+}
+
+.clasificado__position {
+  display: grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  flex-shrink: 0;
+  place-items: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-primary, #7c3aed);
+  background: #f1e9ff;
+  border-radius: 50%;
+}
+
+.clasificado__robot,
+.clasificado__stats {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.clasificado__stats {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.clasificado__robot strong,
+.clasificado__robot span,
+.clasificado__stats strong,
+.clasificado__stats span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.clasificado__robot span,
+.clasificado__stats span {
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #77718a);
+}
+
+.clasificado > .badge {
+  grid-column: 2 / -1;
+  justify-self: start;
+}
+
+/* =====================================================
+   RONDA PRELIMINAR
+   ===================================================== */
+
+.cruces-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 1rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.cruce-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  height: auto;
+  min-width: 0;
+  min-height: 0;
+  padding: 1rem;
+  background: var(--color-bg, #f8f6ff);
+  border: 1px solid var(--color-border, #e4def5);
+  border-radius: var(--radius-sm, 10px);
+  box-sizing: border-box;
+}
+
+.cruce-card__number {
+  grid-column: 1 / -1;
+  color: var(--color-primary, #7c3aed);
+}
+
+.cruce-card__robot {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+  text-align: center;
+}
+
+.cruce-card__robot strong,
+.cruce-card__robot span,
+.cruce-card__robot small {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cruce-card__robot span,
+.cruce-card__robot small {
+  color: var(--color-text-muted, #77718a);
+}
+
+.cruce-card__vs {
+  font-weight: 700;
+}
+
+/* =====================================================
+   PASES DIRECTOS
+   ===================================================== */
+
+.pases-card {
+  height: auto;
+  min-height: 0;
+  padding: 1.25rem;
+}
+
+.pases-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: start;
+  gap: 0.75rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.pase-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  width: 100%;
+  height: auto;
+  min-width: 0;
+  min-height: 0;
+  padding: 1rem;
+  overflow: hidden;
+  background: #f1fff5;
+  border: 1px solid #b7efc5;
+  border-radius: var(--radius-sm, 10px);
+  box-sizing: border-box;
+}
+
+.pase-item strong,
+.pase-item span,
+.pase-item small {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pase-item__seed {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-primary, #7c3aed);
+}
+
+.pase-item span,
+.pase-item small {
+  color: var(--color-text-muted, #77718a);
+}
+
+/* =====================================================
+   ACCIONES INFERIORES
+   ===================================================== */
+
+.footer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+.footer-actions__right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* =====================================================
+   TABLET
+   ===================================================== */
+
+@media (max-width: 1200px) {
+  .clasificados-page {
+    padding: 1.5rem;
+  }
+
+  .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bloques-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pases-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* =====================================================
+   SIDEBAR COMO MENÚ SUPERPUESTO
+   ===================================================== */
+
+@media (max-width: 900px) {
+  .app-shell__main {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .app-shell__backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: block;
+    background: rgb(15 7 35 / 55%);
+  }
+
+  .clasificados-page {
+    padding: 1.25rem;
+  }
+}
+
+/* =====================================================
+   MÓVIL
+   ===================================================== */
+
+@media (max-width: 720px) {
+  .clasificados-page {
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .clasificados-header,
+  .section-header,
+  .footer-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .clasificados-header .btn {
+    width: 100%;
+  }
+
+  .summary-grid,
+  .bloques-grid,
+  .cruces-grid,
+  .pases-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-card {
+    min-height: auto;
+  }
+
+  .footer-actions__right {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .footer-actions .btn,
+  .footer-actions__right .btn {
+    width: 100%;
+  }
+}
+
+/* =====================================================
+   MÓVIL PEQUEÑO
+   ===================================================== */
+
+@media (max-width: 480px) {
+  .clasificado {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .clasificado__stats {
+    grid-column: 2;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .clasificado > .badge {
+    grid-column: 2;
+  }
+
+  .cruce-card {
+    grid-template-columns: 1fr;
+  }
+
+  .cruce-card__number,
+  .cruce-card__vs {
+    grid-column: 1;
+    text-align: center;
+  }
+}

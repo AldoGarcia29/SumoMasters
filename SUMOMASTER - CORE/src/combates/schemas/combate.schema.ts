@@ -55,6 +55,12 @@ export class Combate {
   @Prop({ type: Types.ObjectId, ref: 'Dojo', default: null })
   dojo: Types.ObjectId | null;
 
+  @Prop({ type: Number, default: null, min: 1 })
+turno: number | null;
+
+@Prop({ type: Number, default: null, min: 1 })
+arena: number | null;
+
   @Prop({
     type: String,
     enum: EstadoCombate,

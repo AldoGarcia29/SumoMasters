@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard, guestGuard } from './core/guards/auth.guard';
+import { TorneoClasificadosComponent } from './features/torneo-clasificados/torneo-clasificados.component';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'auth/login' },
@@ -27,6 +28,21 @@ export const routes: Routes = [
         (m) => m.DashboardComponent,
       ),
   },
+
+  {
+  path: 'torneos/:id/podio',
+  loadComponent: () =>
+    import(
+      './features/torneo-podio/torneo-podio.component'
+    ).then(
+      (m) => m.TorneoPodioComponent,
+    ),
+},
+
+  {
+  path: 'torneos/:id/clasificados',
+  component: TorneoClasificadosComponent,
+},
   {
     path: 'categorias',
     canActivate: [authGuard],

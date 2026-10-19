@@ -1,8 +1,11 @@
 export enum FaseCombate {
   FASE_GRUPOS = 'Fase de grupos',
+  PRELIMINAR = 'Ronda preliminar',
+  DIECISEISAVOS = 'Dieciseisavos de final',
   OCTAVOS = 'Octavos de final',
   CUARTOS = 'Cuartos de final',
   SEMIFINAL = 'Semifinal',
+  TERCER_LUGAR = 'Tercer lugar',
   FINAL = 'Final',
 }
 
