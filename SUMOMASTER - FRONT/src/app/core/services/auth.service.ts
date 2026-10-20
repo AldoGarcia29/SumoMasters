@@ -39,6 +39,13 @@ export class AuthService {
     return roles.some((role) => userRoles.includes(role));
   }
 
+  /** Página de inicio según el rol (evita bucles de redirección en los guards). */
+  homeRoute(): string {
+    if (this.hasAnyRole([Role.ADMIN])) return '/dashboard';
+    if (this.hasAnyRole([Role.STAFF])) return '/torneos';
+    return '/live';
+  }
+
   constructor(
     private readonly http: HttpClient,
     private readonly router: Router,

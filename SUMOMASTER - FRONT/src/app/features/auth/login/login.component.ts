@@ -63,7 +63,7 @@ export class LoginComponent {
       .login({ identifier: identifier!, password: password! })
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
-        next: () => this.router.navigateByUrl('/dashboard'),
+        next: () => this.router.navigateByUrl(this.authService.homeRoute()),
         error: (err: HttpErrorResponse) => this.handleError(err),
       });
   }
