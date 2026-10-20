@@ -74,4 +74,11 @@ export class VersusComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.subscription?.unsubscribe();
   }
+
+  identificarCombate(
+  _: number,
+  combate: { _id: string },
+): string {
+  return combate._id;
+}
 }

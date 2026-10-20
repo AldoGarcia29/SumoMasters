@@ -1131,3 +1131,266 @@ main {
     display: none;
   }
 }
+
+
+/* PRESENTACIÓN DE CADA NUEVO COMBATE */
+
+.entrada-epica {
+  position: relative;
+  isolation: isolate;
+
+  .robot.azul {
+    animation: presentarAzul 1.3s cubic-bezier(.16, 1, .3, 1) both;
+  }
+
+  .robot.rojo {
+    animation: presentarRojo 1.3s cubic-bezier(.16, 1, .3, 1) both;
+  }
+
+  .centro {
+    animation: impactoCentro 1.6s ease-out both;
+  }
+
+  // Mantiene el efecto de victoria cuando cambia el resultado.
+  .robot.ganador {
+    animation:
+      coronar 700ms ease both,
+      auraVictoria 3s ease-in-out 700ms infinite;
+  }
+}
+
+.rafaga-presentacion {
+  position: absolute;
+  inset: -35px;
+  z-index: 5;
+  overflow: hidden;
+  border-radius: 30px;
+  pointer-events: none;
+
+  // Desaparece completamente al terminar la presentación.
+  animation: cerrarPresentacion 2.3s linear both;
+}
+
+.llamarada {
+  position: absolute;
+  inset: 0;
+  filter: drop-shadow(0 0 16px var(--fuego));
+
+  i {
+    position: absolute;
+    bottom: -35%;
+    left: var(--posicion);
+    width: 18%;
+    height: 115%;
+
+    // Silueta con punta curvada de una llama.
+    border-radius: 90% 10% 65% 35% / 80% 25% 75% 20%;
+
+    background: radial-gradient(
+      ellipse at 50% 95%,
+      #ffffff 0%,
+      var(--centro) 15%,
+      var(--fuego) 40%,
+      transparent 72%
+    );
+
+    transform-origin: center bottom;
+    opacity: 0;
+
+    animation: levantarLlama 1.9s ease-out both;
+    animation-delay: var(--demora);
+  }
+
+  i:nth-child(1) {
+    --posicion: -8%;
+    --demora: 0s;
+  }
+
+  i:nth-child(2) {
+    --posicion: 7%;
+    --demora: .08s;
+  }
+
+  i:nth-child(3) {
+    --posicion: 20%;
+    --demora: .15s;
+  }
+
+  i:nth-child(4) {
+    --posicion: 34%;
+    --demora: .04s;
+  }
+
+  i:nth-child(5) {
+    --posicion: 47%;
+    --demora: .12s;
+  }
+
+  i:nth-child(6) {
+    --posicion: 60%;
+    --demora: .2s;
+  }
+}
+
+.llamarada--azul {
+  --fuego: #087aff;
+  --centro: #8ff6ff;
+
+  right: 42%;
+}
+
+.llamarada--roja {
+  --fuego: #ff3b13;
+  --centro: #ffdc75;
+
+  left: 42%;
+  transform: scaleX(-1);
+}
+
+.anuncio-combate {
+  position: absolute;
+  top: 43%;
+  left: 0;
+  right: 0;
+  padding: 15px;
+  text-align: center;
+
+  color: #fff;
+  font-size: clamp(24px, 5vw, 80px);
+  font-weight: 950;
+  font-style: italic;
+  letter-spacing: 3px;
+
+  text-shadow:
+    0 4px 0 #241037,
+    0 0 30px #ff6a00,
+    0 0 60px #ff3b13;
+
+  animation: anunciarDuelo 2.1s ease both;
+}
+
+@keyframes presentarAzul {
+  0% {
+    opacity: 0;
+    transform: translateX(-100px) scale(.85) rotate(-4deg);
+  }
+
+  65% {
+    opacity: 1;
+    transform: translateX(8px) scale(1.02) rotate(1deg);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1) rotate(0);
+  }
+}
+
+@keyframes presentarRojo {
+  0% {
+    opacity: 0;
+    transform: translateX(100px) scale(.85) rotate(4deg);
+  }
+
+  65% {
+    opacity: 1;
+    transform: translateX(-8px) scale(1.02) rotate(-1deg);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1) rotate(0);
+  }
+}
+
+@keyframes impactoCentro {
+  0%,
+  30% {
+    opacity: 0;
+    transform: scale(2);
+  }
+
+  65% {
+    opacity: 1;
+    transform: scale(.9);
+  }
+
+  80% {
+    transform: scale(1.08);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes levantarLlama {
+  0% {
+    opacity: 0;
+    transform: translateY(50%) scale(.5, .1) rotate(-15deg);
+  }
+
+  25% {
+    opacity: .95;
+    transform: translateY(-5%) scale(1.1, 1) rotate(8deg);
+  }
+
+  50% {
+    opacity: .85;
+    transform: translateY(-15%) scale(.9, 1.15) rotate(-8deg);
+  }
+
+  75% {
+    opacity: .4;
+    transform: translateY(-30%) scale(.7, 1.2) rotate(12deg);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-65%) scale(.3, 1.3) rotate(-5deg);
+  }
+}
+
+@keyframes anunciarDuelo {
+  0%,
+  10% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+
+  25%,
+  65% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.1) translateY(-20px);
+  }
+}
+
+@keyframes cerrarPresentacion {
+  0%,
+  85% {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rafaga-presentacion {
+    display: none;
+  }
+
+  .entrada-epica .robot,
+  .entrada-epica .centro {
+    animation: none !important;
+  }
+}

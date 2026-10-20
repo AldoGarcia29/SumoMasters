@@ -50,9 +50,22 @@
       </div>
 
       <section
-        class="versus"
-        aria-label="Competidores del combate seleccionado"
-      >
+  *ngFor="let pelea of [c]; trackBy: identificarCombate"
+  class="versus entrada-epica"
+  aria-label="Competidores del combate seleccionado"
+>
+  <!-- Ráfaga que aparece al presentar un nuevo combate -->
+  <div class="rafaga-presentacion" aria-hidden="true">
+    <div class="llamarada llamarada--azul">
+      <i></i><i></i><i></i><i></i><i></i><i></i>
+    </div>
+
+    <div class="llamarada llamarada--roja">
+      <i></i><i></i><i></i><i></i><i></i><i></i>
+    </div>
+
+    <span class="anuncio-combate">¡DUELO DE ROBOTS!</span>
+  </div>
         <!-- Robot del lado azul -->
         <article
           class="robot azul"
