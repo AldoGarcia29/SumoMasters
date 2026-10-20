@@ -7,7 +7,7 @@ import { Robot, RobotDocument } from './schemas/robot.schema';
 import { CreateRobotDto } from './dto/create-robot.dto';
 import { UpdateRobotDto } from './dto/update-robot.dto';
 
-// 1. Importamos las clases para poder inyectar sus modelos
+// Importamos las clases para poder inyectar sus modelos
 import { Equipo } from '../equipos/schemas/equipo.schema';
 import { Categoria } from '../categorias/schemas/categoria.schema';
 
@@ -17,11 +17,8 @@ export class RobotsService {
     @InjectModel(Robot.name) private readonly robotModel: Model<RobotDocument>,
     @InjectModel(Torneo.name)
     private readonly torneoModel: Model<TorneoDocument>,
-
-    // 2. Inyectamos los modelos para poder hacer las peticiones manuales
     @InjectModel(Equipo.name) private readonly equipoModel: Model<any>,
     @InjectModel(Categoria.name) private readonly categoriaModel: Model<any>,
-
     private readonly equiposService: EquiposService,
   ) {}
 
@@ -78,11 +75,11 @@ export class RobotsService {
 
     if (!robots.length) return [];
 
-    // Extraemos los IDs
+    // Extraemos los IDs únicos para optimizar la consulta
     const equipoIds = [...new Set(robots.map((r) => r.equipo))];
     const categoriaIds = [...new Set(robots.map((r) => r.categoria))];
 
-    // 3. Hacemos la petición a las otras colecciones para obtener los nombres[cite: 20]
+    // Buscamos los nombres directamente en sus colecciones
     const equipos = await this.equipoModel
       .find({ _id: { $in: equipoIds } })
       .select('nombre')
@@ -94,11 +91,11 @@ export class RobotsService {
       .lean()
       .exec();
 
-    // Mapeamos los resultados para cruzarlos fácilmente
+    // Mapeamos los resultados
     const equiposMap = new Map(equipos.map((e) => [String(e._id), e]));
     const categoriasMap = new Map(categorias.map((c) => [String(c._id), c]));
 
-    // Reconstruimos la respuesta inyectando los nombres[cite: 20]
+    // Reconstruimos la respuesta inyectando los objetos con los nombres
     return robots.map((robot) => ({
       ...robot,
       equipo: equiposMap.get(String(robot.equipo)) || { nombre: 'Desconocido' },

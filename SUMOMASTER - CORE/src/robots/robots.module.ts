@@ -5,7 +5,7 @@ import { Torneo, TorneoSchema } from '../torneos/schemas/torneo.schema';
 import { Robot, RobotSchema } from './schemas/robot.schema';
 import { RobotsController } from './robots.controller';
 import { RobotsService } from './robots.service';
-import { Equipo, EquipoSchema } from 'src/equipos/schemas/equipo.schema';
+import { Equipo, EquipoSchema } from '../equipos/schemas/equipo.schema';
 import {
   Categoria,
   CategoriaSchema,
