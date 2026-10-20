@@ -130,13 +130,10 @@ if (!combate.dojo) {
     // Lista explícita de campos que puede consultar el público.
     const combate = torneo.combateProyectado
       ? await this.combates
-          .findOne({
-            _id: torneo.combateProyectado,
-            torneo: id,
-          })
+          .findById(torneo.combateProyectado)
           .select(
-            'numero fase bloque dojo arena turno estado resultado robot1 robot2',
-          )
+  'torneo numero fase bloque dojo arena turno estado resultado robot1 robot2',
+)
           .populate('bloque', 'nombre')
           .populate('dojo', 'nombre')
           .populate({
@@ -151,6 +148,15 @@ if (!combate.dojo) {
           })
           .lean()
       : null;
+
+      if (
+  combate &&
+  String(combate.torneo).toLowerCase() !== id.toLowerCase()
+) {
+  throw new BadRequestException(
+    'El combate proyectado no pertenece a este torneo.',
+  );
+}
 
     return {
       torneo: {
