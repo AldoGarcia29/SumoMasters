@@ -51,17 +51,28 @@ export class VersusController {
     if (combateId !== null) {
       this.validarId(combateId);
 
-      const combate = await this.combates.exists({
-        _id: combateId,
-        torneo: id,
-        dojo: { $ne: null },
-      });
+      const combate = await this.combates
+  .findById(combateId)
+  .select('torneo dojo')
+  .lean();
 
-      if (!combate) {
-        throw new BadRequestException(
-          'El combate debe pertenecer al torneo y tener dojo asignado.',
-        );
-      }
+if (!combate) {
+  throw new NotFoundException(
+    'El combate seleccionado ya no existe. Actualiza la lista.',
+  );
+}
+
+if (String(combate.torneo) !== id) {
+  throw new BadRequestException(
+    'El combate seleccionado pertenece a otro torneo.',
+  );
+}
+
+if (!combate.dojo) {
+  throw new BadRequestException(
+    'El combate seleccionado no tiene dojo asignado. Guarda la asignación de dojos y actualiza la lista.',
+  );
+}
     }
 
     const torneo = await this.torneos.findByIdAndUpdate(
