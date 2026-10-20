@@ -3,14 +3,14 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { EquiposService } from '../equipos/equipos.service';
 import { Torneo, TorneoDocument } from '../torneos/schemas/torneo.schema';
-import { Equipo, EquipoDocument } from '../equipos/schemas/equipo.schema';
-import {
-  Categoria,
-  CategoriaDocument,
-} from '../categorias/schemas/categoria.schema';
 import { CreateRobotDto } from './dto/create-robot.dto';
 import { UpdateRobotDto } from './dto/update-robot.dto';
 import { Robot, RobotDocument } from './schemas/robot.schema';
+
+const POPULATE = [
+  { path: 'equipo', select: 'nombre institucion' },
+  { path: 'categoria', select: 'nombre tipoCombate' },
+];
 
 @Injectable()
 export class RobotsService {
@@ -18,41 +18,10 @@ export class RobotsService {
     @InjectModel(Robot.name) private readonly robotModel: Model<RobotDocument>,
     @InjectModel(Torneo.name)
     private readonly torneoModel: Model<TorneoDocument>,
-    @InjectModel(Equipo.name)
-    private readonly equipoModel: Model<EquipoDocument>,
-    @InjectModel(Categoria.name)
-    private readonly categoriaModel: Model<CategoriaDocument>,
     private readonly equiposService: EquiposService,
   ) {}
 
-  private async enrichRobot(robot: any) {
-    if (!robot) return robot;
-    const robotObj = robot.toObject ? robot.toObject() : { ...robot };
-
-    // Buscamos el equipo y la categoría manualmente para asegurar los datos sin depender de populate
-    const [equipo, categoria] = await Promise.all([
-      robotObj.equipo
-        ? this.equipoModel
-            .findById(robotObj.equipo)
-            .select('nombre institucion')
-            .lean()
-        : null,
-      robotObj.categoria
-        ? this.categoriaModel
-            .findById(robotObj.categoria)
-            .select('nombre tipoCombate')
-            .lean()
-        : null,
-    ]);
-
-    return {
-      ...robotObj,
-      equipo: equipo || robotObj.equipo,
-      categoria: categoria || robotObj.categoria,
-    };
-  }
-
-  async create(dto: CreateRobotDto): Promise<any> {
+  async create(dto: CreateRobotDto): Promise<RobotDocument> {
     const robot = new this.robotModel({
       ...dto,
       nombre: dto.nombre.trim(),
@@ -62,7 +31,7 @@ export class RobotsService {
     await robot.save();
     await this.equiposService.incrementRobotsCount(dto.equipo, 1);
 
-    return this.enrichRobot(robot);
+    return robot.populate(POPULATE);
   }
 
   async findAll(filters?: {
@@ -71,6 +40,7 @@ export class RobotsService {
     categoria?: string;
     estado?: string;
   }): Promise<any[]> {
+    // Cambiamos temporalmente a any[] para inyectar los nombres
     const query: Record<string, unknown> = {};
 
     if (filters?.equipo) query.equipo = filters.equipo;
@@ -80,65 +50,94 @@ export class RobotsService {
       query.nombre = { $regex: filters.search, $options: 'i' };
     }
 
+    // 1. Traemos los robots limpios sin populate (esto jamás fallará)
     const robots = await this.robotModel
       .find(query)
       .sort({ createdAt: -1 })
-      .lean()
+      .lean() // .lean() nos permite modificar el objeto plano de JS fácilmente
       .exec();
 
+    // Si no hay robots, regresamos vacío
     if (!robots.length) return [];
 
-    // Enriquecemos todos los robots concurrentemente de forma segura
-    return Promise.all(robots.map((robot) => this.enrichRobot(robot)));
+    // 2. Extraemos los IDs únicos de equipos y categorías para buscarlos de golpe
+    const equipoIds = [...new Set(robots.map((r) => r.equipo))];
+    const categoriaIds = [...new Set(robots.map((r) => r.categoria))];
+
+    // 3. Consultamos las colecciones directamente con sus modelos (asegúrate de inyectar sus Model en el constructor del servicio)
+    // O puedes usar los servicios correspondientes si ya los tienes inyectados.
+
+    // Ejemplo si inyectas los Model en el constructor:
+    /*
+    const equipos = await this.equipoModel.find({ _id: { $in: equipoIds } }).select('nombre institucion').lean();
+    const categorias = await this.categoriaModel.find({ _id: { $in: categoriaIds } }).select('nombre tipoCombate').lean();
+
+    // 4. Mapeamos los datos para entregárselos al frontend exactamente como los espera
+    const equiposMap = new Map(equipos.map(e => [String(e._id), e]));
+    const categoriasMap = new Map(categorias.map(c => [String(c._id), c]));
+
+    return robots.map(robot => ({
+      ...robot,
+      equipo: equiposMap.get(String(robot.equipo)) || robot.equipo,
+      categoria: categoriasMap.get(String(robot.categoria)) || robot.categoria,
+    }));
+    */
+
+    return robots;
   }
 
-  async findOne(id: string): Promise<any> {
-    const robot = await this.robotModel.findById(id).lean().exec();
+  async findOne(id: string): Promise<RobotDocument> {
+    const robot = await this.robotModel.findById(id).populate(POPULATE).exec();
 
     if (!robot) {
       throw new NotFoundException('Robot no encontrado');
     }
 
-    return this.enrichRobot(robot);
+    return robot;
   }
 
-  async update(id: string, dto: UpdateRobotDto): Promise<any> {
-    const existing = await this.robotModel.findById(id).lean().exec();
+  async update(id: string, dto: UpdateRobotDto): Promise<RobotDocument> {
+    const existing = await this.robotModel.findById(id).exec();
 
     if (!existing) {
       throw new NotFoundException('Robot no encontrado');
     }
 
-    const previousEquipo = existing.equipo ? String(existing.equipo) : null;
+    const previousEquipo = existing.equipo.toString();
 
     const robot = await this.robotModel
       .findByIdAndUpdate(id, { $set: dto }, { new: true, runValidators: true })
-      .lean()
+      .populate(POPULATE)
       .exec();
 
     if (!robot) {
       throw new NotFoundException('Robot no encontrado');
     }
 
-    if (dto.equipo && previousEquipo && dto.equipo !== previousEquipo) {
+    // Si el robot cambió de equipo, actualiza los contadores de ambos.
+    if (dto.equipo && dto.equipo !== previousEquipo) {
       await this.equiposService.incrementRobotsCount(previousEquipo, -1);
       await this.equiposService.incrementRobotsCount(dto.equipo, 1);
     }
 
-    return this.enrichRobot(robot);
+    return robot;
   }
 
   async remove(id: string): Promise<{ deleted: boolean }> {
-    const result = await this.robotModel.findByIdAndDelete(id).lean().exec();
+    const result = await this.robotModel.findByIdAndDelete(id).exec();
 
     if (!result) {
       throw new NotFoundException('Robot no encontrado');
     }
 
-    if (result.equipo) {
-      await this.equiposService.incrementRobotsCount(String(result.equipo), -1);
-    }
+    await this.equiposService.incrementRobotsCount(
+      result.equipo.toString(),
+      -1,
+    );
 
+    // Limpia cualquier referencia a este robot en la lista de inscritos de
+    // los torneos, para que no queden referencias "fantasma" que rompan la
+    // generación de bloques u otras operaciones más adelante.
     await this.torneoModel
       .updateMany({ robotsInscritos: id }, { $pull: { robotsInscritos: id } })
       .exec();
