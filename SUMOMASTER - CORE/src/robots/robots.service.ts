@@ -16,7 +16,8 @@ const POPULATE = [
 export class RobotsService {
   constructor(
     @InjectModel(Robot.name) private readonly robotModel: Model<RobotDocument>,
-    @InjectModel(Torneo.name) private readonly torneoModel: Model<TorneoDocument>,
+    @InjectModel(Torneo.name)
+    private readonly torneoModel: Model<TorneoDocument>,
     private readonly equiposService: EquiposService,
   ) {}
 
@@ -38,7 +39,8 @@ export class RobotsService {
     equipo?: string;
     categoria?: string;
     estado?: string;
-  }): Promise<RobotDocument[]> {
+  }): Promise<any[]> {
+    // Cambiamos temporalmente a any[] para inyectar los nombres
     const query: Record<string, unknown> = {};
 
     if (filters?.equipo) query.equipo = filters.equipo;
@@ -48,11 +50,40 @@ export class RobotsService {
       query.nombre = { $regex: filters.search, $options: 'i' };
     }
 
-    return this.robotModel
+    // 1. Traemos los robots limpios sin populate (esto jamás fallará)
+    const robots = await this.robotModel
       .find(query)
-      .populate(POPULATE)
       .sort({ createdAt: -1 })
+      .lean() // .lean() nos permite modificar el objeto plano de JS fácilmente
       .exec();
+
+    // Si no hay robots, regresamos vacío
+    if (!robots.length) return [];
+
+    // 2. Extraemos los IDs únicos de equipos y categorías para buscarlos de golpe
+    const equipoIds = [...new Set(robots.map((r) => r.equipo))];
+    const categoriaIds = [...new Set(robots.map((r) => r.categoria))];
+
+    // 3. Consultamos las colecciones directamente con sus modelos (asegúrate de inyectar sus Model en el constructor del servicio)
+    // O puedes usar los servicios correspondientes si ya los tienes inyectados.
+
+    // Ejemplo si inyectas los Model en el constructor:
+    /*
+    const equipos = await this.equipoModel.find({ _id: { $in: equipoIds } }).select('nombre institucion').lean();
+    const categorias = await this.categoriaModel.find({ _id: { $in: categoriaIds } }).select('nombre tipoCombate').lean();
+
+    // 4. Mapeamos los datos para entregárselos al frontend exactamente como los espera
+    const equiposMap = new Map(equipos.map(e => [String(e._id), e]));
+    const categoriasMap = new Map(categorias.map(c => [String(c._id), c]));
+
+    return robots.map(robot => ({
+      ...robot,
+      equipo: equiposMap.get(String(robot.equipo)) || robot.equipo,
+      categoria: categoriasMap.get(String(robot.categoria)) || robot.categoria,
+    }));
+    */
+
+    return robots;
   }
 
   async findOne(id: string): Promise<RobotDocument> {
@@ -99,7 +130,10 @@ export class RobotsService {
       throw new NotFoundException('Robot no encontrado');
     }
 
-    await this.equiposService.incrementRobotsCount(result.equipo.toString(), -1);
+    await this.equiposService.incrementRobotsCount(
+      result.equipo.toString(),
+      -1,
+    );
 
     // Limpia cualquier referencia a este robot en la lista de inscritos de
     // los torneos, para que no queden referencias "fantasma" que rompan la
