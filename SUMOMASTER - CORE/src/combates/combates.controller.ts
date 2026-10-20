@@ -13,6 +13,9 @@ import { CombatesService } from './combates.service';
 import { AsignarDojoDto } from './dto/asignar-dojo.dto';
 import { GenerarCombatesDto } from './dto/generar-combates.dto';
 import { RegistrarResultadoDto } from './dto/registrar-resultado.dto';
+import {
+  FaseCombate,
+} from './enums/combate.enums';
 
 @Controller()
 export class CombatesController {
@@ -88,4 +91,22 @@ export class CombatesController {
   cancelar(@Param('id') id: string) {
     return this.combatesService.cancelar(id);
   }
+
+ @Roles(Role.ADMIN)
+@Post(
+  'torneos/:torneoId/combates/resultados-aleatorios',
+)
+registrarResultadosAleatorios(
+  @Param('torneoId')
+  torneoId: string,
+
+  @Query('fase')
+  fase?: FaseCombate,
+) {
+  return this.combatesService
+    .registrarResultadosAleatorios(
+      torneoId,
+      fase,
+    );
+}
 }

@@ -1,0 +1,429 @@
+<div class="app-shell">
+  <app-sidebar
+    [isOpen]="sidebarOpen()"
+    (closeRequested)="closeSidebar()"
+  />
+
+  <div
+    class="app-shell__backdrop"
+    *ngIf="sidebarOpen()"
+    (click)="closeSidebar()"
+  ></div>
+
+  <div class="app-shell__main">
+    <app-topbar
+      title="Podio del torneo"
+      [subtitle]="
+        'Dashboard › Torneos › ' +
+        (torneo()?.nombre ?? 'Torneo') +
+        ' › Resultados finales'
+      "
+      [notificationCount]="3"
+      (menuToggle)="toggleSidebar()"
+    />
+
+    <main class="podio-page">
+      <section class="panel podio-header">
+        <div class="podio-header__icon">
+          🏆
+        </div>
+
+        <div class="podio-header__content">
+          <span class="podio-header__eyebrow">
+            Torneo finalizado
+          </span>
+
+          <h1>
+            {{ torneo()?.nombre ?? 'Resultados del torneo' }}
+          </h1>
+
+          <p>
+            Clasificación final y robots ganadores del torneo.
+          </p>
+        </div>
+
+        <div class="podio-header__actions">
+
+
+
+        </div>
+      </section>
+
+      <section
+        class="panel state-card"
+        *ngIf="loading()"
+      >
+        <div class="state-card__spinner"></div>
+        <strong>Cargando resultados finales…</strong>
+        <span>Estamos preparando el podio del torneo.</span>
+      </section>
+
+      <section
+        class="panel state-card state-card--error"
+        *ngIf="!loading() && errorMessage()"
+      >
+        <div class="state-card__icon">!</div>
+
+        <strong>
+          No se pudo cargar el podio
+        </strong>
+
+        <span>
+          {{ errorMessage() }}
+        </span>
+
+        <button
+          type="button"
+          class="btn btn--primary"
+          (click)="loadPodio()"
+        >
+          Intentar nuevamente
+        </button>
+      </section>
+
+      <ng-container
+        *ngIf="!loading() && !errorMessage() && podio() as datos"
+      >
+        <section
+          class="panel pending-card"
+          *ngIf="!datos.torneoFinalizado"
+        >
+          <div class="pending-card__icon">
+            ⏱
+          </div>
+
+          <div>
+            <h2>El torneo todavía no ha terminado</h2>
+
+            <p>
+              La Final y el combate por el tercer lugar deben estar
+              finalizados para mostrar la clasificación definitiva.
+            </p>
+          </div>
+
+          <a
+            class="btn btn--primary"
+            [routerLink]="[
+              '/torneos',
+              torneoId,
+              'resultados'
+            ]"
+            [queryParams]="{
+              fase: FaseCombate.FINAL
+            }"
+          >
+            Registrar resultado final
+          </a>
+        </section>
+
+        <ng-container *ngIf="datos.torneoFinalizado">
+          <section class="panel celebration">
+            <span class="celebration__small">
+              RESULTADOS OFICIALES
+            </span>
+
+            <h2>
+              🏆 Cuadro de honor
+            </h2>
+
+            <p>
+              Felicidades a los robots y equipos ganadores.
+            </p>
+          </section>
+
+          <section class="podium">
+            <!-- Segundo lugar -->
+            <article class="podium-card podium-card--second">
+              <div class="podium-card__medal">
+                🥈
+              </div>
+
+              <span class="podium-card__position">
+                Segundo lugar
+              </span>
+
+              <div class="podium-card__avatar">
+                <img
+                  *ngIf="datos.subcampeon.robotImagenUrl"
+                  [src]="datos.subcampeon.robotImagenUrl"
+                  [alt]="datos.subcampeon.robotNombre"
+                />
+
+                <span
+                  *ngIf="!datos.subcampeon.robotImagenUrl"
+                >
+                  🤖
+                </span>
+              </div>
+
+              <h3>
+                {{ datos.subcampeon.robotNombre }}
+              </h3>
+
+              <p>
+                {{ datos.subcampeon.equipoNombre }}
+              </p>
+
+              <div class="podium-card__base">
+                <strong>2</strong>
+                <span>SUBCAMPEÓN</span>
+              </div>
+            </article>
+
+            <!-- Primer lugar -->
+            <article class="podium-card podium-card--first">
+              <div class="podium-card__crown">
+                👑
+              </div>
+
+              <div class="podium-card__medal">
+                🥇
+              </div>
+
+              <span class="podium-card__position">
+                Primer lugar
+              </span>
+
+              <div class="podium-card__avatar">
+                <img
+                  *ngIf="datos.campeon.robotImagenUrl"
+                  [src]="datos.campeon.robotImagenUrl"
+                  [alt]="datos.campeon.robotNombre"
+                />
+
+                <span
+                  *ngIf="!datos.campeon.robotImagenUrl"
+                >
+                  🤖
+                </span>
+              </div>
+
+              <h3>
+                {{ datos.campeon.robotNombre }}
+              </h3>
+
+              <p>
+                {{ datos.campeon.equipoNombre }}
+              </p>
+
+              <span class="champion-badge">
+                Campeón del torneo
+              </span>
+
+              <div class="podium-card__base">
+                <strong>1</strong>
+                <span>CAMPEÓN</span>
+              </div>
+            </article>
+
+            <!-- Tercer lugar -->
+            <article class="podium-card podium-card--third">
+              <div class="podium-card__medal">
+                🥉
+              </div>
+
+              <span class="podium-card__position">
+                Tercer lugar
+              </span>
+
+              <div class="podium-card__avatar">
+                <img
+                  *ngIf="datos.tercerLugar.robotImagenUrl"
+                  [src]="datos.tercerLugar.robotImagenUrl"
+                  [alt]="datos.tercerLugar.robotNombre"
+                />
+
+                <span
+                  *ngIf="!datos.tercerLugar.robotImagenUrl"
+                >
+                  🤖
+                </span>
+              </div>
+
+              <h3>
+                {{ datos.tercerLugar.robotNombre }}
+              </h3>
+
+              <p>
+                {{ datos.tercerLugar.equipoNombre }}
+              </p>
+
+              <div class="podium-card__base">
+                <strong>3</strong>
+                <span>TERCER LUGAR</span>
+              </div>
+            </article>
+          </section>
+
+          <section class="panel results-card">
+            <div class="section-header">
+              <div>
+                <span class="section-header__eyebrow">
+                  CLASIFICACIÓN
+                </span>
+
+                <h2>Resultados finales</h2>
+
+                <p>
+                  Posiciones definitivas de los cuatro finalistas.
+                </p>
+              </div>
+
+              <span class="badge badge--success">
+                Torneo finalizado
+              </span>
+            </div>
+
+            <div class="results-table-wrapper">
+              <table class="results-table">
+                <thead>
+                  <tr>
+                    <th>Posición</th>
+                    <th>Robot</th>
+                    <th>Equipo</th>
+                    <th>Resultado</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr class="result-row result-row--gold">
+                    <td>
+                      <span class="position-badge position-badge--gold">
+                        1
+                      </span>
+                    </td>
+
+                    <td>
+                      <div class="robot-cell">
+                        <span class="robot-cell__icon">
+                          🤖
+                        </span>
+
+                        <strong>
+                          {{ datos.campeon.robotNombre }}
+                        </strong>
+                      </div>
+                    </td>
+
+                    <td>
+                      {{ datos.campeon.equipoNombre }}
+                    </td>
+
+                    <td>
+                      <span class="result-label result-label--gold">
+                        🏆 Campeón
+                      </span>
+                    </td>
+                  </tr>
+
+                  <tr class="result-row result-row--silver">
+                    <td>
+                      <span class="position-badge position-badge--silver">
+                        2
+                      </span>
+                    </td>
+
+                    <td>
+                      <div class="robot-cell">
+                        <span class="robot-cell__icon">
+                          🤖
+                        </span>
+
+                        <strong>
+                          {{ datos.subcampeon.robotNombre }}
+                        </strong>
+                      </div>
+                    </td>
+
+                    <td>
+                      {{ datos.subcampeon.equipoNombre }}
+                    </td>
+
+                    <td>
+                      <span class="result-label result-label--silver">
+                        Subcampeón
+                      </span>
+                    </td>
+                  </tr>
+
+                  <tr class="result-row result-row--bronze">
+                    <td>
+                      <span class="position-badge position-badge--bronze">
+                        3
+                      </span>
+                    </td>
+
+                    <td>
+                      <div class="robot-cell">
+                        <span class="robot-cell__icon">
+                          🤖
+                        </span>
+
+                        <strong>
+                          {{ datos.tercerLugar.robotNombre }}
+                        </strong>
+                      </div>
+                    </td>
+
+                    <td>
+                      {{ datos.tercerLugar.equipoNombre }}
+                    </td>
+
+                    <td>
+                      <span class="result-label result-label--bronze">
+                        Tercer lugar
+                      </span>
+                    </td>
+                  </tr>
+
+                  <tr class="result-row">
+                    <td>
+                      <span class="position-badge">
+                        4
+                      </span>
+                    </td>
+
+                    <td>
+                      <div class="robot-cell">
+                        <span class="robot-cell__icon">
+                          🤖
+                        </span>
+
+                        <strong>
+                          {{ datos.cuartoLugar.robotNombre }}
+                        </strong>
+                      </div>
+                    </td>
+
+                    <td>
+                      {{ datos.cuartoLugar.equipoNombre }}
+                    </td>
+
+                    <td>
+                      <span class="result-label">
+                        Cuarto lugar
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <div class="footer-actions">
+
+            <a
+              class="btn btn--primary"
+              [routerLink]="[
+                '/torneos',
+                torneoId
+              ]"
+            >
+              Finalizar y volver al dashboard
+            </a>
+          </div>
+        </ng-container>
+      </ng-container>
+    </main>
+  </div>
+</div>

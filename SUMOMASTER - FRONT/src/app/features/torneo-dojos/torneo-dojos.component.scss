@@ -202,6 +202,19 @@
   gap: 0.6rem;
 }
 
+.combate-list__schedule {
+  display: flex;
+  flex-direction: column;
+  min-width: 5.5rem;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+
+  strong {
+    color: var(--color-primary);
+    font-size: 0.76rem;
+  }
+}
+
 @media (max-width: 1000px) {
   .dojos-layout {
     grid-template-columns: 1fr;

@@ -199,6 +199,31 @@ export class TorneosComponent implements OnInit {
     return this.form.controls.robotsInscritos.value.includes(robotId);
   }
 
+  todosRobotsSeleccionados(): boolean {
+  const robots = this.robotsDisponibles();
+  const seleccionados = this.form.controls.robotsInscritos.value;
+
+  return (
+    robots.length > 0 &&
+    robots.every((robot) => seleccionados.includes(robot._id))
+  );
+}
+
+toggleTodosRobots(): void {
+  const robots = this.robotsDisponibles();
+
+  if (this.todosRobotsSeleccionados()) {
+    this.form.controls.robotsInscritos.setValue([]);
+  } else {
+    this.form.controls.robotsInscritos.setValue(
+      robots.map((robot) => robot._id),
+    );
+  }
+
+  this.form.controls.robotsInscritos.markAsDirty();
+  this.form.controls.robotsInscritos.markAsTouched();
+}
+
   submitForm(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();

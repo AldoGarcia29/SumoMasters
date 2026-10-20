@@ -287,6 +287,121 @@
   color: var(--color-text-muted);
 }
 
+.resultados-filtros {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.combate-select-list__schedule {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 0.35rem;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+
+  strong {
+    color: var(--color-primary);
+  }
+}
+
+/* Filtros dentro de la columna lateral */
+.resultados-filtros {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.resultados-filtros .field {
+  min-width: 0;
+}
+
+.resultados-filtros select {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Permite que las pestañas bajen de línea */
+.panel--tabs--compact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+/* Tarjeta de cada combate */
+.combate-select-list .combate-select-list__item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'schedule action'
+    'robots action';
+  align-items: center;
+  gap: 0.4rem 0.6rem;
+  min-width: 0;
+}
+
+/* Turno, dojo y arena */
+.combate-select-list__schedule {
+  grid-area: schedule;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
+  min-width: 0;
+  margin: 0;
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+}
+
+.combate-select-list__schedule strong {
+  flex: none;
+  color: var(--color-primary);
+  white-space: nowrap;
+}
+
+.combate-select-list__schedule span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Robots */
+.combate-select-list__row {
+  grid-area: robots;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.combate-select-list__row app-robot-chip {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.combate-select-list__num {
+  flex: none;
+}
+
+/* Botón o estado */
+.combate-select-list__item > .btn,
+.combate-select-list__item > .badge {
+  grid-area: action;
+  align-self: center;
+  flex: none;
+}
+
+@media (max-width: 720px) {
+  .resultados-filtros {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 1300px) {
   .resultados-layout {
     grid-template-columns: 1fr;

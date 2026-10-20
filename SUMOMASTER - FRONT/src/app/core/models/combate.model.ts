@@ -3,12 +3,14 @@ import { Dojo } from './dojo.model';
 
 export enum FaseCombate {
   FASE_GRUPOS = 'Fase de grupos',
+  PRELIMINAR = 'Ronda preliminar',
+  DIECISEISAVOS = 'Dieciseisavos de final',
   OCTAVOS = 'Octavos de final',
   CUARTOS = 'Cuartos de final',
   SEMIFINAL = 'Semifinal',
+  TERCER_LUGAR = 'Tercer lugar',
   FINAL = 'Final',
 }
-
 export enum EstadoCombate {
   PENDIENTE = 'Pendiente',
   EN_CURSO = 'En curso',
@@ -44,6 +46,11 @@ export interface Combate {
   robot1: Robot;
   robot2: Robot;
   dojo: Dojo | null;
+  /** Turno programado del combate. */
+  turno: number | null;
+
+  /** Arena simultánea dentro del dojo. */
+  arena: number | null;
   estado: EstadoCombate;
   resultado: ResultadoCombate | null;
   metodoVictoria: MetodoVictoria | null;

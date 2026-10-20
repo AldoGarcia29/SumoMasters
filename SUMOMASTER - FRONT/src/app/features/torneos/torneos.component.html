@@ -177,21 +177,55 @@
       </label>
 
       <div class="field" *ngIf="form.controls.categoria.value">
-        <span>Robots inscritos ({{ form.controls.robotsInscritos.value.length }})</span>
-        <div class="robot-picker" *ngIf="robotsDisponibles().length > 0; else noRobots">
-          <label class="robot-picker__item" *ngFor="let robot of robotsDisponibles()">
-            <input
-              type="checkbox"
-              [checked]="isRobotChecked(robot._id)"
-              (change)="toggleRobotInscrito(robot._id, $any($event.target).checked)"
-            />
-            {{ robot.nombre }}
-          </label>
-        </div>
-        <ng-template #noRobots>
-          <p class="robot-picker__empty">No hay robots activos registrados en esta categoría todavía.</p>
-        </ng-template>
-      </div>
+  <div class="robot-picker__header">
+    <span>
+      Robots inscritos
+      ({{ form.controls.robotsInscritos.value.length }})
+    </span>
+
+    <button
+      type="button"
+      class="robot-picker__select-all"
+      *ngIf="robotsDisponibles().length > 0"
+      (click)="toggleTodosRobots()"
+    >
+      {{
+        todosRobotsSeleccionados()
+          ? 'Deseleccionar todos'
+          : 'Seleccionar todos'
+      }}
+    </button>
+  </div>
+
+  <div
+    class="robot-picker"
+    *ngIf="robotsDisponibles().length > 0; else noRobots"
+  >
+    <label
+      class="robot-picker__item"
+      *ngFor="let robot of robotsDisponibles()"
+    >
+      <input
+        type="checkbox"
+        [checked]="isRobotChecked(robot._id)"
+        (change)="
+          toggleRobotInscrito(
+            robot._id,
+            $any($event.target).checked
+          )
+        "
+      />
+
+      {{ robot.nombre }}
+    </label>
+  </div>
+
+  <ng-template #noRobots>
+    <p class="robot-picker__empty">
+      No hay robots activos registrados en esta categoría todavía.
+    </p>
+  </ng-template>
+</div>
 
       <p class="field__error" *ngIf="formError()">{{ formError() }}</p>
 

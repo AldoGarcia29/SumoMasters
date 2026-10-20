@@ -9,6 +9,7 @@ import { Combate, CombateSchema } from '../combates/schemas/combate.schema';
 import { PublicController } from './public.controller';
 import { PublicService } from './public.service';
 import { PublicCacheService } from './public-cache.service';
+import { VersusController } from './versus.controller';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { PublicCacheService } from './public-cache.service';
     // 120 peticiones por minuto por IP (en un venue muchos comparten wifi; sube si hace falta)
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
   ],
-  controllers: [PublicController],
+  controllers: [PublicController, VersusController],
   providers: [PublicService, PublicCacheService],
   exports: [PublicCacheService], // para invalidar el caché desde TorneosModule
 })
