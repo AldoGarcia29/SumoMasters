@@ -5,7 +5,7 @@ import { EstadoRobot } from '../enums/estado-robot.enum';
 export type RobotDocument = HydratedDocument<Robot>;
 
 @Schema({
-  collection: 'robots',
+  collection: 'robots', // <-- Añadido explícitamente para asegurar el populate correcto
   timestamps: true,
   versionKey: false,
 })
