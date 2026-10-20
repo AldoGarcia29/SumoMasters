@@ -104,9 +104,7 @@
             {{ c.robot1?.nombre || 'Por definir' }}
           </h2>
 
-          <p>
-            {{ equipo(c.robot1) || 'Equipo no disponible' }}
-          </p>
+      
 
           <strong
             *ngIf="
@@ -212,9 +210,7 @@
             {{ c.robot2?.nombre || 'Por definir' }}
           </h2>
 
-          <p>
-            {{ equipo(c.robot2) || 'Equipo no disponible' }}
-          </p>
+   
 
           <strong
             *ngIf="
@@ -289,3 +285,16 @@
     }}
   </footer>
 </main>
+
+<!-- Efectos decorativos -->
+<div class="arena-fx" aria-hidden="true">
+  <div class="fuego fuego--azul"></div>
+  <div class="fuego fuego--rojo"></div>
+
+  <div class="brasas">
+    <i></i><i></i><i></i><i></i><i></i><i></i>
+    <i></i><i></i><i></i><i></i><i></i><i></i>
+  </div>
+
+  <div class="linea-energia"></div>
+</div>

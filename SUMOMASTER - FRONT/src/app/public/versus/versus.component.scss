@@ -726,3 +726,408 @@ footer {
     transition: none !important;
   }
 }
+
+/* =========================================
+   ARENA: FUEGO, BRASAS Y ENERGÍA
+   ========================================= */
+
+main {
+  position: relative;
+  isolation: isolate;
+}
+
+/* Los efectos quedan detrás del contenido. */
+.arena-fx {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.fuego {
+  position: absolute;
+  bottom: -100px;
+  width: 65%;
+  height: clamp(300px, 60vh, 760px);
+  opacity: 0.7;
+  filter: blur(16px);
+  transform-origin: center bottom;
+  animation: fuegoVivo 3.4s ease-in-out infinite alternate;
+
+  /* Columnas de luz que simulan lenguas de fuego. */
+  background:
+    radial-gradient(
+      ellipse at 12% 100%,
+      var(--nucleo) 0%,
+      var(--llama) 13%,
+      transparent 37%
+    ),
+    radial-gradient(
+      ellipse at 35% 105%,
+      var(--nucleo) 0%,
+      var(--llama) 16%,
+      transparent 44%
+    ),
+    radial-gradient(
+      ellipse at 58% 100%,
+      var(--nucleo) 0%,
+      var(--llama) 12%,
+      transparent 38%
+    ),
+    radial-gradient(
+      ellipse at 83% 110%,
+      var(--nucleo) 0%,
+      var(--llama) 20%,
+      transparent 46%
+    );
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 10% 0 -10%;
+    background: inherit;
+    transform-origin: center bottom;
+  }
+
+  &::before {
+    opacity: 0.65;
+    animation: lenguasFuego 2.3s ease-in-out infinite alternate;
+  }
+
+  &::after {
+    opacity: 0.45;
+    animation: lenguasFuego 3.1s ease-in-out -1.4s infinite alternate-reverse;
+  }
+}
+
+.fuego--azul {
+  --nucleo: #a3edff;
+  --llama: #086bff;
+
+  left: -15%;
+}
+
+.fuego--rojo {
+  --nucleo: #ffd48a;
+  --llama: #ff302b;
+
+  right: -15%;
+  animation-delay: -1.7s;
+}
+
+/* Chispas ascendentes. */
+.brasas {
+  position: absolute;
+  inset: 0;
+
+  i {
+    position: absolute;
+    bottom: -30px;
+    left: var(--x);
+    width: 4px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--color);
+    box-shadow:
+      0 0 8px var(--color),
+      0 0 18px var(--color);
+
+    opacity: 0;
+    animation: subirBrasa var(--duracion) linear infinite;
+    animation-delay: var(--retraso);
+  }
+
+  i:nth-child(1) {
+    --x: 5%;
+    --color: #60caff;
+    --duracion: 6s;
+    --retraso: -2s;
+  }
+
+  i:nth-child(2) {
+    --x: 14%;
+    --color: #8fe7ff;
+    --duracion: 8s;
+    --retraso: -5s;
+  }
+
+  i:nth-child(3) {
+    --x: 24%;
+    --color: #3288ff;
+    --duracion: 5s;
+    --retraso: -1s;
+  }
+
+  i:nth-child(4) {
+    --x: 33%;
+    --color: #8fe7ff;
+    --duracion: 9s;
+    --retraso: -7s;
+  }
+
+  i:nth-child(5) {
+    --x: 42%;
+    --color: #b79aff;
+    --duracion: 7s;
+    --retraso: -3s;
+  }
+
+  i:nth-child(6) {
+    --x: 49%;
+    --color: #ffffff;
+    --duracion: 8s;
+    --retraso: -6s;
+  }
+
+  i:nth-child(7) {
+    --x: 56%;
+    --color: #ffc17d;
+    --duracion: 6s;
+    --retraso: -4s;
+  }
+
+  i:nth-child(8) {
+    --x: 65%;
+    --color: #ff6545;
+    --duracion: 9s;
+    --retraso: -2s;
+  }
+
+  i:nth-child(9) {
+    --x: 74%;
+    --color: #ffbf69;
+    --duracion: 5s;
+    --retraso: -3s;
+  }
+
+  i:nth-child(10) {
+    --x: 82%;
+    --color: #ff375f;
+    --duracion: 7s;
+    --retraso: -5s;
+  }
+
+  i:nth-child(11) {
+    --x: 91%;
+    --color: #ffcf87;
+    --duracion: 8s;
+    --retraso: -1s;
+  }
+
+  i:nth-child(12) {
+    --x: 97%;
+    --color: #ff6545;
+    --duracion: 6s;
+    --retraso: -4s;
+  }
+}
+
+/* División energética entre azul y rojo. */
+.linea-energia {
+  position: absolute;
+  top: 22%;
+  bottom: 8%;
+  left: 50%;
+  width: 2px;
+  transform: rotate(15deg);
+
+  background: linear-gradient(
+    transparent,
+    #77bfff50,
+    #ffffff90,
+    #ff807050,
+    transparent
+  );
+
+  box-shadow: 0 0 35px #ad83ff40;
+  opacity: 0.5;
+}
+
+/* Panels más dramáticos. */
+.robot {
+  backdrop-filter: blur(8px);
+}
+
+.azul {
+  box-shadow:
+    -12px 15px 65px #086bff26,
+    inset 0 0 45px #3288ff0c;
+}
+
+.rojo {
+  box-shadow:
+    12px 15px 65px #ff302b26,
+    inset 0 0 45px #ff375f0c;
+}
+
+/* Núcleo de energía detrás del VS. */
+.centro {
+  isolation: isolate;
+
+  &::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    top: 50%;
+    left: 50%;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+
+    background: radial-gradient(
+      circle,
+      #ffffff12,
+      #9b65ff20 35%,
+      transparent 70%
+    );
+
+    animation: nucleoVS 4s ease-in-out infinite;
+    pointer-events: none;
+  }
+}
+
+.vs {
+  color: #fff7ee;
+
+  text-shadow:
+    -4px 0 0 #3288ff,
+    4px 0 0 #ff375f,
+    -12px 0 35px #3288ff80,
+    12px 0 35px #ff375f80,
+    0 0 70px #ad83ff55;
+}
+
+/* Victoria: mantiene la animación de entrada
+   y agrega un pulso dorado continuo. */
+.robot.ganador {
+  animation:
+    coronar 700ms ease both,
+    auraVictoria 3s ease-in-out 700ms infinite;
+
+  > strong {
+    background: linear-gradient(
+      110deg,
+      #8a5c12,
+      #d39a28,
+      #8a5c12
+    );
+
+    color: #fff8df;
+    border-color: #ffe6a3;
+    box-shadow: 0 0 28px #ffd66b35;
+  }
+}
+
+@keyframes fuegoVivo {
+  from {
+    transform: scaleX(1) scaleY(0.91) skewX(-3deg);
+    opacity: 0.5;
+  }
+
+  to {
+    transform: scaleX(1.08) scaleY(1.08) skewX(3deg);
+    opacity: 0.75;
+  }
+}
+
+@keyframes lenguasFuego {
+  from {
+    transform: translateX(-12px) scaleY(0.9);
+  }
+
+  to {
+    transform: translateX(18px) scaleY(1.17);
+  }
+}
+
+@keyframes subirBrasa {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(0);
+  }
+
+  15% {
+    opacity: 0.9;
+  }
+
+  70% {
+    opacity: 0.5;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(45px, -105vh, 0) rotate(160deg);
+  }
+}
+
+@keyframes nucleoVS {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+}
+
+@keyframes auraVictoria {
+  0%,
+  100% {
+    box-shadow:
+      0 0 25px #ffd66b20,
+      inset 0 0 25px #ffd66b08;
+  }
+
+  50% {
+    box-shadow:
+      0 0 65px #ffd66b40,
+      inset 0 0 35px #ffd66b12;
+  }
+}
+
+@media (max-width: 600px) {
+  .fuego {
+    width: 95%;
+    height: 60%;
+    filter: blur(12px);
+  }
+
+  .fuego--azul {
+    left: -40%;
+  }
+
+  .fuego--rojo {
+    right: -40%;
+  }
+
+  .linea-energia {
+    display: none;
+  }
+
+  .centro::before {
+    width: 160px;
+    height: 160px;
+  }
+}
+
+/* Respeta la preferencia de reducir movimiento. */
+@media (prefers-reduced-motion: reduce) {
+  .fuego,
+  .fuego::before,
+  .fuego::after,
+  .brasas i,
+  .centro::before,
+  .robot.ganador {
+    animation: none !important;
+  }
+
+  .brasas {
+    display: none;
+  }
+}
