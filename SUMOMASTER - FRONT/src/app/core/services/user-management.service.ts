@@ -14,8 +14,8 @@ export class UserManagementService {
     return this.http.get<AuthUser[]>(this.apiUrl);
   }
 
-  updateRoles(id: string, roles: Role[]): Observable<AuthUser> {
-    return this.http.patch<AuthUser>(`${this.apiUrl}/${id}/roles`, { roles });
+  updateRole(id: string, role: Role): Observable<AuthUser> {
+    return this.http.patch<AuthUser>(`${this.apiUrl}/${id}/roles`, { role });
   }
 
   activate(id: string): Observable<AuthUser> {

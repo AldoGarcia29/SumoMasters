@@ -10,10 +10,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { AuthBrandingPanelComponent } from '../../../shared/components/auth-branding-panel/auth-branding-panel.component';
-import {
-  ApiErrorResponse,
-  Role,
-} from '../../../core/models/auth.model';
+import { ApiErrorResponse } from '../../../core/models/auth.model';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
@@ -72,19 +69,7 @@ export class LoginComponent {
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
         next: () => {
-          const user = this.authService.currentUser();
-
-          // STAFF entra directamente a la lista de torneos.
-          if (
-            user?.roles.includes(Role.STAFF) &&
-            !user.roles.includes(Role.ADMIN)
-          ) {
-            this.router.navigateByUrl('/torneos');
-            return;
-          }
-
-          // ADMIN continúa entrando a su página principal.
-          this.router.navigateByUrl('/dashboard');
+          this.router.navigateByUrl(this.authService.homeRoute());
         },
 
         error: (err: HttpErrorResponse) => {

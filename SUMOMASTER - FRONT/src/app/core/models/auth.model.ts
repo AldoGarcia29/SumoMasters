@@ -4,6 +4,8 @@ export enum Role {
   ADMIN = 'ADMIN',
 }
 
+export const ALL_ROLES: readonly Role[] = [Role.USER, Role.STAFF, Role.ADMIN];
+
 export interface LoginRequest {
   identifier: string; // username o correo
   password: string;

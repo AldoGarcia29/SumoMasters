@@ -12,7 +12,7 @@ import {
 } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
-import { Role } from '../../../core/models/auth.model';
+import { ALL_ROLES, Role } from '../../../core/models/auth.model';
 
 interface NavItem {
   icon: string;
@@ -20,7 +20,7 @@ interface NavItem {
   route?: string;
   hasChevron?: boolean;
   /** Si se define, el ítem solo se muestra a usuarios con alguno de estos roles. */
-  roles?: Role[];
+  roles?: readonly Role[];
 }
 
 @Component({
@@ -51,7 +51,7 @@ export class SidebarComponent {
     icon: 'trophy',
     label: 'Torneos',
     route: '/torneos',
-    roles: [Role.ADMIN, Role.STAFF],
+    roles: ALL_ROLES,
   },
   {
     icon: 'users',

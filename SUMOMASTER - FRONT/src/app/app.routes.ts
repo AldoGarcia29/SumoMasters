@@ -2,18 +2,20 @@ import { Routes } from '@angular/router';
 import { authGuard, guestGuard } from './core/guards/auth.guard';
 import { TorneoClasificadosComponent } from './features/torneo-clasificados/torneo-clasificados.component';
 import { roleGuard } from './core/guards/role.guard';
-import { Role } from './core/models/auth.model';
+import { ALL_ROLES, Role } from './core/models/auth.model';
 
 const SOLO_ADMIN = roleGuard([Role.ADMIN]);
 const ADMIN_Y_STAFF = roleGuard([Role.ADMIN, Role.STAFF]);
+const TODOS_LOS_ROLES = roleGuard(ALL_ROLES);
 
 export const routes: Routes = [
   // =========================
-  // RUTAS PÚBLICAS
+  // LISTA AUTENTICADA Y DETALLE PÚBLICO DE TORNEOS
   // =========================
 
   {
     path: 'live',
+    canActivate: [authGuard, TODOS_LOS_ROLES],
     loadComponent: () =>
       import('./public/torneos-publicos/torneos-publicos.component').then(
         (m) => m.TorneosPublicosComponent,
@@ -154,7 +156,7 @@ export const routes: Routes = [
 
   {
     path: 'torneos',
-    canActivate: [authGuard, ADMIN_Y_STAFF],
+    canActivate: [authGuard, TODOS_LOS_ROLES],
     loadComponent: () =>
       import('./features/torneos/torneos.component').then(
         (m) => m.TorneosComponent,
