@@ -8,7 +8,5 @@ export interface Bloque {
 }
 
 export interface GenerarBloquesPayload {
-  tamanioBloque?: number;
-  metodoDistribucion?: 'aleatorio' | 'aleatorio-balanceado';
-  balancearPorRanking?: boolean;
+  cantidadBloques: number;
 }

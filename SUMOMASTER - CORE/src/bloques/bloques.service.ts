@@ -14,7 +14,7 @@ import {
 
 const POPULATE = {
   path: 'robots',
-  select: 'nombre imagenUrl equipo',
+  select: 'nombre imagenUrl equipo pesoKg createdAt',
   populate: {
     path: 'equipo',
     select: 'nombre',
@@ -90,234 +90,200 @@ export class BloquesService {
   }
 
   private async generarInterno(
-    torneoId: string,
-    dto: GenerarBloquesDto,
-  ): Promise<BloqueDocument[]> {
-    const torneo =
-      await this.torneosService.findOne(torneoId);
+  torneoId: string,
+  dto: GenerarBloquesDto,
+): Promise<BloqueDocument[]> {
+  const torneo = await this.torneosService.findOne(torneoId);
+  const cantidadBloques = dto.cantidadBloques;
 
-    const tamanioBloque =
-      dto.tamanioBloque ??
-      torneo.tamanioBloque ??
-      16;
-
-    if (
-      !Number.isInteger(tamanioBloque) ||
-      tamanioBloque < 2
-    ) {
-      throw new BadRequestException(
-        'El tamaño del bloque debe ser un número entero mayor o igual a 2.',
-      );
-    }
-
-    if (
-      !torneo.robotsInscritos ||
-      torneo.robotsInscritos.length === 0
-    ) {
-      throw new BadRequestException(
-        'El torneo no tiene robots inscritos. Inscribe robots antes de generar los bloques.',
-      );
-    }
-
-    /*
-     * robotsInscritos puede contener documentos completos
-     * porque TorneosService realiza populate.
-     *
-     * Si algún robot fue eliminado, Mongoose puede dejar
-     * la posición como null. Por eso se filtran primero.
-     */
-    const robots: Types.ObjectId[] =
-      torneo.robotsInscritos
-        .filter(
-          (robot: unknown) =>
-            robot !== null &&
-            robot !== undefined,
-        )
-        .map((robot: unknown) => {
-          const id =
-            (robot as { _id?: unknown })?._id ??
-            robot;
-
-          return id instanceof Types.ObjectId
-            ? id
-            : new Types.ObjectId(String(id));
-        });
-
-    const robotsEliminados =
-      torneo.robotsInscritos.length -
-      robots.length;
-
-    if (robots.length === 0) {
-      throw new BadRequestException(
-        'Ninguno de los robots inscritos existe actualmente. Vuelve a inscribir robots antes de generar los bloques.',
-      );
-    }
-
-    if (robotsEliminados > 0) {
-      console.warn(
-        `[Bloques] Torneo ${torneoId}: se ignoraron ${robotsEliminados} robot(s) que ya no existen.`,
-      );
-    }
-
-    const mezclados = this.shuffle(robots);
-
-    const metodoDistribucion =
-      dto.metodoDistribucion ?? 'aleatorio';
-
-    const totalBloques = Math.ceil(
-      mezclados.length / tamanioBloque,
+  if (
+    !Number.isInteger(cantidadBloques) ||
+    cantidadBloques < 1
+  ) {
+    throw new BadRequestException(
+      'La cantidad de bloques debe ser un entero mayor o igual a 1.',
     );
+  }
 
-    let grupos: Types.ObjectId[][];
+  type RobotParaDistribuir = {
+    _id: Types.ObjectId;
+    nombre?: string;
+    pesoKg?: number | null;
+    createdAt?: Date | string;
+  };
 
-    if (
-      metodoDistribucion ===
-      'aleatorio-balanceado'
-    ) {
-      /*
-       * Distribución uniforme:
-       * 46 robots → 16, 15 y 15.
-       */
-      grupos = Array.from(
-        { length: totalBloques },
-        () => [],
-      );
+  // findOne() devuelve robots poblados con pesoKg y createdAt.
+  const inscritos =
+    (torneo.robotsInscritos ?? []) as unknown as
+      Array<RobotParaDistribuir | null>;
 
-      mezclados.forEach(
-        (robotId, index) => {
-          grupos[index % totalBloques].push(
-            robotId,
-          );
-        },
-      );
-    } else {
-      /*
-       * Distribución por capacidad máxima:
-       * 46 robots → 16, 16 y 14.
-       */
-      grupos = [];
+  const robots = inscritos.filter(
+    (robot): robot is RobotParaDistribuir => robot != null,
+  );
 
-      for (
-        let inicio = 0;
-        inicio < mezclados.length;
-        inicio += tamanioBloque
-      ) {
-        grupos.push(
-          mezclados.slice(
-            inicio,
-            inicio + tamanioBloque,
-          ),
-        );
+  if (robots.length === 0) {
+    throw new BadRequestException(
+      'El torneo no tiene robots válidos inscritos.',
+    );
+  }
+
+  if (cantidadBloques > robots.length) {
+    throw new BadRequestException(
+      `No puedes crear ${cantidadBloques} bloques con ${robots.length} robots.`,
+    );
+  }
+
+  // Evita asignaciones duplicadas si la inscripción contiene IDs repetidos.
+  const ids = robots.map((robot) => String(robot._id));
+
+  if (new Set(ids).size !== ids.length) {
+    throw new BadRequestException(
+      'Hay robots inscritos más de una vez. Corrige las inscripciones antes de generar bloques.',
+    );
+  }
+
+  // No tratamos un peso ausente como cero.
+  const sinPeso = robots.filter(
+    (robot) =>
+      typeof robot.pesoKg !== 'number' ||
+      !Number.isFinite(robot.pesoKg) ||
+      robot.pesoKg < 0,
+  );
+
+  if (sinPeso.length > 0) {
+    throw new BadRequestException(
+      `Registra un peso válido para: ${sinPeso
+        .map((robot) => robot.nombre ?? String(robot._id))
+        .join(', ')}.`,
+    );
+  }
+
+  const fechaRegistro = (robot: RobotParaDistribuir): number => {
+    if (robot.createdAt) {
+      const fecha = new Date(robot.createdAt).getTime();
+
+      if (Number.isFinite(fecha)) {
+        return fecha;
       }
     }
 
-    const nombresGenerados = grupos.map(
-      (_, index) =>
-        `Bloque ${
-          LETRAS[index] ?? index + 1
-        }`,
-    );
+    // Para documentos antiguos sin createdAt.
+    return new Types.ObjectId(String(robot._id))
+      .getTimestamp()
+      .getTime();
+  };
 
-    /*
-     * Crea los bloques si no existen o actualiza sus
-     * robots si ya estaban registrados.
-     */
-    await this.bloqueModel.bulkWrite(
-      grupos.map(
-        (robotsBloque, index) => {
-          const nombre =
-            `Bloque ${
-              LETRAS[index] ?? index + 1
-            }`;
+  const ordenados = [...robots].sort((a, b) => {
+    // Mayor peso primero.
+    const diferenciaPeso = b.pesoKg! - a.pesoKg!;
 
-          return {
-            updateOne: {
-              filter: {
-                torneo:
-                  new Types.ObjectId(
-                    torneoId,
-                  ),
-                nombre,
-              },
-              update: {
-                $set: {
-                  robots: robotsBloque,
-                },
-                $setOnInsert: {
-                  torneo:
-                    new Types.ObjectId(
-                      torneoId,
-                    ),
-                  nombre,
-                },
-              },
-              upsert: true,
-            },
-          };
-        },
-      ),
-      {
-        ordered: true,
-      },
-    );
-
-    /*
-     * Si antes existían más bloques y la nueva
-     * distribución necesita menos, elimina solamente
-     * los bloques sobrantes.
-     */
-    await this.bloqueModel
-      .deleteMany({
-        torneo:
-          new Types.ObjectId(torneoId),
-        nombre: {
-          $nin: nombresGenerados,
-        },
-      })
-      .exec();
-
-    /*
-     * Actualiza el tamaño configurado del torneo
-     * si el administrador seleccionó uno diferente.
-     */
-    if (
-      dto.tamanioBloque &&
-      dto.tamanioBloque !==
-        torneo.tamanioBloque
-    ) {
-      await this.torneosService.update(
-        torneoId,
-        {
-          tamanioBloque:
-            dto.tamanioBloque,
-        },
-      );
+    if (diferenciaPeso !== 0) {
+      return diferenciaPeso;
     }
 
-    const bloquesGenerados =
-      await this.bloqueModel
-        .find({
-          torneo:
-            new Types.ObjectId(torneoId),
-          nombre: {
-            $in: nombresGenerados,
+    // Con el mismo peso, primero el registrado antes.
+    const diferenciaFecha =
+      fechaRegistro(a) - fechaRegistro(b);
+
+    if (diferenciaFecha !== 0) {
+      return diferenciaFecha;
+    }
+
+    // Desempate determinista si comparten fecha.
+    return String(a._id).localeCompare(String(b._id));
+  });
+
+  const grupos: Types.ObjectId[][] = Array.from(
+    { length: cantidadBloques },
+    () => [],
+  );
+
+  ordenados.forEach((robot, posicion) => {
+    const pasada = Math.floor(posicion / cantidadBloques);
+    const columna = posicion % cantidadBloques;
+
+    const destino =
+      pasada % 2 === 0
+        ? columna
+        : cantidadBloques - 1 - columna;
+
+    grupos[destino].push(
+      new Types.ObjectId(String(robot._id)),
+    );
+  });
+
+  // A...Z, AA, AB... para admitir más de 26 bloques.
+  const nombreBloque = (indice: number): string => {
+    let numero = indice + 1;
+    let letras = '';
+
+    while (numero > 0) {
+      numero--;
+      letras =
+        String.fromCharCode(65 + (numero % 26)) + letras;
+      numero = Math.floor(numero / 26);
+    }
+
+    return `Bloque ${letras}`;
+  };
+
+  const nombresGenerados = grupos.map(
+    (_, indice) => nombreBloque(indice),
+  );
+
+  const torneoObjectId = new Types.ObjectId(torneoId);
+
+  await this.bloqueModel.bulkWrite(
+    grupos.map((robotsBloque, indice) => ({
+      updateOne: {
+        filter: {
+          torneo: torneoObjectId,
+          nombre: nombresGenerados[indice],
+        },
+        update: {
+          $set: {
+            robots: robotsBloque,
           },
-        })
-        .populate(POPULATE)
-        .sort({ nombre: 1 })
-        .exec();
+          $setOnInsert: {
+            torneo: torneoObjectId,
+            nombre: nombresGenerados[indice],
+          },
+        },
+        upsert: true,
+      },
+    })),
+    { ordered: true },
+  );
 
-    if (
-      bloquesGenerados.length !==
-      grupos.length
-    ) {
-      throw new BadRequestException(
-        'No se pudieron crear todos los bloques. Intenta nuevamente.',
-      );
-    }
+  await this.bloqueModel.deleteMany({
+    torneo: torneoObjectId,
+    nombre: { $nin: nombresGenerados },
+  }).exec();
 
-    return bloquesGenerados;
+  const bloquesGenerados = await this.bloqueModel
+    .find({
+      torneo: torneoObjectId,
+      nombre: { $in: nombresGenerados },
+    })
+    .populate(POPULATE)
+    .exec();
+
+  if (bloquesGenerados.length !== grupos.length) {
+    throw new BadRequestException(
+      'No se pudieron crear todos los bloques.',
+    );
   }
+
+  // Mantiene A, B... Z, AA, AB en el orden de generación.
+  const posiciones = new Map(
+    nombresGenerados.map((nombre, indice) => [nombre, indice]),
+  );
+
+  return bloquesGenerados.sort(
+    (a, b) =>
+      posiciones.get(a.nombre)! - posiciones.get(b.nombre)!,
+  );
+}
 
   private shuffle<T>(items: T[]): T[] {
     const arr = [...items];

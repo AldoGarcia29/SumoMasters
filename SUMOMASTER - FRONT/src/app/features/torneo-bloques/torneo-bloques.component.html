@@ -89,34 +89,32 @@
           <h4>Configuración</h4>
 
           <form [formGroup]="form">
-            <label class="field">
-              <span>Tamaño de bloque</span>
-              <select formControlName="tamanioBloque">
-                <option [ngValue]="8">8 robots</option>
-                <option [ngValue]="16">16 robots</option>
-                <option [ngValue]="32">32 robots</option>
-              </select>
-            </label>
+  <label class="field">
+    <span>Cantidad de bloques</span>
+    <input
+      type="number"
+      formControlName="cantidadBloques"
+      min="1"
+      [max]="torneo()?.robotsInscritos?.length ?? 1"
+      step="1"
+    />
+  </label>
+</form>
 
-            <label class="field">
-              <span>Método de distribución</span>
-              <select formControlName="metodoDistribucion">
-                <option value="aleatorio">Aleatorio</option>
-                <option value="aleatorio-balanceado">Aleatorio balanceado</option>
-              </select>
-            </label>
-
-            <label class="checkbox">
-              <input type="checkbox" formControlName="balancearPorRanking" />
-              Balancear por desempeño (ranking)
-            </label>
-          </form>
+<p class="config-note">
+  Los robots se ordenan de mayor a menor peso.
+  Si pesan lo mismo, va primero el registrado antes.
+  Se reparten en serpiente entre los bloques.
+</p>
 
           <div class="config-summary">
             <h5>Resumen</h5>
             <p><span>Total de robots</span><strong>{{ totalRobots() }}</strong></p>
             <p><span>Bloques generados</span><strong>{{ bloques().length }}</strong></p>
-            <p><span>Robots por bloque</span><strong>{{ form.controls.tamanioBloque.value }}</strong></p>
+            <p>
+  <span>Bloques solicitados</span>
+  <strong>{{ form.controls.cantidadBloques.value }}</strong>
+</p>
           </div>
 
           <div class="config-note" *ngIf="bloques().length > 0">

@@ -1,7 +1,7 @@
 import { extractErrorMessage } from '../../core/utils/error-message.util';
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { SidebarComponent } from '../../shared/components/sidebar/sidebar.component';
 import { TopbarComponent } from '../../shared/components/topbar/topbar.component';
@@ -56,18 +56,16 @@ export class TorneoBloquesComponent implements OnInit {
   );
 
   readonly form = this.fb.nonNullable.group({
-    tamanioBloque: [16],
-    metodoDistribucion: this.fb.nonNullable.control<'aleatorio' | 'aleatorio-balanceado'>(
-      'aleatorio-balanceado',
-    ),
-    balancearPorRanking: [true],
-  });
+  cantidadBloques: [
+    3,
+    [Validators.required, Validators.min(1)],
+  ],
+});
 
   ngOnInit(): void {
     this.torneoService.findOne(this.torneoId).subscribe({
       next: (torneo) => {
         this.torneo.set(torneo);
-        this.form.controls.tamanioBloque.setValue(torneo.tamanioBloque);
       },
     });
 
@@ -106,30 +104,45 @@ export class TorneoBloquesComponent implements OnInit {
   }
 
   generar(): void {
-    const raw = this.form.getRawValue();
-    this.generating.set(true);
-    this.errorMessage.set(null);
+  if (this.generating()) return;
 
-    this.bloqueService
-      .generar(this.torneoId, {
-        tamanioBloque: raw.tamanioBloque,
-        metodoDistribucion: raw.metodoDistribucion,
-        balancearPorRanking: raw.balancearPorRanking,
-      })
-      .subscribe({
-        next: (bloques) => {
-          this.bloques.set(bloques);
-          this.flowCache.setBloques(this.torneoId, bloques);
-          this.generating.set(false);
-        },
-        error: (err) => {
-          this.generating.set(false);
-          this.errorMessage.set(
-            extractErrorMessage(err, 'No se pudieron generar los bloques.'),
-          );
-        },
-      });
+  const { cantidadBloques } = this.form.getRawValue();
+  const total = this.torneo()?.robotsInscritos?.length ?? 0;
+
+  this.errorMessage.set(null);
+
+  if (
+    !Number.isInteger(cantidadBloques) ||
+    cantidadBloques < 1 ||
+    cantidadBloques > total
+  ) {
+    this.errorMessage.set(
+      `La cantidad de bloques debe ser un entero entre 1 y ${total}.`,
+    );
+    return;
   }
+
+  this.generating.set(true);
+
+  this.bloqueService
+    .generar(this.torneoId, { cantidadBloques })
+    .subscribe({
+      next: (bloques) => {
+        this.bloques.set(bloques);
+        this.flowCache.setBloques(this.torneoId, bloques);
+        this.generating.set(false);
+      },
+      error: (err) => {
+        this.generating.set(false);
+        this.errorMessage.set(
+          extractErrorMessage(
+            err,
+            'No se pudieron generar los bloques.',
+          ),
+        );
+      },
+    });
+}
 
   todosLosRobots(): { robot: Bloque['robots'][number]; bloqueNombre: string }[] {
     return this.bloques().flatMap((bloque) =>

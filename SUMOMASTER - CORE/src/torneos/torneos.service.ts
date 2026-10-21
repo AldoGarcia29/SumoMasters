@@ -18,7 +18,7 @@ const POPULATE = [
   { path: 'categoria', select: 'nombre tipoCombate' },
   {
     path: 'robotsInscritos',
-    select: 'nombre imagenUrl equipo',
+    select: 'nombre imagenUrl equipo pesoKg createdAt',
     populate: { path: 'equipo', select: 'nombre' },
   },
 ];
