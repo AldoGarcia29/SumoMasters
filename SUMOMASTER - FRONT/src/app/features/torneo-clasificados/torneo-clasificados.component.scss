@@ -528,3 +528,177 @@
     transform: none;
   }
 }
+
+/* Estructura: reserva el espacio del sidebar fijo.
+   Ajusta 260px si el sidebar de tu proyecto usa otra medida. */
+:host {
+  --sidebar-width: 260px;
+
+  display: block;
+  min-height: 100vh;
+  background: #f5f2fc;
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.app-shell__main {
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 100vh;
+  margin-left: var(--sidebar-width);
+}
+
+.app-shell__backdrop {
+  display: none;
+}
+
+.clasificados-page {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px;
+  gap: 20px;
+}
+
+.panel {
+  padding: 22px;
+  border-radius: 16px;
+}
+
+/* Posiciones compactas */
+.bloques-grid {
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(100%, 240px), 1fr)
+  );
+  gap: 16px;
+}
+
+.bloque-card {
+  padding: 16px;
+}
+
+.bloque-card__header {
+  padding-bottom: 12px;
+}
+
+.clasificado {
+  padding: 12px 0;
+  gap: 10px;
+}
+
+/* Cada combate en una fila:
+   Robot 1 — VS — Robot 2 */
+.cruces-grid {
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.cruce-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 42px minmax(0, 1fr);
+  align-items: end;
+  gap: 12px;
+  padding: 16px 18px;
+  background: #fdfcff;
+  border-radius: 14px;
+
+  .field {
+    min-width: 0;
+    margin: 0;
+    gap: 7px;
+  }
+
+  .field select {
+    min-height: 44px;
+    font-size: 13px;
+  }
+}
+
+.cruce-card__number {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding-bottom: 10px;
+  font-size: 13px;
+}
+
+.cruce-card__vs {
+  align-self: end;
+  height: 44px;
+  margin: 0;
+  gap: 0;
+  color: #8b5cc7;
+
+  &::before,
+  &::after {
+    display: none;
+  }
+}
+
+.info-box {
+  padding: 12px 15px;
+  font-size: 13px;
+}
+
+/* Acciones alineadas con el contenido */
+.footer-actions {
+  padding: 16px 0 4px;
+  border-top: 1px solid #e8e2f6;
+}
+
+/* En móvil, el sidebar funciona como menú superpuesto.
+   Usa el mismo breakpoint que las demás páginas del proyecto. */
+@media (max-width: 1024px) {
+  .app-shell__main {
+    margin-left: 0;
+  }
+
+  .app-shell__backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgb(20 12 40 / 45%);
+  }
+
+  .clasificados-page {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .clasificados-page {
+    padding: 14px;
+    gap: 16px;
+  }
+
+  .panel {
+    padding: 16px;
+  }
+
+  .cruce-card {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .cruce-card__number {
+    grid-column: auto;
+  }
+
+  .cruce-card__vs {
+    height: 24px;
+    align-self: center;
+  }
+
+  .footer-actions,
+  .footer-actions__right {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
