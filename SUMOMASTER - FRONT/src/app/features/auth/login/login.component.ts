@@ -1,19 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
-import {
-  FormBuilder,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { AuthBrandingPanelComponent } from '../../../shared/components/auth-branding-panel/auth-branding-panel.component';
-import {
-  ApiErrorResponse,
-  Role,
-} from '../../../core/models/auth.model';
+import { ApiErrorResponse, Role } from '../../../core/models/auth.model';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
@@ -72,19 +65,25 @@ export class LoginComponent {
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
         next: () => {
-          const user = this.authService.currentUser();
+          const roles = this.authService.currentUser()?.roles ?? [];
+
+          // ADMIN entra a su página principal.
+          if (roles.includes(Role.ADMIN)) {
+            this.router.navigateByUrl('/dashboard');
+            return;
+          }
 
           // STAFF entra directamente a la lista de torneos.
-          if (
-            user?.roles.includes(Role.STAFF) &&
-            !user.roles.includes(Role.ADMIN)
-          ) {
+          if (roles.includes(Role.STAFF)) {
             this.router.navigateByUrl('/torneos');
             return;
           }
 
-          // ADMIN continúa entrando a su página principal.
-          this.router.navigateByUrl('/dashboard');
+          // Cuenta sin rol asignado: no se le manda a una ruta que no puede abrir.
+          this.authService.logout();
+          this.errorMessage.set(
+            'Tu cuenta aún no tiene permisos asignados. Contacta al administrador.',
+          );
         },
 
         error: (err: HttpErrorResponse) => {
