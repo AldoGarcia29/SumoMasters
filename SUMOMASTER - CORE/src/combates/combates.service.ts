@@ -260,12 +260,18 @@ export class CombatesService {
     // Un bloque de un robot no genera combates.
     if (robots.length < 2) continue;
 
-    const participantes: Array<Types.ObjectId | null> = [...robots];
+    const lista: Array<Types.ObjectId | null> = [...robots];
 
-    // Si son impares, null representa un descanso.
-    if (participantes.length % 2 !== 0) {
-      participantes.push(null);
-    }
+if (lista.length % 2 !== 0) {
+  lista.push(null);
+}
+
+// Prepara el método circular para comenzar:
+// posición 1 vs 2, posición 3 vs 4, etc.
+const participantes: Array<Types.ObjectId | null> = [
+  ...lista.filter((_, indice) => indice % 2 === 0),
+  ...lista.filter((_, indice) => indice % 2 !== 0).reverse(),
+];
 
     const totalRondas = participantes.length - 1;
     const mitad = participantes.length / 2;
@@ -297,8 +303,9 @@ export class CombatesService {
       }
 
       // Método circular: fija el primero y rota los restantes.
-      const ultimo = participantes.pop()!;
-      participantes.splice(1, 0, ultimo);
+      // Fija el primero y rota los demás hacia la izquierda.
+const [segundo] = participantes.splice(1, 1);
+participantes.push(segundo);
     }
   }
 
