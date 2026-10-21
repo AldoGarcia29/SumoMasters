@@ -26,6 +26,19 @@ export interface ResultadoAleatorioResponse {
   providedIn: 'root',
 })
 export class CombateService {
+
+
+  actualizarHorario(
+  torneoId: string,
+  combateId: string,
+  horarioProgramado: string | null,
+): Observable<Combate> {
+  return this.http.patch<Combate>(
+    `${this.baseUrl}/torneos/${torneoId}/combates/${combateId}/horario`,
+    { horarioProgramado },
+  );
+}
+
   private readonly baseUrl =
     environment.coreApiUrl;
 

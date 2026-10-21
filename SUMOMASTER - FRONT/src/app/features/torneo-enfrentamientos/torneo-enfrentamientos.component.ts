@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import {
   Component,
+  computed,
   inject,
   OnInit,
   signal,
@@ -47,6 +48,156 @@ import {
 export class TorneoEnfrentamientosComponent
   implements OnInit
 {
+
+
+  readonly horariosEditados = signal<Record<string, string>>({});
+readonly guardandoHorarios = signal<Record<string, boolean>>({});
+
+valorHorario(combate: Combate): string {
+  const editados = this.horariosEditados();
+
+  if (
+    Object.prototype.hasOwnProperty.call(
+      editados,
+      combate._id,
+    )
+  ) {
+    return editados[combate._id];
+  }
+
+  if (!combate.horarioProgramado) return '';
+
+  const fecha = new Date(combate.horarioProgramado);
+
+  if (!Number.isFinite(fecha.getTime())) return '';
+
+  // Muestra el horario del evento en Querétaro.
+  const partes = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'America/Mexico_City',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(fecha);
+
+  const valor = (tipo: string): string =>
+    partes.find((parte) => parte.type === tipo)?.value ?? '';
+
+  return `${valor('year')}-${valor('month')}-${valor('day')}T${valor('hour')}:${valor('minute')}`;
+}
+
+editarHorario(combateId: string, valor: string): void {
+  this.horariosEditados.update((actuales) => ({
+    ...actuales,
+    [combateId]: valor,
+  }));
+}
+
+horarioModificado(combateId: string): boolean {
+  return Object.prototype.hasOwnProperty.call(
+    this.horariosEditados(),
+    combateId,
+  );
+}
+
+guardarHorario(combate: Combate): void {
+  if (
+    this.guardandoHorarios()[combate._id] ||
+    !this.horarioModificado(combate._id)
+  ) {
+    return;
+  }
+
+  const valor = this.valorHorario(combate);
+
+  // Para el evento en Querétaro, el horario se envía
+  // con desplazamiento UTC-06:00.
+  const horario = valor
+    ? `${valor}:00-06:00`
+    : null;
+
+  if (
+    horario !== null &&
+    !Number.isFinite(Date.parse(horario))
+  ) {
+    this.errorMessage.set(
+      'Selecciona una fecha y hora válidas.',
+    );
+    return;
+  }
+
+  this.guardandoHorarios.update((actuales) => ({
+    ...actuales,
+    [combate._id]: true,
+  }));
+
+  this.errorMessage.set(null);
+  this.successMessage.set(null);
+
+  this.combateService
+    .actualizarHorario(
+      this.torneoId,
+      combate._id,
+      horario,
+    )
+    .subscribe({
+      next: (actualizado) => {
+        this.combates.update((actuales) =>
+          actuales.map((item) =>
+            item._id === actualizado._id
+              ? actualizado
+              : item,
+          ),
+        );
+
+        const cacheados =
+          this.flowCache.getCombates(this.torneoId) ?? [];
+
+        this.flowCache.setCombates(
+          this.torneoId,
+          cacheados.map((item) =>
+            item._id === actualizado._id
+              ? actualizado
+              : item,
+          ),
+        );
+
+        this.horariosEditados.update((actuales) => {
+          const copia = { ...actuales };
+          delete copia[combate._id];
+          return copia;
+        });
+
+        this.guardandoHorarios.update((actuales) => ({
+          ...actuales,
+          [combate._id]: false,
+        }));
+
+        this.successMessage.set(
+          horario
+            ? 'Horario guardado correctamente.'
+            : 'Horario eliminado correctamente.',
+        );
+      },
+      error: (err) => {
+        this.guardandoHorarios.update((actuales) => ({
+          ...actuales,
+          [combate._id]: false,
+        }));
+
+        this.errorMessage.set(
+          extractErrorMessage(
+            err,
+            'No se pudo guardar el horario.',
+          ),
+        );
+      },
+    });
+}
+
+
   private readonly route =
     inject(ActivatedRoute);
 
@@ -87,6 +238,53 @@ export class TorneoEnfrentamientosComponent
     signal<FaseCombate>(
       FaseCombate.FASE_GRUPOS,
     );
+  
+  readonly rondas = computed(() => {
+  const grupos = new Map<number, Combate[]>();
+  const esGrupos =
+    this.activeFase() === FaseCombate.FASE_GRUPOS;
+
+  for (const combate of this.combates()) {
+    const numero = esGrupos ? (combate.ronda ?? 0) : 0;
+    const lista = grupos.get(numero) ?? [];
+
+    lista.push(combate);
+    grupos.set(numero, lista);
+  }
+
+  return [...grupos.entries()]
+    .sort(([a], [b]) => a - b)
+    .map(([numero, combates]) => ({
+      numero,
+      titulo: esGrupos
+        ? numero > 0
+          ? `Ronda ${numero}`
+          : 'Combates sin ronda registrada'
+        : this.activeFase(),
+      combates: [...combates].sort((a, b) => {
+        const nombreA = this.nombreBloqueCombate(a);
+        const nombreB = this.nombreBloqueCombate(b);
+
+        return (
+          nombreA.length - nombreB.length ||
+          nombreA.localeCompare(nombreB, 'es', {
+            numeric: true,
+          }) ||
+          a.numero - b.numero
+        );
+      }),
+    }));
+});
+
+nombreBloqueCombate(combate: Combate): string {
+  const id = this.obtenerBloqueId(combate);
+
+  return (
+    this.bloques().find((bloque) => bloque._id === id)?.nombre ??
+    combate.bloque?.nombre ??
+    'Sin bloque'
+  );
+}
 
   readonly sidebarOpen = signal(false);
   readonly loading = signal(false);
@@ -270,67 +468,48 @@ export class TorneoEnfrentamientosComponent
   }
 
   loadCombates(): void {
-    const fase = this.activeFase();
+  const fase = this.activeFase();
 
-    const esFaseDeGrupos =
-      fase ===
-      FaseCombate.FASE_GRUPOS;
+  // Carga todos los bloques de la fase.
+  this.cargarDesdeCache(fase);
+  this.loading.set(true);
+  this.errorMessage.set(null);
 
-    /*
-     * En fase de grupos sí filtramos por bloque.
-     * En eliminatorias cargamos toda la ronda,
-     * porque los combates preliminares pueden
-     * involucrar robots de diferentes bloques.
-     */
-    const bloqueId = esFaseDeGrupos
-      ? this.selectedBloqueId()
-      : undefined;
+  this.combateService
+    .findByTorneo(this.torneoId, { fase })
+    .subscribe({
+      next: (data) => {
+        // Ignora respuestas de una pestaña anterior.
+        if (this.activeFase() !== fase) return;
 
-    if (
-      esFaseDeGrupos &&
-      !bloqueId
-    ) {
-      return;
-    }
+        this.combates.set(data);
 
-    this.cargarDesdeCache(
-      fase,
-      bloqueId,
-    );
+        // Sustituye la fase consultada para no conservar
+        // documentos antiguos después de regenerar.
+        const otrasFases = (
+          this.flowCache.getCombates(this.torneoId) ?? []
+        ).filter((combate) => combate.fase !== fase);
 
-    this.loading.set(true);
-    this.errorMessage.set(null);
+        this.flowCache.setCombates(this.torneoId, [
+          ...otrasFases,
+          ...data,
+        ]);
 
-    this.combateService
-      .findByTorneo(this.torneoId, {
-        fase,
-        bloque: bloqueId,
-      })
-      .subscribe({
-        next: (data) => {
-          this.loading.set(false);
-          this.combates.set(data);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        if (this.activeFase() !== fase) return;
 
-          this.guardarEnCache(data);
-        },
-
-        error: (err) => {
-          this.loading.set(false);
-
-          console.error(
-            '[Combates] Error al cargar:',
+        this.loading.set(false);
+        this.errorMessage.set(
+          extractErrorMessage(
             err,
-          );
-
-          this.errorMessage.set(
-            extractErrorMessage(
-              err,
-              'No se pudieron cargar los enfrentamientos.',
-            ),
-          );
-        },
-      });
-  }
+            'No se pudieron cargar los enfrentamientos.',
+          ),
+        );
+      },
+    });
+}
 
   private cargarDesdeCache(
     fase: FaseCombate,
@@ -484,17 +663,9 @@ this.flowCache.setCombates(this.torneoId, [
   ...combatesGenerados,
 ]);
 
-          const bloqueActual =
-            this.selectedBloqueId();
-
-          this.combates.set(
-            combatesGenerados.filter(
-              (combate) =>
-                this.obtenerBloqueId(
-                  combate,
-                ) === bloqueActual,
-            ),
-          );
+          if (this.activeFase() === FaseCombate.FASE_GRUPOS) {
+  this.combates.set(combatesGenerados);
+}
         },
 
         error: (err) => {
