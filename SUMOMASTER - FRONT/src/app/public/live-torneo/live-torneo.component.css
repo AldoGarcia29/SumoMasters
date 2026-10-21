@@ -6,32 +6,35 @@
 h1 {
   margin: 0;
 }
+.menu {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0;
+}
+.menu a {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  color: inherit;
+  text-decoration: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.menu a.activo {
+  background: #6d28d9;
+  color: #fff;
+}
 .buscador {
   width: 100%;
-  margin: 12px 0;
+  margin: 4px 0 12px;
   padding: 10px;
   font-size: 16px;
   box-sizing: border-box;
 }
-.proximo {
-  background: #fff3c4;
-  padding: 10px;
-  border-radius: 6px;
-}
-.combate {
-  padding: 8px;
-  border-bottom: 1px solid #ddd;
-}
-.combate.propio {
-  background: #fff3c4;
-}
-.combate.terminado {
-  opacity: 0.55;
-}
 
 /* ===== Ranking público ===== */
 .ranking {
-  margin-top: 2rem;
+  margin-top: 1rem;
 }
 .ranking h2 {
   margin: 0 0 0.75rem;
@@ -102,10 +105,4 @@ h1 {
   display: block;
   margin-top: 0.75rem;
   color: #6b7280;
-}
-.top5 {
-  margin-top: 1.25rem;
-}
-.top5 h3 {
-  margin: 0 0 0.4rem;
 }

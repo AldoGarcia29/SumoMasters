@@ -3,12 +3,16 @@
 
   <ng-container *ngIf="data">
     <h1>{{ data.torneo.nombre }}</h1>
-    <small>
-      <ng-container *ngIf="data.torneo.fase"
-        >{{ data.torneo.fase }} ·
-      </ng-container>
-      {{ error ?? "Actualizado hace " + seg + " s" }}
+    <small *ngIf="data.torneo.fase || error">
+      {{ data.torneo.fase
+      }}<ng-container *ngIf="data.torneo.fase && error"> · </ng-container
+      >{{ error }}
     </small>
+
+    <nav class="menu">
+      <a class="activo">Tabla de posiciones</a>
+      <a [routerLink]="['/live', id, 'combates']">Combates</a>
+    </nav>
 
     <input
       class="buscador"
@@ -16,41 +20,6 @@
       placeholder="Busca tu robot"
       [(ngModel)]="busca"
     />
-
-    <ng-container *ngIf="busca.trim()">
-      <p *ngIf="propios.length === 0">No encontré ese robot.</p>
-      <p *ngIf="propios.length > 0 && !proximo">Tus combates ya terminaron.</p>
-    </ng-container>
-
-    <p class="proximo" *ngIf="proximo as p">
-      <b>Tu próximo combate: #{{ p.numero }}</b> en {{ p.dojo
-      }}<ng-container *ngIf="p.combatesAntes === 0; else faltan">
-        — ¡es el siguiente!</ng-container
-      >
-      <ng-template #faltan>, faltan {{ p.combatesAntes }}</ng-template>
-      <ng-container *ngIf="p.horaEstimada">
-        (~{{ p.horaEstimada | date: "shortTime" }})</ng-container
-      >
-    </p>
-
-    <div
-      class="combate"
-      *ngFor="let c of data.combates; trackBy: trackCombate"
-      [class.propio]="esPropio(c)"
-      [class.terminado]="terminado(c)"
-    >
-      <b>#{{ c.numero }}</b> · {{ c.dojo }} · {{ c.fase }}
-      <div>
-        {{ c.robots.join(" vs ") }}
-        <ng-container *ngIf="c.ganador"> → ganó {{ c.ganador }}</ng-container>
-      </div>
-      <small>
-        {{ c.estado }}
-        <ng-container *ngIf="!terminado(c) && c.horaEstimada">
-          · ~{{ c.horaEstimada | date: "shortTime" }}
-        </ng-container>
-      </small>
-    </div>
 
     <section class="ranking">
       <h2>Tabla de posiciones</h2>
@@ -86,7 +55,7 @@
                   >{{ f.posicion }}</span
                 >
               </td>
-              <td>{{ f.equipo }}</td>
+              <td>{{ equipoLabel(f.equipo) }}</td>
               <td>{{ f.robot }}</td>
               <td>{{ f.combates }}</td>
               <td>{{ f.victorias }}</td>
@@ -128,15 +97,6 @@
         Enfrentamiento directo. Victoria: 3 puntos · Empate: 1 punto · Derrota:
         0 puntos.
       </small>
-
-      <div class="top5" *ngIf="top5Victorias.length > 0">
-        <h3>Top 5 por victorias</h3>
-        <ol>
-          <li *ngFor="let f of top5Victorias">
-            {{ f.robot }} — {{ f.victorias }} victorias
-          </li>
-        </ol>
-      </div>
     </section>
   </ng-container>
 </main>

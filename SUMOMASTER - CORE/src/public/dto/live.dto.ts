@@ -19,9 +19,11 @@ export interface CombateLiveDto {
   numero: number;
   fase: string | null;
   dojo: string;
+  bloque: string | null;
   robots: string[];
   estado: string;
   ganador: string | null;
+  empate: boolean;
   combatesAntes: number | null;
   horaEstimada: string | null;
 }

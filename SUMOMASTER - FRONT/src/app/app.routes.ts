@@ -29,11 +29,17 @@ export const routes: Routes = [
   },
 
   {
+    path: 'live/:id/combates',
+    loadComponent: () =>
+      import('./public/live-combates/live-combates.component').then(
+        (m) => m.LiveCombatesComponent,
+      ),
+  },
+
+  {
     path: 'versus/:id',
     loadComponent: () =>
-      import('./public/versus/versus.component').then(
-        (m) => m.VersusComponent,
-      ),
+      import('./public/versus/versus.component').then((m) => m.VersusComponent),
   },
 
   // =========================
@@ -112,9 +118,7 @@ export const routes: Routes = [
     path: 'dojos',
     canActivate: [authGuard, SOLO_ADMIN],
     loadComponent: () =>
-      import('./features/dojos/dojos.component').then(
-        (m) => m.DojosComponent,
-      ),
+      import('./features/dojos/dojos.component').then((m) => m.DojosComponent),
   },
 
   {
@@ -179,9 +183,9 @@ export const routes: Routes = [
     path: 'torneos/:id/enfrentamientos',
     canActivate: [authGuard, ADMIN_Y_STAFF],
     loadComponent: () =>
-      import(
-        './features/torneo-enfrentamientos/torneo-enfrentamientos.component'
-      ).then((m) => m.TorneoEnfrentamientosComponent),
+      import('./features/torneo-enfrentamientos/torneo-enfrentamientos.component').then(
+        (m) => m.TorneoEnfrentamientosComponent,
+      ),
   },
 
   {
