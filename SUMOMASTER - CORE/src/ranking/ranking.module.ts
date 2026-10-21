@@ -7,5 +7,6 @@ import { RankingService } from './ranking.service';
   imports: [CombatesModule],
   controllers: [RankingController],
   providers: [RankingService],
+  exports: [RankingService],
 })
 export class RankingModule {}

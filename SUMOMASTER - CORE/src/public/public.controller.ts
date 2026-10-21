@@ -16,12 +16,14 @@ import {
   LISTA_TTL_MS,
   LIVE_TTL_MS,
   liveKey,
+  rankingKey,
 } from './public.constants';
 
 /*
  * Rutas finales:
  *   GET /public/torneos
  *   GET /public/torneos/:id/live
+ *   GET /public/torneos/:id/ranking
  * (si tu main.ts usa setGlobalPrefix('api'), serán /api/public/...)
  *
  * IMPORTANTE: si tienes un guard de auth GLOBAL (APP_GUARD con JWT),
@@ -53,6 +55,19 @@ export class PublicController {
 
     const data = await this.cache.wrap(liveKey(id), LIVE_TTL_MS, () =>
       this.service.armarLive(id),
+    );
+    if (!data) throw new NotFoundException('Torneo no encontrado');
+    return data;
+  }
+
+  @Get('torneos/:id/ranking')
+  @Header('Cache-Control', 'public, max-age=5')
+  async ranking(@Param('id') id: string) {
+    if (!/^[a-f\d]{24}$/i.test(id))
+      throw new BadRequestException('id inválido');
+
+    const data = await this.cache.wrap(rankingKey(id), LIVE_TTL_MS, () =>
+      this.service.armarRanking(id),
     );
     if (!data) throw new NotFoundException('Torneo no encontrado');
     return data;

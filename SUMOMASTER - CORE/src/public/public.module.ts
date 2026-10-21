@@ -10,6 +10,7 @@ import { PublicController } from './public.controller';
 import { PublicService } from './public.service';
 import { PublicCacheService } from './public-cache.service';
 import { VersusController } from './versus.controller';
+import { RankingModule } from '../ranking/ranking.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { VersusController } from './versus.controller';
       { name: Torneo.name, schema: TorneoSchema },
       { name: Combate.name, schema: CombateSchema },
     ]),
+    RankingModule, // reutiliza RankingService.calcular() para el ranking público
     // 120 peticiones por minuto por IP (en un venue muchos comparten wifi; sube si hace falta)
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
   ],

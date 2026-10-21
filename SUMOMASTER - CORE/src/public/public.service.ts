@@ -9,6 +9,26 @@ import { Combate, CombateDocument } from '../combates/schemas/combate.schema';
 import { EstadoCombate } from './enums/estado-combate.enum';
 import { DURACION_COMBATE_DEFAULT_MIN } from './public.constants';
 import { CombateLiveDto, LiveDto, TorneoResumenDto } from './dto/live.dto';
+import { RankingService } from '../ranking/ranking.service';
+
+// Ranking público (fase de grupos): sin ids internos ni imágenes base64.
+export interface FilaRankingPublicaDto {
+  posicion: number;
+  robot: string;
+  equipo: string;
+  combates: number;
+  victorias: number;
+  empates: number;
+  derrotas: number;
+  puntos: number;
+  diferencia: number;
+  ultimoResultado: 'Victoria' | 'Derrota' | 'Empate' | null;
+}
+
+export interface RankingPublicoDto {
+  filas: FilaRankingPublicaDto[];
+  generadoEn: string;
+}
 
 /** Saca un nombre legible venga como string, objeto populado o ObjectId. */
 function nombreDe(x: any): string {
@@ -27,8 +47,11 @@ function aISO(d: unknown): string | null {
 @Injectable()
 export class PublicService {
   constructor(
-    @InjectModel(Torneo.name) private readonly torneoModel: Model<TorneoDocument>,
-    @InjectModel(Combate.name) private readonly combateModel: Model<CombateDocument>,
+    @InjectModel(Torneo.name)
+    private readonly torneoModel: Model<TorneoDocument>,
+    @InjectModel(Combate.name)
+    private readonly combateModel: Model<CombateDocument>,
+    private readonly rankingService: RankingService,
   ) {}
 
   async listarTorneosPublicos(): Promise<TorneoResumenDto[]> {
@@ -51,16 +74,18 @@ export class PublicService {
   async armarLive(torneoId: string): Promise<LiveDto | null> {
     const t: any = await this.torneoModel
       .findOne({ _id: torneoId, publico: true })
-      .select('nombre fecha categoria estado fase horaInicio duracionCombateMin') // AJUSTA
+      .select(
+        'nombre fecha categoria estado fase horaInicio duracionCombateMin',
+      ) // AJUSTA
       .lean();
     if (!t) return null;
 
     const combates: any[] = await this.combateModel
-      .find({ torneo: torneoId })                 // AJUSTA: campo del Combate que apunta al torneo
+      .find({ torneo: torneoId }) // AJUSTA: campo del Combate que apunta al torneo
       .select('numero fase robots dojo estado ganador') // sin jueces ni observaciones
-      .populate('robots', 'nombre')               // solo el nombre, NUNCA imágenes
-      .populate('dojo', 'nombre')                 // quita esta línea si dojo es string/número
-      .populate('ganador', 'nombre')              // quita si no existe o no es referencia
+      .populate('robots', 'nombre') // solo el nombre, NUNCA imágenes
+      .populate('dojo', 'nombre') // quita esta línea si dojo es string/número
+      .populate('ganador', 'nombre') // quita si no existe o no es referencia
       .lean();
 
     const durMin = t.duracionCombateMin ?? DURACION_COMBATE_DEFAULT_MIN;
@@ -95,7 +120,9 @@ export class PublicService {
           horaEstimada:
             terminado || inicio === null
               ? null
-              : new Date(Math.max(Date.now(), inicio) + pendientes * durMs).toISOString(),
+              : new Date(
+                  Math.max(Date.now(), inicio) + pendientes * durMs,
+                ).toISOString(),
         });
 
         if (!terminado) pendientes++;
@@ -116,6 +143,34 @@ export class PublicService {
         duracionCombateMin: durMin,
       },
       combates: salida,
+      generadoEn: new Date().toISOString(),
+    };
+  }
+
+  /** Ranking de fase de grupos, solo para torneos públicos. */
+  async armarRanking(torneoId: string): Promise<RankingPublicoDto | null> {
+    const existe = await this.torneoModel.exists({
+      _id: torneoId,
+      publico: true,
+    });
+    if (!existe) return null;
+
+    const filas = await this.rankingService.calcular(torneoId);
+
+    // Lista blanca: sin robotId/equipoId ni robotImagenUrl (puede ser base64 pesado)
+    return {
+      filas: filas.map((f) => ({
+        posicion: f.posicion,
+        robot: f.robotNombre,
+        equipo: f.equipoNombre,
+        combates: f.combates,
+        victorias: f.victorias,
+        empates: f.empates,
+        derrotas: f.derrotas,
+        puntos: f.puntos,
+        diferencia: f.diferencia,
+        ultimoResultado: f.ultimoResultado,
+      })),
       generadoEn: new Date().toISOString(),
     };
   }
