@@ -161,6 +161,21 @@
           </button>
 
           <a
+  *ngIf="faseActual() === FaseCombate.FINAL"
+  class="btn btn--ghost"
+  [routerLink]="[
+    '/torneos',
+    torneoId,
+    'enfrentamientos'
+  ]"
+  [queryParams]="{
+    fase: FaseCombate.TERCER_LUGAR
+  }"
+>
+  Ver combate por tercer lugar →
+</a>
+
+          <a
             *ngIf="
               faseActual() ===
               FaseCombate.FINAL

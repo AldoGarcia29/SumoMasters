@@ -302,129 +302,95 @@ private obtenerPerdedorCombate(
 async obtenerPodio(
   torneoId: string,
 ): Promise<PodioTorneo> {
-  const finales =
-    await this.combatesService.findByTorneo(
-      torneoId,
-      {
-        fase: FaseCombate.FINAL,
-      },
-    );
+  const [finales, terceros] = await Promise.all([
+    this.combatesService.findByTorneo(torneoId, {
+      fase: FaseCombate.FINAL,
+    }),
+    this.combatesService.findByTorneo(torneoId, {
+      fase: FaseCombate.TERCER_LUGAR,
+    }),
+  ]);
 
-  const final = finales[0];
-
-  if (!final) {
+  if (finales.length === 0) {
     throw new NotFoundException(
       'Todavía no existe el combate final.',
     );
   }
 
-  if (
-    final.estado !== EstadoCombate.FINALIZADO
-  ) {
+  if (terceros.length === 0) {
+    throw new ConflictException(
+      'Todavía no existe el combate por tercer lugar.',
+    );
+  }
+
+  if (finales.length !== 1 || terceros.length !== 1) {
+    throw new ConflictException(
+      'Debe existir una sola final y un solo combate por tercer lugar.',
+    );
+  }
+
+  const final = finales[0];
+  const tercerLugar = terceros[0];
+
+  if (final.estado !== EstadoCombate.FINALIZADO) {
     throw new ConflictException(
       'El combate final todavía no ha terminado.',
     );
   }
 
-  if (
-    final.resultado === ResultadoCombate.EMPATE ||
-    !final.resultado
-  ) {
+  if (tercerLugar.estado !== EstadoCombate.FINALIZADO) {
     throw new ConflictException(
-      'La Final debe tener un ganador.',
+      'Debes registrar el resultado del tercer lugar antes de consultar el podio.',
     );
   }
 
-  const campeon =
-    this.obtenerGanadorCombate(final);
+  const tieneGanador = (combate: CombateDocument): boolean =>
+    combate.resultado === ResultadoCombate.GANA_ROBOT_1 ||
+    combate.resultado === ResultadoCombate.GANA_ROBOT_2;
 
-  const subcampeon =
-    this.obtenerPerdedorCombate(final);
-
-  const combatesTercerLugar =
-    await this.combatesService.findByTorneo(
-      torneoId,
-      {
-        fase: FaseCombate.TERCER_LUGAR,
-      },
+  if (!tieneGanador(final)) {
+    throw new ConflictException(
+      'La final debe tener un ganador; no puede quedar empatada.',
     );
+  }
 
-  const tercerLugarCombate =
-    combatesTercerLugar[0];
+  if (!tieneGanador(tercerLugar)) {
+    throw new ConflictException(
+      'El combate por tercer lugar debe tener un ganador; no puede quedar empatado.',
+    );
+  }
 
-  let tercero: any;
-  let cuarto: any;
+  const participantes = [
+    this.obtenerRobotId(final.robot1),
+    this.obtenerRobotId(final.robot2),
+    this.obtenerRobotId(tercerLugar.robot1),
+    this.obtenerRobotId(tercerLugar.robot2),
+  ];
 
   if (
-    tercerLugarCombate &&
-    tercerLugarCombate.estado ===
-      EstadoCombate.FINALIZADO &&
-    tercerLugarCombate.resultado !==
-      ResultadoCombate.EMPATE
+    participantes.some((id) => !id) ||
+    new Set(participantes).size !== 4
   ) {
-    tercero =
-      this.obtenerGanadorCombate(
-        tercerLugarCombate,
-      );
-
-    cuarto =
-      this.obtenerPerdedorCombate(
-        tercerLugarCombate,
-      );
-  } else {
-    /*
-     * Compatibilidad con torneos anteriores que llegaron
-     * a la Final sin crear el combate por tercer lugar.
-     */
-    const semifinales =
-      await this.combatesService.findByTorneo(
-        torneoId,
-        {
-          fase: FaseCombate.SEMIFINAL,
-        },
-      );
-
-    const semifinalesFinalizadas =
-      semifinales
-        .filter(
-          (combate) =>
-            combate.estado ===
-              EstadoCombate.FINALIZADO &&
-            combate.resultado !==
-              ResultadoCombate.EMPATE,
-        )
-        .sort(
-          (a, b) =>
-            (a.numero ?? 0) -
-            (b.numero ?? 0),
-        );
-
-    if (semifinalesFinalizadas.length < 2) {
-      throw new ConflictException(
-        'No hay información suficiente para determinar el tercer y cuarto lugar.',
-      );
-    }
-
-    tercero = this.obtenerPerdedorCombate(
-      semifinalesFinalizadas[0],
-    );
-
-    cuarto = this.obtenerPerdedorCombate(
-      semifinalesFinalizadas[1],
+    throw new ConflictException(
+      'La final y el tercer lugar deben tener cuatro participantes distintos.',
     );
   }
 
   return {
     torneoId,
     torneoFinalizado: true,
-    campeon:
-      this.mapearLugarPodio(campeon),
-    subcampeon:
-      this.mapearLugarPodio(subcampeon),
-    tercerLugar:
-      this.mapearLugarPodio(tercero),
-    cuartoLugar:
-      this.mapearLugarPodio(cuarto),
+    campeon: this.mapearLugarPodio(
+      this.obtenerGanadorCombate(final),
+    ),
+    subcampeon: this.mapearLugarPodio(
+      this.obtenerPerdedorCombate(final),
+    ),
+    tercerLugar: this.mapearLugarPodio(
+      this.obtenerGanadorCombate(tercerLugar),
+    ),
+    cuartoLugar: this.mapearLugarPodio(
+      this.obtenerPerdedorCombate(tercerLugar),
+    ),
   };
 }
 
@@ -534,6 +500,48 @@ async generarSiguienteRonda(
       'No se puede avanzar porque existen combates eliminatorios empatados.',
     );
   }
+
+  // Al avanzar desde semifinales, crea también el tercer lugar.
+if (faseActual === FaseCombate.SEMIFINAL) {
+  if (combatesActuales.length !== 2) {
+    throw new ConflictException(
+      'Deben existir exactamente dos semifinales para generar la final y el tercer lugar.',
+    );
+  }
+
+  const semifinales = [...combatesActuales].sort(
+    (a, b) => a.numero - b.numero,
+  );
+
+  // Valida los ganadores antes de guardar el nuevo combate.
+  for (const semifinal of semifinales) {
+    this.obtenerGanadorId(semifinal);
+  }
+
+  const perdedores = semifinales.map(
+    (semifinal, indice) => ({
+      robotId: this.obtenerRobotId(
+        this.obtenerPerdedorCombate(semifinal),
+      ),
+      seed: indice + 1,
+    }),
+  );
+
+  if (
+    perdedores.some((robot) => !robot.robotId) ||
+    perdedores[0].robotId === perdedores[1].robotId
+  ) {
+    throw new ConflictException(
+      'No se pudieron determinar dos perdedores distintos para el tercer lugar.',
+    );
+  }
+
+  await this.combatesService.crearCombatesEliminatorios(
+    torneoId,
+    FaseCombate.TERCER_LUGAR,
+    perdedores,
+  );
+}
 
   const ganadores = [...combatesActuales]
     .sort(
