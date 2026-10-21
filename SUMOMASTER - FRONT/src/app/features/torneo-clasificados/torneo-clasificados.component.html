@@ -2,7 +2,7 @@
   <app-sidebar
     [isOpen]="sidebarOpen()"
     (closeRequested)="closeSidebar()"
-  ></app-sidebar>
+  />
 
   <div
     class="app-shell__backdrop"
@@ -12,25 +12,19 @@
 
   <div class="app-shell__main">
     <app-topbar
-      title="Clasificados y fase eliminatoria"
-      [subtitle]="
-        'Dashboard › Torneos › ' +
-        (torneo()?.nombre ?? '') +
-        ' › Clasificados'
-      "
+      title="Cuadro eliminatorio"
+      [subtitle]="'Torneos › ' + (torneo()?.nombre ?? '') + ' › Eliminatorias'"
       [notificationCount]="3"
       (menuToggle)="toggleSidebar()"
-    ></app-topbar>
+    />
 
     <main class="clasificados-page">
-      <!-- Encabezado -->
       <section class="panel clasificados-header">
         <div>
           <h2>{{ torneo()?.nombre ?? 'Torneo' }}</h2>
-
           <p>
-            Los cuatro mejores robots de cada bloque avanzan a la fase
-            eliminatoria.
+            Revisa las posiciones por bloque y configura
+            los cruces iniciales del torneo.
           </p>
         </div>
 
@@ -42,7 +36,6 @@
         </a>
       </section>
 
-      <!-- Mensajes -->
       <p class="panel__error" *ngIf="errorMessage()">
         {{ errorMessage() }}
       </p>
@@ -51,314 +44,237 @@
         {{ successMessage() }}
       </p>
 
-      <!-- Cargando -->
-      <section class="panel loading-state" *ngIf="loading()">
-        Cargando clasificados…
+      <section class="panel" *ngIf="loading()">
+        Cargando posiciones y cuadro…
       </section>
 
-      <!-- Contenido -->
       <ng-container *ngIf="!loading()">
-        <ng-container *ngIf="resumen() as datos">
-          <!-- Tarjetas de resumen -->
-          <section class="summary-grid">
-            <article class="summary-card">
-              <strong>{{ datos.totalBloques ?? 0 }}</strong>
-              <span>Bloques</span>
-            </article>
-
-            <article class="summary-card">
-              <strong>{{ datos.clasificadosPorBloque ?? 4 }}</strong>
-              <span>Clasificados por bloque</span>
-            </article>
-
-            <article class="summary-card">
-              <strong>{{ datos.totalClasificados ?? 0 }}</strong>
-              <span>Clasificados totales</span>
-            </article>
-
-            <article class="summary-card">
-              <strong>{{ datos.totalPasesDirectos ?? 0 }}</strong>
-              <span>Pases directos a cuartos</span>
-            </article>
-          </section>
-
-          <!-- Clasificados por bloque -->
-          <section class="bloques-grid">
-            <article
-              class="panel bloque-card"
-              *ngFor="let bloque of (datos.bloques ?? [])"
-            >
-              <div class="bloque-card__header">
-                <div>
-                  <h3>{{ bloque.bloqueNombre }}</h3>
-
-                  <span>
-                    {{ (bloque.clasificados ?? []).length }}
-                    clasificados
-                  </span>
-                </div>
-
-                <span class="badge badge--info">
-                  Top 4
-                </span>
-              </div>
-
-              <ol class="clasificados-list">
-                <li
-                  *ngFor="
-                    let clasificado of (bloque.clasificados ?? [])
-                  "
-                  class="clasificado"
-                  [class.clasificado--directo]="clasificado.paseDirecto"
-                >
-                  <span class="clasificado__position">
-                    {{ clasificado.posicionBloque }}
-                  </span>
-
-                  <div class="clasificado__robot">
-                    <strong>
-                      {{ clasificado.robotNombre }}
-                    </strong>
-
-                    <span>
-                      {{ clasificado.equipoNombre }}
-                    </span>
-                  </div>
-
-                  <div class="clasificado__stats">
-                    <strong>
-                      {{ clasificado.puntos }} pts
-                    </strong>
-
-                    <span>
-                      {{ clasificado.victorias }} V ·
-                      {{ clasificado.empates }} E ·
-                      {{ clasificado.derrotas }} D
-                    </span>
-                  </div>
-
-                  <span
-                    class="badge badge--success"
-                    *ngIf="clasificado.paseDirecto"
-                  >
-                    Pase directo
-                  </span>
-
-                  <span
-                    class="badge badge--neutral"
-                    *ngIf="!clasificado.paseDirecto"
-                  >
-                    Preliminar
-                  </span>
-                </li>
-
-                <li
-                  class="table__empty"
-                  *ngIf="(bloque.clasificados ?? []).length === 0"
-                >
-                  Este bloque todavía no tiene clasificados.
-                </li>
-              </ol>
-            </article>
-          </section>
-
-          <!-- Ronda preliminar -->
-          <section class="panel">
-            <div class="section-header">
-              <div>
-                <h3>
-  {{
-    datos.requierePreliminar
-      ? 'Ronda preliminar'
-      : datos.tamanoCuadro === 32
-        ? 'Dieciseisavos de final'
-        : datos.tamanoCuadro === 16
-          ? 'Octavos de final'
-          : datos.tamanoCuadro === 8
-            ? 'Cuartos de final'
-            : datos.tamanoCuadro === 4
-              ? 'Semifinal'
-              : 'Final'
-  }}
-</h3>
-
-                <p *ngIf="datos.requierePreliminar">
-  Los ganadores completarán los
-  {{ datos.tamanoCuadro }} lugares del
-  siguiente cuadro.
-</p>
-
-<p *ngIf="!datos.requierePreliminar">
-  Los clasificados comienzan directamente
-  esta fase eliminatoria.
-</p>
-              </div>
-
+        <section class="bloques-grid">
+          <article
+            class="panel bloque-card"
+            *ngFor="let tabla of tablas()"
+          >
+            <div class="bloque-card__header">
+              <h3>{{ tabla.bloqueNombre }}</h3>
               <span class="badge badge--info">
-                {{ (datos.rondaPreliminar ?? []).length }}
-                combates
+                Posiciones
               </span>
             </div>
 
-            <div
-              class="cruces-grid"
-              *ngIf="(datos.rondaPreliminar ?? []).length > 0"
-            >
-              <article
-                class="cruce-card"
-                *ngFor="let cruce of (datos.rondaPreliminar ?? [])"
+            <ol class="clasificados-list">
+              <li
+                class="clasificado"
+                *ngFor="let robot of tabla.posiciones"
               >
-                <strong class="cruce-card__number">
-                  Combate {{ cruce.numero }}
-                </strong>
-
-                <div class="cruce-card__robot">
-                  <span>
-                    Seed {{ cruce.robot1.seedGeneral }}
-                  </span>
-
-                  <strong>
-                    {{ cruce.robot1.robotNombre }}
-                  </strong>
-
-                  <small>
-                    {{ cruce.robot1.equipoNombre }}
-                  </small>
-
-                  <small>
-                    {{ cruce.robot1.bloqueNombre }}
-                  </small>
-                </div>
-
-                <span class="cruce-card__vs">
-                  VS
+                <span class="clasificado__position">
+                  {{ robot.posicion }}
                 </span>
 
-                <div class="cruce-card__robot">
-                  <span>
-                    Seed {{ cruce.robot2.seedGeneral }}
-                  </span>
-
-                  <strong>
-                    {{ cruce.robot2.robotNombre }}
-                  </strong>
-
-                  <small>
-                    {{ cruce.robot2.equipoNombre }}
-                  </small>
-
-                  <small>
-                    {{ cruce.robot2.bloqueNombre }}
-                  </small>
+                <div class="clasificado__robot">
+                  <strong>{{ robot.robotNombre }}</strong>
                 </div>
-              </article>
-            </div>
+
+                <div class="clasificado__stats">
+                  <strong>{{ robot.puntos }} pts</strong>
+                  <span>
+                    {{ robot.victorias }} V ·
+                    {{ robot.empates }} E ·
+                    {{ robot.derrotas }} D
+                  </span>
+                </div>
+              </li>
+            </ol>
 
             <p
               class="table__empty"
-              *ngIf="(datos.rondaPreliminar ?? []).length === 0"
+              *ngIf="tabla.posiciones.length === 0"
             >
-              No hay enfrentamientos preliminares disponibles.
+              Sin resultados registrados.
             </p>
-          </section>
-
-          <!-- Pases directos -->
-          <section
-            class="panel pases-card"
-            *ngIf="(datos.pasesDirectos ?? []).length > 0"
-          >
-            <div class="section-header">
-              <div>
-                <h3>Pases directos a cuartos</h3>
-
-                <p>
-                  Ganadores de bloque y mejores clasificados generales.
-                </p>
-              </div>
-
-              <span class="badge badge--success">
-                {{ (datos.pasesDirectos ?? []).length }}
-                robots
-              </span>
-            </div>
-
-            <div class="pases-grid">
-              <article
-                class="pase-item"
-                *ngFor="let clasificado of (datos.pasesDirectos ?? [])"
-              >
-                <span class="pase-item__seed">
-                  Seed {{ clasificado.seedGeneral }}
-                </span>
-
-                <strong>
-                  {{ clasificado.robotNombre }}
-                </strong>
-
-                <span>
-                  {{ clasificado.equipoNombre }}
-                </span>
-
-                <small>
-                  {{ clasificado.bloqueNombre }} ·
-                  {{ clasificado.puntos }} puntos ·
-                  {{ porcentaje(clasificado.porcentajePuntos) }}
-                </small>
-              </article>
-            </div>
-          </section>
-        </ng-container>
-
-        <!-- Respuesta vacía -->
-        <section
-          class="panel loading-state"
-          *ngIf="!resumen() && !errorMessage()"
-        >
-          No se encontró información de clasificados.
+          </article>
         </section>
-      </ng-container>
 
-      <!-- Acciones inferiores -->
-      <div class="footer-actions">
-        <a
-          class="btn btn--ghost"
-          [routerLink]="['/torneos', torneoId, 'ranking']"
-        >
-          ← Volver a la tabla
-        </a>
+        <section class="panel">
+          <div class="section-header">
+            <div>
+              <h3>
+                {{ faseGenerada()
+                  ? 'Cuadro confirmado'
+                  : 'Configurar cruces' }}
+              </h3>
+              <p>
+                Elige los participantes conforme a las
+                posiciones y al reglamento de este torneo.
+              </p>
+            </div>
+          </div>
 
-        <div class="footer-actions__right">
-          <a
-  *ngIf="faseGenerada()"
-  class="btn btn--ghost"
-  [routerLink]="[
-    '/torneos',
-    torneoId,
-    'enfrentamientos'
-  ]"
-  [queryParams]="{
-    fase: 'Octavos de final'
-  }"
->
-  Ver enfrentamientos preliminares
-</a>
+          <label class="field" *ngIf="!faseGenerada()">
+            <span>Fase inicial</span>
 
-          <button
-            type="button"
-            class="btn btn--primary"
-            [disabled]="!puedeGenerar()"
-            (click)="generarFaseEliminatoria()"
+            <select
+              [value]="faseInicial()"
+              [disabled]="!isAdmin() || generating()"
+              (change)="cambiarFase($any($event.target).value)"
+            >
+              <option
+                *ngFor="let opcion of fasesIniciales"
+                [value]="opcion.fase"
+                [disabled]="opcion.robots > candidatos().length"
+              >
+                {{ opcion.fase }} —
+                {{ opcion.robots }} robots,
+                {{ opcion.combates }} combates
+              </option>
+            </select>
+          </label>
+
+          <p *ngIf="faseGenerada()">
+            Fase inicial: <strong>{{ faseInicial() }}</strong>
+          </p>
+
+          <div class="info-box">
+            Los ganadores de los combates 1 y 2 avanzarán
+            al mismo cruce; después los de 3 y 4, y así
+            sucesivamente. Revisa el orden antes de confirmar.
+          </div>
+
+          <div class="cruces-grid">
+            <article
+              class="cruce-card"
+              *ngFor="let cruce of cruces(); let i = index"
+            >
+              <strong class="cruce-card__number">
+                Combate {{ i + 1 }}
+              </strong>
+
+              <label class="field">
+                <span>Robot 1</span>
+
+                <select
+                  [value]="cruce.robot1Id"
+                  [disabled]="
+                    !isAdmin() ||
+                    faseGenerada() ||
+                    generating() ||
+                    !gruposTerminados()
+                  "
+                  (change)="seleccionar(
+                    i,
+                    'robot1Id',
+                    $any($event.target).value
+                  )"
+                >
+                  <option value="">Selecciona un robot</option>
+
+                  <optgroup
+                    *ngFor="let tabla of tablas()"
+                    [label]="tabla.bloqueNombre"
+                  >
+                    <option
+                      *ngFor="let robot of tabla.posiciones"
+                      [value]="robot.robotId"
+                      [disabled]="ocupado(
+                        robot.robotId,
+                        cruce.robot1Id
+                      )"
+                    >
+                      {{ etiqueta(robot) }}
+                    </option>
+                  </optgroup>
+                </select>
+              </label>
+
+              <span class="cruce-card__vs">VS</span>
+
+              <label class="field">
+                <span>Robot 2</span>
+
+                <select
+                  [value]="cruce.robot2Id"
+                  [disabled]="
+                    !isAdmin() ||
+                    faseGenerada() ||
+                    generating() ||
+                    !gruposTerminados()
+                  "
+                  (change)="seleccionar(
+                    i,
+                    'robot2Id',
+                    $any($event.target).value
+                  )"
+                >
+                  <option value="">Selecciona un robot</option>
+
+                  <optgroup
+                    *ngFor="let tabla of tablas()"
+                    [label]="tabla.bloqueNombre"
+                  >
+                    <option
+                      *ngFor="let robot of tabla.posiciones"
+                      [value]="robot.robotId"
+                      [disabled]="ocupado(
+                        robot.robotId,
+                        cruce.robot2Id
+                      )"
+                    >
+                      {{ etiqueta(robot) }}
+                    </option>
+                  </optgroup>
+                </select>
+              </label>
+            </article>
+          </div>
+
+          <p
+            class="info-box"
+            *ngIf="!faseGenerada() && validacion()"
           >
-            {{
-              generating()
-                ? 'Generando…'
-                : faseGenerada()
-                  ? 'Fase eliminatoria generada'
-                  : 'Generar fase eliminatoria'
-            }}
-          </button>
+            {{ validacion() }}
+          </p>
+
+          <p class="info-box" *ngIf="!isAdmin()">
+            Solo el administrador puede configurar y
+            confirmar los cruces iniciales.
+          </p>
+        </section>
+
+        <div class="footer-actions">
+          <a
+            class="btn btn--ghost"
+            [routerLink]="['/torneos', torneoId, 'ranking']"
+          >
+            ← Volver a posiciones
+          </a>
+
+          <div class="footer-actions__right">
+            <a
+              *ngIf="faseGenerada()"
+              class="btn btn--primary"
+              [routerLink]="[
+                '/torneos',
+                torneoId,
+                'enfrentamientos'
+              ]"
+              [queryParams]="{ fase: faseInicial() }"
+            >
+              Ver enfrentamientos →
+            </a>
+
+            <button
+              *ngIf="isAdmin() && !faseGenerada()"
+              type="button"
+              class="btn btn--primary"
+              [disabled]="!puedeGenerar()"
+              (click)="generarFaseEliminatoria()"
+            >
+              {{ generating()
+                ? 'Confirmando…'
+                : 'Confirmar cuadro eliminatorio' }}
+            </button>
+          </div>
         </div>
-      </div>
+      </ng-container>
     </main>
   </div>
 </div>

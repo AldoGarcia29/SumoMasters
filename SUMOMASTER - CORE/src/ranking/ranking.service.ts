@@ -12,6 +12,8 @@ import {
   ResultadoCombate,
 } from '../combates/enums/combate.enums';
 
+import { GenerarCuadroManualDto } from './dto/generar-cuadro-manual.dto';
+
 
 
 export interface LugarPodio {
@@ -96,6 +98,102 @@ const CLASIFICADOS_POR_BLOQUE = 4;
 
 @Injectable()
 export class RankingService {
+
+  async generarCuadroManual(
+  torneoId: string,
+  dto: GenerarCuadroManualDto,
+) {
+  const combatesPorFase: Partial<Record<FaseCombate, number>> = {
+    [FaseCombate.DIECISEISAVOS]: 16,
+    [FaseCombate.OCTAVOS]: 8,
+    [FaseCombate.CUARTOS]: 4,
+    [FaseCombate.SEMIFINAL]: 2,
+  };
+
+  const esperados = combatesPorFase[dto.faseInicial];
+
+  if (!esperados || dto.cruces.length !== esperados) {
+    throw new BadRequestException(
+      `"${dto.faseInicial}" requiere ${esperados ?? 0} combates.`,
+    );
+  }
+
+  const todos = await this.combatesService.findByTorneo(torneoId);
+
+  const grupos = todos.filter(
+    (combate) => combate.fase === FaseCombate.FASE_GRUPOS,
+  );
+
+  if (
+    grupos.length === 0 ||
+    grupos.some(
+      (combate) =>
+        combate.estado !== EstadoCombate.FINALIZADO ||
+        !combate.resultado,
+    )
+  ) {
+    throw new ConflictException(
+      'Primero deben finalizar todos los combates de la fase de grupos con resultados válidos.',
+    );
+  }
+
+  // En este primer paso el cuadro se confirma una sola vez.
+  // Evita mezclar el cuadro manual con eliminatorias anteriores.
+  if (
+    todos.some(
+      (combate) => combate.fase !== FaseCombate.FASE_GRUPOS,
+    )
+  ) {
+    throw new ConflictException(
+      'Este torneo ya tiene un cuadro eliminatorio. No se puede crear otro.',
+    );
+  }
+
+  const ranking = await this.calcular(torneoId);
+  const permitidos = new Set(
+    ranking.map((fila) => fila.robotId),
+  );
+
+  const usados = new Set<string>();
+
+  for (const cruce of dto.cruces) {
+    for (const robotId of [cruce.robot1Id, cruce.robot2Id]) {
+      if (!permitidos.has(robotId)) {
+        throw new BadRequestException(
+          'Uno de los robots seleccionados no pertenece a la clasificación de este torneo.',
+        );
+      }
+
+      if (usados.has(robotId)) {
+        throw new BadRequestException(
+          'Un robot no puede aparecer dos veces en el cuadro.',
+        );
+      }
+
+      usados.add(robotId);
+    }
+  }
+
+  const cruces = dto.cruces.map((cruce, indice) => ({
+    numero: indice + 1,
+    robot1Id: cruce.robot1Id,
+    robot2Id: cruce.robot2Id,
+  }));
+
+  const combatesGenerados =
+    await this.combatesService.generarRondaEliminatoria(
+      torneoId,
+      dto.faseInicial,
+      cruces,
+    );
+
+  return {
+    faseInicial: dto.faseInicial,
+    combatesGenerados,
+    mensaje: `Se crearon ${combatesGenerados.length} combates de ${dto.faseInicial}.`,
+  };
+}
+
   constructor(
     private readonly combatesService: CombatesService,
   ) {}

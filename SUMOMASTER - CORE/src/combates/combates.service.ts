@@ -582,7 +582,7 @@ async generarRondaEliminatoria(
   const octavosExistentes =
     await this.combateModel.find({
       torneo: torneoObjectId,
-      fase: FaseCombate.OCTAVOS,
+      fase,
     });
 
   const yaIniciados = octavosExistentes.some(
@@ -605,7 +605,7 @@ async generarRondaEliminatoria(
     cruces.map((cruce) => ({
       torneo: torneoObjectId,
       bloque: null,
-      fase: FaseCombate.OCTAVOS,
+      fase,
       numero: cruce.numero,
       robot1: new Types.ObjectId(
         cruce.robot1Id,
@@ -637,7 +637,7 @@ async generarRondaEliminatoria(
   return this.combateModel
     .find({
       torneo: torneoObjectId,
-      fase: FaseCombate.OCTAVOS,
+      fase,
     })
     .populate(POPULATE)
     .sort({ numero: 1 })

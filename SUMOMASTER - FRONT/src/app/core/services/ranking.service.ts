@@ -17,6 +17,31 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class RankingService {
+
+  generarCuadroManual(
+  torneoId: string,
+  payload: {
+    faseInicial: FaseCombate;
+    cruces: Array<{
+      robot1Id: string;
+      robot2Id: string;
+    }>;
+  },
+): Observable<{
+  faseInicial: FaseCombate;
+  combatesGenerados: Combate[];
+  mensaje: string;
+}> {
+  return this.http.post<{
+    faseInicial: FaseCombate;
+    combatesGenerados: Combate[];
+    mensaje: string;
+  }>(
+    `${this.baseUrl}/torneos/${torneoId}/ranking/cuadro-manual/generar`,
+    payload,
+  );
+}
+
   private readonly baseUrl = environment.coreApiUrl;
 
   constructor(private readonly http: HttpClient) {}

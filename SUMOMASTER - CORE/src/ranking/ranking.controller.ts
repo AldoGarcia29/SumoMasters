@@ -10,9 +10,18 @@ import { Role } from '../common/enums/role.enum';
 import { Roles } from '../common/decorators/roles.decorator';
 import { RankingService } from './ranking.service';
 import { GenerarSiguienteRondaDto } from './dto/generar-siguiente-ronda.dto';
+import { GenerarCuadroManualDto } from './dto/generar-cuadro-manual.dto';
 
 @Controller('torneos/:torneoId/ranking')
 export class RankingController {
+  @Roles(Role.ADMIN)
+@Post('cuadro-manual/generar')
+generarCuadroManual(
+  @Param('torneoId') torneoId: string,
+  @Body() dto: GenerarCuadroManualDto,
+) {
+  return this.rankingService.generarCuadroManual(torneoId, dto);
+}
   constructor(
     private readonly rankingService: RankingService,
   ) {}
