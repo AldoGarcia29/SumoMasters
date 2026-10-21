@@ -79,7 +79,7 @@ export class LoginComponent {
             user?.roles.includes(Role.STAFF) &&
             !user.roles.includes(Role.ADMIN)
           ) {
-            this.router.navigateByUrl('/torneos');
+            this.router.navigateByUrl('/staff/resultados');
             return;
           }
 

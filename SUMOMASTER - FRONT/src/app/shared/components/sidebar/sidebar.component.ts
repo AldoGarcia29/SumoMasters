@@ -51,7 +51,7 @@ export class SidebarComponent {
     icon: 'trophy',
     label: 'Torneos',
     route: '/torneos',
-    roles: [Role.ADMIN, Role.STAFF],
+    roles: [Role.ADMIN],
   },
   {
     icon: 'users',
@@ -75,7 +75,13 @@ export class SidebarComponent {
     icon: 'swords',
     label: 'Combates',
     route: '/combates',
-    roles: [Role.ADMIN, Role.STAFF],
+    roles: [Role.ADMIN],
+  },
+  {
+    icon: 'trophy',
+    label: 'Registrar resultados',
+    route: '/staff/resultados',
+    roles: [Role.STAFF],
   },
   {
     icon: 'building',

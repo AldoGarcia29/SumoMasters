@@ -17,7 +17,7 @@ import { DojosService } from './dojos.service';
 export class DojosController {
   constructor(private readonly dojosService: DojosService) {}
 
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN)
   @Post()
   create(@Body() dto: CreateDojoDto) {
     return this.dojosService.create(dto);
@@ -33,7 +33,7 @@ export class DojosController {
     return this.dojosService.findOne(id);
   }
 
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN)
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateDojoDto) {
     return this.dojosService.update(id, dto);
