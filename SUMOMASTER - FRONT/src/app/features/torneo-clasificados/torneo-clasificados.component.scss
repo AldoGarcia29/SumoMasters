@@ -702,3 +702,71 @@
     flex-direction: column;
   }
 }
+
+
+/* Corrige el espacio vertical que reserva el sidebar */
+:host {
+  --sidebar-width: 260px;
+
+  display: block;
+  min-height: 100vh;
+  background: #f5f2fc;
+}
+
+.app-shell {
+  display: block;
+  min-height: 100vh;
+}
+
+/* Saca el componente sidebar del flujo del documento */
+.app-shell > app-sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--sidebar-width);
+  z-index: 50;
+}
+
+/* El contenido comienza arriba, junto al menú */
+.app-shell__main {
+  display: flex;
+  flex-direction: column;
+  width: auto;
+  min-width: 0;
+  min-height: 100vh;
+  margin: 0 0 0 var(--sidebar-width);
+  padding: 0;
+}
+
+.app-shell__main > app-topbar {
+  display: block;
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+.clasificados-page {
+  flex: 1;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+@media (max-width: 1024px) {
+  .app-shell__main {
+    margin-left: 0;
+  }
+
+  /* El menú móvil conserva su apertura mediante isOpen */
+  .app-shell > app-sidebar {
+    width: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .clasificados-page {
+    padding: 14px;
+  }
+}
