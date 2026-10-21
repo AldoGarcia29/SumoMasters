@@ -8,6 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Role } from '../../core/models/auth.model';
 import { AuthService } from '../../core/services/auth.service';
 
 /**
@@ -43,9 +44,10 @@ export class LiveUserMenuComponent {
   });
 
   /** ADMIN o STAFF pueden volver al panel; un usuario sin permisos solo puede cerrar sesión. */
-  readonly tienePanel = computed(() =>
-    this.auth.hasPanelAccess(this.user()?.roles ?? []),
-  );
+  readonly tienePanel = computed(() => {
+    const roles = this.user()?.roles ?? [];
+    return roles.includes(Role.ADMIN) || roles.includes(Role.STAFF);
+  });
 
   readonly rutaPanel = computed(() => {
     this.user(); // se recalcula si cambia la sesión

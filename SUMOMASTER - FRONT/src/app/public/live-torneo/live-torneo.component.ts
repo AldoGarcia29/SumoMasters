@@ -3,7 +3,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { EMPTY, Subscription, catchError, switchMap, timer } from 'rxjs';
-import { LiveUserMenuComponent } from '../live-user-menu/live-user-mune.component';
+import { LiveUserMenuComponent } from '../live-user-menu/live-user-menu.component';
 import { FilaRankingPublica, LiveData } from '../models/live.model';
 import { PublicApiService } from '../services/public-api.service';
 
