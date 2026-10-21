@@ -14,7 +14,7 @@ async function bootstrap(): Promise<void> {
 
   // Se permite un payload más grande porque los logos/fotos de equipos y
   // robots se envían como imágenes en base64 (data URL) desde el formulario.
-  app.use(json({ limit: '5mb' }));
+  app.use(json({ limit: '20mb' }));
 
   app.enableCors({
     origin: ['http://localhost:4200', 'https://sumomasters-front.onrender.com'],

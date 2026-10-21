@@ -18,7 +18,7 @@ export class ImageUploadComponent {
   @Input() value: string | null | undefined = '';
   @Input() shape: 'circle' | 'square' = 'circle';
   @Input() fallbackText = '';
-  @Input() hint = 'PNG o JPG, máx. 2MB';
+  @Input() hint = 'PNG o JPG, máx. 10MB';
 
   @Output() valueChange = new EventEmitter<string>();
 
@@ -38,8 +38,8 @@ export class ImageUploadComponent {
       return;
     }
 
-    if (file.size > 2 * 1024 * 1024) {
-      this.error = 'La imagen no debe superar 2MB.';
+    if (file.size > 10 * 1024 * 1024) {
+      this.error = 'La imagen no debe superar 10MB.';
       return;
     }
 
