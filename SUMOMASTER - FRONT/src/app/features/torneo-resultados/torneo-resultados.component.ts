@@ -40,6 +40,8 @@ import {
   FaseCombate,
 } from '../../core/models/combate.model';
 
+import { CanDirective } from '../../shared/directives/can.directive';
+
 type TabEstado =
   | 'Pendiente'
   | 'En curso'
@@ -56,6 +58,7 @@ type TabEstado =
     SidebarComponent,
     TopbarComponent,
     RobotChipComponent,
+    CanDirective,
   ],
 
   templateUrl:
