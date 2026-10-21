@@ -43,6 +43,7 @@ export interface Combate {
   bloque: { _id: string; nombre: string } | null;
   fase: FaseCombate;
   numero: number;
+  ronda: number | null;
   robot1: Robot;
   robot2: Robot;
   dojo: Dojo | null;

@@ -96,27 +96,47 @@
           <div class="table-wrapper" *ngIf="!loading() && combates().length > 0">
             <table class="table">
               <thead>
-                <tr>
-                  <th>Combate</th>
-                  <th>Robot 1</th>
-                  <th></th>
-                  <th>Robot 2</th>
-                  <th>Dojo asignado</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let combate of combates()">
-                  <td>{{ combate.numero }}</td>
-                  <td><app-robot-chip [robot]="combate.robot1" /></td>
-                  <td class="table__vs">VS</td>
-                  <td><app-robot-chip [robot]="combate.robot2" /></td>
-                  <td>
-                    <span class="badge" [class]="combate.dojo ? 'badge--success' : 'badge--neutral'">
-                      {{ combate.dojo?.nombre ?? 'Sin asignar' }}
-                    </span>
-                  </td>
-                </tr>
-              </tbody>
+  <tr>
+    <th>Combate</th>
+    <th>Ronda</th>
+    <th>Robot 1</th>
+    <th></th>
+    <th>Robot 2</th>
+    <th>Dojo asignado</th>
+  </tr>
+</thead>
+
+<tbody>
+  <tr *ngFor="let combate of combates()">
+    <td>{{ combate.numero }}</td>
+
+    <td>
+      <span class="badge badge--info" *ngIf="combate.ronda; else sinRonda">
+        Ronda {{ combate.ronda }}
+      </span>
+      <ng-template #sinRonda>—</ng-template>
+    </td>
+
+    <td>
+      <app-robot-chip [robot]="combate.robot1" />
+    </td>
+
+    <td class="table__vs">VS</td>
+
+    <td>
+      <app-robot-chip [robot]="combate.robot2" />
+    </td>
+
+    <td>
+      <span
+        class="badge"
+        [class]="combate.dojo ? 'badge--success' : 'badge--neutral'"
+      >
+        {{ combate.dojo?.nombre ?? 'Sin asignar' }}
+      </span>
+    </td>
+  </tr>
+</tbody>
             </table>
           </div>
         </section>

@@ -472,9 +472,17 @@ export class TorneoEnfrentamientosComponent
             'Enfrentamientos generados correctamente.',
           );
 
-          this.guardarEnCache(
-            combatesGenerados,
-          );
+          const otrasFases = (
+  this.flowCache.getCombates(this.torneoId) ?? []
+).filter(
+  (combate) =>
+    combate.fase !== FaseCombate.FASE_GRUPOS,
+);
+
+this.flowCache.setCombates(this.torneoId, [
+  ...otrasFases,
+  ...combatesGenerados,
+]);
 
           const bloqueActual =
             this.selectedBloqueId();

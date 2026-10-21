@@ -164,69 +164,171 @@ export class CombatesService {
   }
 
   private async generarInterno(
-    torneoId: string,
-    dto: GenerarCombatesDto,
-  ): Promise<CombateDocument[]> {
-    const fase = dto.fase ?? FaseCombate.FASE_GRUPOS;
-
-    let bloques;
-    if (dto.bloqueIds && dto.bloqueIds.length > 0) {
-      // Vía preferida: el frontend ya tiene los bloques cargados (p. ej.
-      // recién generados) y nos manda sus IDs directamente, sin depender de
-      // una nueva búsqueda por torneoId.
-      bloques = await this.bloqueModel.find({ _id: { $in: dto.bloqueIds } }).exec();
-    } else if (dto.bloqueId) {
-      bloques = await this.bloqueModel.find({ _id: dto.bloqueId, torneo: torneoId }).exec();
-    } else {
-      bloques = await this.bloqueModel.find({ torneo: torneoId }).exec();
-    }
-
-    if (bloques.length === 0) {
-      throw new BadRequestException(
-        'No hay bloques generados para este torneo. Genera los bloques primero.',
-      );
-    }
-
-    // Al regenerar una fase se eliminan todos los combates anteriores
-// de esa fase y torneo, incluso si los bloques fueron regenerados.
-await this.combateModel
-  .deleteMany({
-    torneo: new Types.ObjectId(torneoId),
-    fase,
-  })
-  .exec();
-
-    const documentos: Record<string, unknown>[] = [];
-
-    for (const bloque of bloques) {
-      const robots = bloque.robots as Types.ObjectId[];
-      let numero = 1;
-
-      for (let i = 0; i < robots.length; i++) {
-        for (let j = i + 1; j < robots.length; j++) {
-          documentos.push({
-            torneo: new Types.ObjectId(torneoId),
-            bloque: bloque._id,
-            fase,
-            numero: numero++,
-            robot1: robots[i],
-            robot2: robots[j],
-            estado: EstadoCombate.PENDIENTE,
-          });
-        }
-      }
-    }
-
-    if (documentos.length === 0) {
-      throw new BadRequestException(
-        'Los bloques no tienen suficientes robots para generar enfrentamientos.',
-      );
-    }
-
-    const creados = await this.combateModel.insertMany(documentos);
-    const ids: Types.ObjectId[] = creados.map((c) => c._id as Types.ObjectId);
-    return this.combateModel.find({ _id: { $in: ids } }).populate(POPULATE).sort({ bloque: 1, numero: 1 }).exec();
+  torneoId: string,
+  dto: GenerarCombatesDto,
+): Promise<CombateDocument[]> {
+  if (!Types.ObjectId.isValid(torneoId)) {
+    throw new BadRequestException('El ID del torneo no es válido.');
   }
+
+  const torneoObjectId = new Types.ObjectId(torneoId);
+  const fase = dto.fase ?? FaseCombate.FASE_GRUPOS;
+
+  if (fase !== FaseCombate.FASE_GRUPOS) {
+    throw new BadRequestException(
+      'Este generador es únicamente para la fase de grupos.',
+    );
+  }
+
+  const filtroBloques: Record<string, unknown> = {
+    torneo: torneoObjectId,
+  };
+
+  const idsSolicitados = dto.bloqueIds?.length
+    ? dto.bloqueIds
+    : dto.bloqueId
+      ? [dto.bloqueId]
+      : [];
+
+  if (idsSolicitados.some((id) => !Types.ObjectId.isValid(id))) {
+    throw new BadRequestException('Hay identificadores de bloque inválidos.');
+  }
+
+  if (idsSolicitados.length > 0) {
+    filtroBloques._id = {
+      $in: idsSolicitados.map((id) => new Types.ObjectId(id)),
+    };
+  }
+
+  const bloques = await this.bloqueModel
+    .find(filtroBloques)
+    .exec();
+
+  if (bloques.length === 0) {
+    throw new BadRequestException(
+      'No hay bloques generados para este torneo.',
+    );
+  }
+
+  if (
+    idsSolicitados.length > 0 &&
+    bloques.length !== new Set(idsSolicitados).size
+  ) {
+    throw new BadRequestException(
+      'Alguno de los bloques no existe o no pertenece al torneo.',
+    );
+  }
+
+  bloques.sort((a, b) =>
+    a.nombre.length - b.nombre.length ||
+    a.nombre.localeCompare(b.nombre),
+  );
+
+  // Impide borrar resultados o combates en curso al regenerar.
+  const iniciados = await this.combateModel.exists({
+    torneo: torneoObjectId,
+    fase,
+    estado: { $ne: EstadoCombate.PENDIENTE },
+  });
+
+  if (iniciados) {
+    throw new ConflictException(
+      'La fase de grupos ya comenzó y no puede regenerarse.',
+    );
+  }
+
+  const documentos: Record<string, unknown>[] = [];
+  const robotsVistos = new Set<string>();
+
+  for (const bloque of bloques) {
+    const robots = bloque.robots.map(
+      (id) => new Types.ObjectId(String(id)),
+    );
+
+    for (const robot of robots) {
+      const id = robot.toString();
+
+      if (robotsVistos.has(id)) {
+        throw new BadRequestException(
+          'Hay un robot repetido en los bloques seleccionados.',
+        );
+      }
+
+      robotsVistos.add(id);
+    }
+
+    // Un bloque de un robot no genera combates.
+    if (robots.length < 2) continue;
+
+    const participantes: Array<Types.ObjectId | null> = [...robots];
+
+    // Si son impares, null representa un descanso.
+    if (participantes.length % 2 !== 0) {
+      participantes.push(null);
+    }
+
+    const totalRondas = participantes.length - 1;
+    const mitad = participantes.length / 2;
+    let numero = 1;
+
+    for (let ronda = 1; ronda <= totalRondas; ronda++) {
+      for (let indice = 0; indice < mitad; indice++) {
+        const robot1 = participantes[indice];
+        const robot2 =
+          participantes[participantes.length - 1 - indice];
+
+        if (robot1 === null || robot2 === null) {
+          continue;
+        }
+
+        documentos.push({
+          torneo: torneoObjectId,
+          bloque: bloque._id,
+          fase,
+          numero: numero++,
+          ronda,
+          robot1,
+          robot2,
+          dojo: null,
+          turno: null,
+          arena: null,
+          estado: EstadoCombate.PENDIENTE,
+        });
+      }
+
+      // Método circular: fija el primero y rota los restantes.
+      const ultimo = participantes.pop()!;
+      participantes.splice(1, 0, ultimo);
+    }
+  }
+
+  if (documentos.length === 0) {
+    throw new BadRequestException(
+      'Se necesitan al menos dos robots en algún bloque para generar combates.',
+    );
+  }
+
+  // Al seleccionar bloques concretos, conserva los demás.
+  await this.combateModel.deleteMany({
+    torneo: torneoObjectId,
+    fase,
+    ...(idsSolicitados.length > 0
+      ? { bloque: { $in: bloques.map((bloque) => bloque._id) } }
+      : {}),
+  }).exec();
+
+  const creados = await this.combateModel.insertMany(documentos);
+
+const ids: Types.ObjectId[] = creados.map(
+  (combate) => new Types.ObjectId(String(combate._id)),
+);
+
+return this.combateModel
+  .find({ _id: { $in: ids } })
+  .populate(POPULATE)
+  .sort({ ronda: 1, bloque: 1, numero: 1 })
+  .exec();
+}
 
   /** Resumen de ocupación de cada dojo dentro de un torneo (para la pantalla de asignación). */
   async resumenDojos(torneoId: string): Promise<
@@ -589,24 +691,60 @@ async generarRondaEliminatoria(
   }
 
   const torneoObjectId = new Types.ObjectId(torneoId);
+  const faseSeleccionada = fase ?? FaseCombate.FASE_GRUPOS;
 
-  const query: Record<string, unknown> = {
-    torneo: torneoObjectId,
-    estado: EstadoCombate.PENDIENTE,
-  };
+if (
+  !Object.values(FaseCombate).includes(
+    faseSeleccionada as FaseCombate,
+  )
+) {
+  throw new BadRequestException(
+    'La fase del torneo no es válida.',
+  );
+}
 
-  if (fase) {
-    query.fase = fase;
-  }
+const filtro: {
+  torneo: Types.ObjectId;
+  fase: FaseCombate;
+} = {
+  torneo: torneoObjectId,
+  fase: faseSeleccionada as FaseCombate,
+};
 
   const combates = await this.combateModel
-    .find(query)
-    .sort({ bloque: 1, numero: 1 })
+    .find(filtro)
+    .sort({ ronda: 1, bloque: 1, numero: 1 })
     .exec();
 
   if (combates.length === 0) {
     throw new BadRequestException(
-      'No hay combates pendientes para asignar en este torneo.',
+      'No hay combates para asignar en esta fase.',
+    );
+  }
+
+  if (
+    combates.some(
+      (combate) => combate.estado !== EstadoCombate.PENDIENTE,
+    )
+  ) {
+    throw new ConflictException(
+      'La fase ya comenzó. No se puede reorganizar automáticamente.',
+    );
+  }
+
+  const esGrupos =
+    faseSeleccionada === FaseCombate.FASE_GRUPOS;
+
+  if (
+    esGrupos &&
+    combates.some(
+      (combate) =>
+        !Number.isInteger(combate.ronda) ||
+        (combate.ronda ?? 0) < 1,
+    )
+  ) {
+    throw new BadRequestException(
+      'Hay combates antiguos sin ronda. Regenera los enfrentamientos antes de asignar dojos.',
     );
   }
 
@@ -617,105 +755,116 @@ async generarRondaEliminatoria(
     .sort({ nombre: 1 })
     .exec();
 
-  if (dojos.length === 0) {
+  // En tu implementación, capacidad representa arenas simultáneas.
+  const espacios = dojos.flatMap((dojo) => {
+    if (
+      !Number.isInteger(dojo.capacidad) ||
+      dojo.capacidad < 1
+    ) {
+      return [];
+    }
+
+    return Array.from(
+      { length: dojo.capacidad },
+      (_, indice) => ({
+        dojoId: dojo._id,
+        arena: indice + 1,
+      }),
+    );
+  });
+
+  if (espacios.length === 0) {
     throw new BadRequestException(
-      'No hay dojos disponibles para asignar.',
+      'No hay arenas disponibles en los dojos.',
     );
   }
 
-  // Limpiamos solamente las asignaciones pendientes del torneo y fase actual.
-  await this.combateModel
-    .updateMany(query, {
-      $set: {
-        dojo: null,
-        turno: null,
-        arena: null,
-      },
-    })
-    .exec();
+  const porRonda = new Map<number, CombateDocument[]>();
 
-  const restantes = [...combates];
+  for (const combate of combates) {
+    // En eliminatorias, todos pertenecen a la fase seleccionada.
+    const ronda = esGrupos ? combate.ronda! : 1;
+    const lista = porRonda.get(ronda) ?? [];
+
+    lista.push(combate);
+    porRonda.set(ronda, lista);
+  }
+
   const operaciones: Parameters<
     typeof this.combateModel.bulkWrite
   >[0] = [];
 
   let turno = 1;
 
-  while (restantes.length > 0) {
-    const robotsOcupados = new Set<string>();
-    let asignadosEnTurno = 0;
+  const rondas = [...porRonda.keys()].sort((a, b) => a - b);
 
-    for (const dojo of dojos) {
-      for (let arena = 1; arena <= dojo.capacidad; arena++) {
-        const indiceCombate = restantes.findIndex((combate) => {
-          const robot1Id = combate.robot1.toString();
-          const robot2Id = combate.robot2.toString();
+  for (const ronda of rondas) {
+    const restantes = [...porRonda.get(ronda)!];
+
+    while (restantes.length > 0) {
+      const robotsOcupados = new Set<string>();
+      let asignados = 0;
+
+      for (const espacio of espacios) {
+        const indice = restantes.findIndex((combate) => {
+          const robot1 = String(combate.robot1);
+          const robot2 = String(combate.robot2);
 
           return (
-            !robotsOcupados.has(robot1Id) &&
-            !robotsOcupados.has(robot2Id)
+            !robotsOcupados.has(robot1) &&
+            !robotsOcupados.has(robot2)
           );
         });
 
-        if (indiceCombate === -1) {
-          continue;
-        }
+        if (indice === -1) continue;
 
-        const [combate] = restantes.splice(indiceCombate, 1);
+        const [combate] = restantes.splice(indice, 1);
 
-        robotsOcupados.add(combate.robot1.toString());
-        robotsOcupados.add(combate.robot2.toString());
+        robotsOcupados.add(String(combate.robot1));
+        robotsOcupados.add(String(combate.robot2));
 
         operaciones.push({
           updateOne: {
             filter: {
               _id: combate._id,
               torneo: torneoObjectId,
+              estado: EstadoCombate.PENDIENTE,
             },
             update: {
               $set: {
-                dojo: dojo._id,
+                dojo: espacio.dojoId,
+                arena: espacio.arena,
                 turno,
-                arena,
               },
             },
           },
         });
 
-        asignadosEnTurno++;
+        asignados++;
       }
+
+      if (asignados === 0) {
+        throw new BadRequestException(
+          'No fue posible programar los combates restantes.',
+        );
+      }
+
+      turno++;
     }
 
-    if (asignadosEnTurno === 0) {
-      throw new BadRequestException(
-        'No fue posible organizar los combates restantes.',
-      );
-    }
-
-    turno++;
+    // La siguiente ronda comienza en un nuevo turno,
+    // aunque el último de esta ronda tenga arenas libres.
   }
 
   await this.combateModel.bulkWrite(operaciones, {
     ordered: true,
   });
 
-  const filtroAsignados = {
-  torneo: torneoObjectId,
-  dojo: { $ne: null },
-  ...(fase
-    ? { fase: fase as FaseCombate }
-    : {}),
-};
-
-return this.combateModel
-  .find(filtroAsignados)
-  .populate(POPULATE)
-  .sort({
-    turno: 1,
-    dojo: 1,
-    arena: 1,
-  })
-  .exec();
+  return this.combateModel
+    .find(filtro)
+    .populate(POPULATE)
+    .sort({ turno: 1, dojo: 1, arena: 1 })
+    .exec();
 }
 
   async iniciar(id: string): Promise<CombateDocument> {

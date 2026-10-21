@@ -46,6 +46,10 @@ export class Combate {
   @Prop({ required: true, min: 1 })
   numero: number;
 
+  /** Ronda dentro de la fase de grupos. */
+@Prop({ type: Number, default: null, min: 1 })
+ronda: number | null;
+
   @Prop({ type: Types.ObjectId, ref: 'Robot', required: true })
   robot1: Types.ObjectId;
 
