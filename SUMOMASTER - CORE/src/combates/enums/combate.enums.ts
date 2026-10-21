@@ -27,4 +27,5 @@ export enum MetodoVictoria {
   KO = 'Fuera de combate (KO)',
   DESCALIFICACION = 'Descalificación',
   ABANDONO = 'Abandono',
+  OTRO = 'Otro',
 }
