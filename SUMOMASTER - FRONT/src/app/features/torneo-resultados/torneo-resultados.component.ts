@@ -1,207 +1,418 @@
-  import { extractErrorMessage } from '../../core/utils/error-message.util';
-  import { CommonModule } from '@angular/common';
-  import { Component, computed, inject, OnInit, signal } from '@angular/core';
-  import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-  import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-  import { SidebarComponent } from '../../shared/components/sidebar/sidebar.component';
-  import { TopbarComponent } from '../../shared/components/topbar/topbar.component';
-  import { RobotChipComponent } from '../../shared/components/robot-chip/robot-chip.component';
-  import { TorneoService } from '../../core/services/torneo.service';
-  import { CombateService } from '../../core/services/combate.service';
-  import { DojoResumen } from '../../core/models/dojo.model';
+import { CommonModule } from '@angular/common';
+import {
+  Component,
+  computed,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
+import {
+  FormBuilder,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
+import {
+  ActivatedRoute,
+  Router,
+  RouterLink,
+} from '@angular/router';
+
+import { extractErrorMessage } from '../../core/utils/error-message.util';
+
+import { SidebarComponent } from '../../shared/components/sidebar/sidebar.component';
+import { TopbarComponent } from '../../shared/components/topbar/topbar.component';
+import { RobotChipComponent } from '../../shared/components/robot-chip/robot-chip.component';
+
+import { TorneoService } from '../../core/services/torneo.service';
+import { CombateService } from '../../core/services/combate.service';
 import { AuthService } from '../../core/services/auth.service';
+import { RankingService } from '../../core/services/ranking.service';
 import { TorneoFlowCacheService } from '../../core/services/torneo-flow-cache.service';
-  import { Torneo } from '../../core/models/torneo.model';
-  import {
-    Combate,
-    EstadoCombate,
-    MetodoVictoria,
-    ResultadoCombate,
-    FaseCombate
-  } from '../../core/models/combate.model';
 
-  import { RankingService } from '../../core/services/ranking.service';
+import { DojoResumen } from '../../core/models/dojo.model';
+import { Torneo } from '../../core/models/torneo.model';
 
+import {
+  Combate,
+  EstadoCombate,
+  MetodoVictoria,
+  ResultadoCombate,
+  FaseCombate,
+} from '../../core/models/combate.model';
 
-  type TabEstado = 'Pendiente' | 'En curso' | 'Finalizado';
+type TabEstado =
+  | 'Pendiente'
+  | 'En curso'
+  | 'Finalizado';
 
-  @Component({
-    selector: 'app-torneo-resultados',
-    standalone: true,
-    imports: [
-      CommonModule,
-      ReactiveFormsModule,
-      RouterLink,
-      SidebarComponent,
-      TopbarComponent,
-      RobotChipComponent,
-    ],
-    templateUrl: './torneo-resultados.component.html',
-    styleUrl: './torneo-resultados.component.scss',
-  })
-  export class TorneoResultadosComponent implements OnInit {
-    private readonly route = inject(ActivatedRoute);
-    private readonly torneoService = inject(TorneoService);
-    private readonly combateService = inject(CombateService);
-      private readonly flowCache = inject(TorneoFlowCacheService);
+@Component({
+  selector: 'app-torneo-resultados',
+  standalone: true,
 
-  /** ADMIN/STAFF pueden iniciar combates y registrar resultados; el resto solo consulta. */
-  readonly canManage = inject(AuthService).canManage;
-    private readonly fb = inject(FormBuilder);
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    RouterLink,
+    SidebarComponent,
+    TopbarComponent,
+    RobotChipComponent,
+  ],
 
-    private readonly router = inject(Router);
+  templateUrl:
+    './torneo-resultados.component.html',
+
+  styleUrl:
+    './torneo-resultados.component.scss',
+})
+export class TorneoResultadosComponent
+  implements OnInit
+{
+  private readonly route =
+    inject(ActivatedRoute);
+
+  private readonly torneoService =
+    inject(TorneoService);
+
+  private readonly combateService =
+    inject(CombateService);
+
+  private readonly flowCache =
+    inject(TorneoFlowCacheService);
+
+  private readonly fb =
+    inject(FormBuilder);
+
+  private readonly router =
+    inject(Router);
 
   private readonly rankingService =
     inject(RankingService);
 
-    readonly sidebarOpen = signal(false);
-    toggleSidebar(): void {
-      this.sidebarOpen.update((v) => !v);
-    }
-    closeSidebar(): void {
-      this.sidebarOpen.set(false);
-    }
+  /**
+   * ADMIN y STAFF pueden iniciar
+   * combates y registrar resultados.
+   */
+  readonly canManage =
+    inject(AuthService).canManage;
 
-    readonly ResultadoCombate = ResultadoCombate;
-    readonly metodosVictoria = Object.values(MetodoVictoria);
+  // =========================
+  // SIDEBAR
+  // =========================
 
-    readonly torneoId = this.route.snapshot.paramMap.get('id') ?? '';
-    readonly torneo = signal<Torneo | null>(null);
-    readonly combates = signal<Combate[]>([]);
-    readonly loading = signal(false);
+  readonly sidebarOpen =
+    signal(false);
 
-    readonly activeTab = signal<TabEstado>('Pendiente');
-    readonly selectedCombateId = signal<string>('');
-    readonly dojosResumen = signal<DojoResumen[]>([]);
-  readonly dojoFiltro = signal<string>('');
-  readonly arenaFiltro = signal<number | null>(null);
+  toggleSidebar(): void {
+    this.sidebarOpen.update(
+      (value) => !value,
+    );
+  }
 
-    readonly saving = signal(false);
-    readonly starting = signal(false);
-    readonly formError = signal<string | null>(null);
+  closeSidebar(): void {
+    this.sidebarOpen.set(false);
+  }
 
-    readonly FaseCombate = FaseCombate;
+  // =========================
+  // ENUMS
+  // =========================
 
-    readonly errorMessage = signal<string | null>(null);
-  readonly successMessage = signal<string | null>(null);
+  readonly ResultadoCombate =
+    ResultadoCombate;
 
+  readonly FaseCombate =
+    FaseCombate;
 
-    readonly generandoSiguienteRonda =
+  readonly metodosVictoria =
+    Object.values(MetodoVictoria);
+
+  // =========================
+  // TORNEO
+  // =========================
+
+  readonly torneoId =
+    this.route.snapshot.paramMap.get(
+      'id',
+    ) ?? '';
+
+  readonly torneo =
+    signal<Torneo | null>(null);
+
+  // =========================
+  // COMBATES
+  // =========================
+
+  readonly combates =
+    signal<Combate[]>([]);
+
+  readonly loading =
+    signal(false);
+
+  readonly activeTab =
+    signal<TabEstado>(
+      'Pendiente',
+    );
+
+  readonly selectedCombateId =
+    signal<string>('');
+
+  // =========================
+  // DOJOS
+  // =========================
+
+  readonly dojosResumen =
+    signal<DojoResumen[]>([]);
+
+  readonly dojoFiltro =
+    signal<string>('');
+
+  readonly arenaFiltro =
+    signal<number | null>(
+      null,
+    );
+
+  // =========================
+  // ESTADOS DE UI
+  // =========================
+
+  readonly saving =
+    signal(false);
+
+  readonly starting =
+    signal(false);
+
+  readonly formError =
+    signal<string | null>(
+      null,
+    );
+
+  readonly errorMessage =
+    signal<string | null>(
+      null,
+    );
+
+  readonly successMessage =
+    signal<string | null>(
+      null,
+    );
+
+  // =========================
+  // SIGUIENTE RONDA
+  // =========================
+
+  readonly generandoSiguienteRonda =
     signal(false);
 
   readonly siguienteRondaError =
-    signal<string | null>(null);
+    signal<string | null>(
+      null,
+    );
 
   readonly faseActual =
     signal<FaseCombate>(
       FaseCombate.FASE_GRUPOS,
     );
 
-    readonly arenasDisponibles = computed(() => {
-    const dojo = this.dojosResumen().find(
-      (item) => item.dojo._id === this.dojoFiltro(),
-    );
+  // =========================
+  // ARENAS DEL DOJO
+  // =========================
 
-    const capacidad = dojo?.dojo.capacidad ?? 0;
+  readonly arenasDisponibles =
+    computed(() => {
+      const dojo =
+        this.dojosResumen().find(
+          (item) =>
+            item.dojo._id ===
+            this.dojoFiltro(),
+        );
 
-    return Array.from(
-      { length: capacidad },
-      (_, index) => index + 1,
-    );
-  });
+      const capacidad =
+        dojo?.dojo.capacidad ?? 0;
 
-  readonly combatesDelPuesto = computed(() => {
-    const dojoId = this.dojoFiltro();
-    const arena = this.arenaFiltro();
-
-    // Obliga al juez a seleccionar primero su dojo.
-    if (!dojoId) {
-      return [];
-    }
-
-    return this.combates().filter((combate) => {
-      const coincideDojo =
-        combate.dojo?._id === dojoId;
-
-      const coincideArena =
-        arena === null ||
-        combate.arena === arena;
-
-      return coincideDojo && coincideArena;
+      return Array.from(
+        {
+          length: capacidad,
+        },
+        (_, index) =>
+          index + 1,
+      );
     });
-  });
 
-  readonly combatesFiltrados = computed(() =>
-    this.combatesDelPuesto()
-      .filter(
-        (combate) =>
-          combate.estado === this.activeTab(),
-      )
-      .sort((a, b) => {
-        const diferenciaTurno =
-          (a.turno ?? Number.MAX_SAFE_INTEGER) -
-          (b.turno ?? Number.MAX_SAFE_INTEGER);
+  // =========================
+  // COMBATES DEL DOJO
+  // =========================
 
-        if (diferenciaTurno !== 0) {
-          return diferenciaTurno;
-        }
+  readonly combatesDelPuesto =
+    computed(() => {
+      const dojoId =
+        this.dojoFiltro();
 
-        const diferenciaArena =
-          (a.arena ?? Number.MAX_SAFE_INTEGER) -
-          (b.arena ?? Number.MAX_SAFE_INTEGER);
+      const arena =
+        this.arenaFiltro();
 
-        if (diferenciaArena !== 0) {
-          return diferenciaArena;
-        }
+      /*
+       * El STAFF/Juez debe
+       * seleccionar un dojo
+       * antes de visualizar
+       * los combates.
+       */
+      if (!dojoId) {
+        return [];
+      }
 
-        return a.numero - b.numero;
-      }),
-  );
+      return this.combates().filter(
+        (combate) => {
+          const coincideDojo =
+            combate.dojo?._id ===
+            dojoId;
 
-    readonly countByEstado = computed(() => {
-    const combates = this.combatesDelPuesto();
+          const coincideArena =
+            arena === null ||
+            combate.arena ===
+              arena;
 
-    return {
-      Pendiente: combates.filter(
-        (combate) =>
-          combate.estado === EstadoCombate.PENDIENTE,
-      ).length,
+          return (
+            coincideDojo &&
+            coincideArena
+          );
+        },
+      );
+    });
 
-      'En curso': combates.filter(
-        (combate) =>
-          combate.estado === EstadoCombate.EN_CURSO,
-      ).length,
+  // =========================
+  // COMBATES FILTRADOS
+  // =========================
 
-      Finalizado: combates.filter(
-        (combate) =>
-          combate.estado === EstadoCombate.FINALIZADO,
-      ).length,
-    };
-  });
+  readonly combatesFiltrados =
+    computed(() =>
+      this.combatesDelPuesto()
+        .filter(
+          (combate) =>
+            combate.estado ===
+            this.activeTab(),
+        )
+        .sort((a, b) => {
+          const diferenciaTurno =
+            (a.turno ??
+              Number.MAX_SAFE_INTEGER) -
+            (b.turno ??
+              Number.MAX_SAFE_INTEGER);
 
-    readonly selectedCombate = computed(() =>
-      this.combates().find((c) => c._id === this.selectedCombateId()) ?? null,
+          if (
+            diferenciaTurno !== 0
+          ) {
+            return diferenciaTurno;
+          }
+
+          const diferenciaArena =
+            (a.arena ??
+              Number.MAX_SAFE_INTEGER) -
+            (b.arena ??
+              Number.MAX_SAFE_INTEGER);
+
+          if (
+            diferenciaArena !== 0
+          ) {
+            return diferenciaArena;
+          }
+
+          return (
+            a.numero -
+            b.numero
+          );
+        }),
     );
 
-    readonly form = this.fb.nonNullable.group({
-      resultado: this.fb.control<ResultadoCombate | null>(null, Validators.required),
-      metodoVictoria: this.fb.control<MetodoVictoria | null>(null),
+  // =========================
+  // CONTADORES
+  // =========================
+
+  readonly countByEstado =
+    computed(() => {
+      const combates =
+        this.combatesDelPuesto();
+
+      return {
+        Pendiente:
+          combates.filter(
+            (combate) =>
+              combate.estado ===
+              EstadoCombate.PENDIENTE,
+          ).length,
+
+        'En curso':
+          combates.filter(
+            (combate) =>
+              combate.estado ===
+              EstadoCombate.EN_CURSO,
+          ).length,
+
+        Finalizado:
+          combates.filter(
+            (combate) =>
+              combate.estado ===
+              EstadoCombate.FINALIZADO,
+          ).length,
+      };
+    });
+
+  // =========================
+  // COMBATE SELECCIONADO
+  // =========================
+
+  readonly selectedCombate =
+    computed(
+      () =>
+        this.combates().find(
+          (combate) =>
+            combate._id ===
+            this.selectedCombateId(),
+        ) ?? null,
+    );
+
+  // =========================
+  // FORMULARIO
+  // =========================
+
+  readonly form =
+    this.fb.nonNullable.group({
+      resultado:
+        this.fb.control<
+          ResultadoCombate | null
+        >(
+          null,
+          Validators.required,
+        ),
+
+      metodoVictoria:
+        this.fb.control<
+          MetodoVictoria | null
+        >(null),
+
       tiempo: [''],
+
       jueces: [''],
+
       observaciones: [''],
     });
 
-    readonly generatingRandomResults = signal(false);
+  readonly generatingRandomResults =
+    signal(false);
 
-    ngOnInit(): void {
-      const faseUrl =
-      this.route.snapshot.queryParamMap.get(
-        'fase',
-      );
+  // =========================
+  // INIT
+  // =========================
+
+  ngOnInit(): void {
+    const faseUrl =
+      this.route.snapshot
+        .queryParamMap
+        .get('fase');
 
     if (
       faseUrl &&
-      Object.values(FaseCombate).includes(
+      Object.values(
+        FaseCombate,
+      ).includes(
         faseUrl as FaseCombate,
       )
     ) {
@@ -209,33 +420,63 @@ import { TorneoFlowCacheService } from '../../core/services/torneo-flow-cache.se
         faseUrl as FaseCombate,
       );
     }
-      this.torneoService.findOne(this.torneoId).subscribe({ next: (t) => this.torneo.set(t) });
- 
-      this.loadDojos();
 
-      this.load();
-    }
+    this.torneoService
+      .findOne(this.torneoId)
+      .subscribe({
+        next: (torneo) => {
+          this.torneo.set(
+            torneo,
+          );
+        },
 
-    load(): void {
+        error: (err) => {
+          this.errorMessage.set(
+            extractErrorMessage(
+              err,
+              'No se pudo cargar el torneo.',
+            ),
+          );
+        },
+      });
+
+    this.loadDojos();
+
+    this.load();
+  }
+
+  // =========================
+  // CARGAR COMBATES
+  // =========================
+
+  load(): void {
     this.loading.set(true);
-    this.formError.set(null);
+
+    this.formError.set(
+      null,
+    );
 
     this.combateService
       .findByTorneo(
         this.torneoId,
         {
-          fase: this.faseActual(),
+          fase:
+            this.faseActual(),
         },
       )
       .subscribe({
         next: (data) => {
-          this.loading.set(false);
+          this.loading.set(
+            false,
+          );
 
           /*
-          * Sustituimos siempre la lista.
-          * No conservamos combates de otra fase.
-          */
-          this.combates.set(data);
+           * Sustituimos siempre
+           * la lista completa.
+           */
+          this.combates.set(
+            data,
+          );
 
           const seleccionadoExiste =
             data.some(
@@ -244,14 +485,23 @@ import { TorneoFlowCacheService } from '../../core/services/torneo-flow-cache.se
                 this.selectedCombateId(),
             );
 
-          if (!seleccionadoExiste) {
-            this.selectedCombateId.set('');
+          if (
+            !seleccionadoExiste
+          ) {
+            this.selectedCombateId.set(
+              '',
+            );
           }
         },
 
         error: (err) => {
-          this.loading.set(false);
-          this.combates.set([]);
+          this.loading.set(
+            false,
+          );
+
+          this.combates.set(
+            [],
+          );
 
           this.formError.set(
             extractErrorMessage(
@@ -263,26 +513,57 @@ import { TorneoFlowCacheService } from '../../core/services/torneo-flow-cache.se
       });
   }
 
-    setTab(tab: TabEstado): void {
-    this.activeTab.set(tab);
-    this.selectedCombateId.set('');
-    this.formError.set(null);
+  // =========================
+  // CAMBIAR TAB
+  // =========================
+
+  setTab(
+    tab: TabEstado,
+  ): void {
+    this.activeTab.set(
+      tab,
+    );
+
+    this.selectedCombateId.set(
+      '',
+    );
+
+    this.formError.set(
+      null,
+    );
+
+    this.successMessage.set(
+      null,
+    );
   }
 
+  // =========================
+  // SIGUIENTE RONDA
+  // =========================
 
   continuarSiguienteRonda(): void {
-    const faseActual = this.faseActual();
+    const faseActual =
+      this.faseActual();
 
     if (!faseActual) {
       this.errorMessage.set(
         'No se pudo determinar la fase actual.',
       );
+
       return;
     }
 
-    this.generandoSiguienteRonda.set(true);
-    this.errorMessage.set(null);
-    this.successMessage.set(null);
+    this.generandoSiguienteRonda.set(
+      true,
+    );
+
+    this.errorMessage.set(
+      null,
+    );
+
+    this.successMessage.set(
+      null,
+    );
 
     this.rankingService
       .generarSiguienteRonda(
@@ -290,8 +571,12 @@ import { TorneoFlowCacheService } from '../../core/services/torneo-flow-cache.se
         faseActual,
       )
       .subscribe({
-        next: (respuesta) => {
-          this.generandoSiguienteRonda.set(false);
+        next: (
+          respuesta,
+        ) => {
+          this.generandoSiguienteRonda.set(
+            false,
+          );
 
           this.router.navigate(
             [
@@ -301,13 +586,17 @@ import { TorneoFlowCacheService } from '../../core/services/torneo-flow-cache.se
             ],
             {
               queryParams: {
-                fase: respuesta.siguienteFase,
+                fase:
+                  respuesta.siguienteFase,
               },
             },
           );
         },
+
         error: (err) => {
-          this.generandoSiguienteRonda.set(false);
+          this.generandoSiguienteRonda.set(
+            false,
+          );
 
           this.errorMessage.set(
             extractErrorMessage(
@@ -319,6 +608,10 @@ import { TorneoFlowCacheService } from '../../core/services/torneo-flow-cache.se
       });
   }
 
+  // =========================
+  // RESULTADOS DE PRUEBA
+  // =========================
+
   generarResultadosPrueba(): void {
     const confirmado =
       window.confirm(
@@ -329,9 +622,17 @@ import { TorneoFlowCacheService } from '../../core/services/torneo-flow-cache.se
       return;
     }
 
-    this.saving.set(true);
-    this.formError.set(null);
-    this.successMessage.set(null);
+    this.saving.set(
+      true,
+    );
+
+    this.formError.set(
+      null,
+    );
+
+    this.successMessage.set(
+      null,
+    );
 
     this.combateService
       .registrarResultadosAleatorios(
@@ -339,35 +640,45 @@ import { TorneoFlowCacheService } from '../../core/services/torneo-flow-cache.se
         this.faseActual(),
       )
       .subscribe({
-        next: (respuesta) => {
-    this.saving.set(false);
-    this.selectedCombateId.set('');
+        next: (
+          respuesta,
+        ) => {
+          this.saving.set(
+            false,
+          );
 
-    if (
-      respuesta.actualizados > 0
-    ) {
-      this.activeTab.set(
-        'Finalizado',
-      );
+          this.selectedCombateId.set(
+            '',
+          );
 
-      this.successMessage.set(
-        `${respuesta.actualizados} resultados de "${this.faseActual()}" fueron registrados.`,
-      );
-    } else {
-      this.activeTab.set(
-        'Pendiente',
-      );
+          if (
+            respuesta.actualizados >
+            0
+          ) {
+            this.activeTab.set(
+              'Finalizado',
+            );
 
-      this.successMessage.set(
-        `No se encontraron combates pendientes para actualizar en "${this.faseActual()}".`,
-      );
-    }
+            this.successMessage.set(
+              `${respuesta.actualizados} resultados de "${this.faseActual()}" fueron registrados.`,
+            );
+          } else {
+            this.activeTab.set(
+              'Pendiente',
+            );
 
-    this.load();
-  },
+            this.successMessage.set(
+              `No se encontraron combates pendientes para actualizar en "${this.faseActual()}".`,
+            );
+          }
+
+          this.load();
+        },
 
         error: (err) => {
-          this.saving.set(false);
+          this.saving.set(
+            false,
+          );
 
           this.formError.set(
             extractErrorMessage(
@@ -379,40 +690,122 @@ import { TorneoFlowCacheService } from '../../core/services/torneo-flow-cache.se
       });
   }
 
-    selectCombate(combate: Combate): void {
-      this.selectedCombateId.set(combate._id);
-      this.formError.set(null);
-      this.form.reset({
-        resultado: combate.resultado,
-        metodoVictoria: combate.metodoVictoria,
-        tiempo: this.formatSegundos(combate.duracionSegundos),
-        jueces: combate.jueces.join(', '),
-        observaciones: combate.observaciones,
-      });
-    }
+  // =========================
+  // SELECCIONAR COMBATE
+  // =========================
 
-    registrar(combate: Combate): void {
-      this.starting.set(true);
-      this.combateService.iniciar(combate._id).subscribe({
-        next: (actualizado) => {
-          this.starting.set(false);
-          this.replaceCombate(actualizado);
-          this.selectCombate(actualizado);
-          this.activeTab.set('En curso');
-        },
-        error: () => {
-          this.starting.set(false);
-        },
-      });
-    }
+  selectCombate(
+    combate: Combate,
+  ): void {
+    this.selectedCombateId.set(
+      combate._id,
+    );
 
-    loadDojos(): void {
+    this.formError.set(
+      null,
+    );
+
+    this.successMessage.set(
+      null,
+    );
+
+    this.form.reset({
+      resultado:
+        combate.resultado,
+
+      metodoVictoria:
+        combate.metodoVictoria,
+
+      tiempo:
+        this.formatSegundos(
+          combate.duracionSegundos,
+        ),
+
+      jueces:
+        combate.jueces.join(
+          ', ',
+        ),
+
+      observaciones:
+        combate.observaciones,
+    });
+  }
+
+  // =========================
+  // INICIAR / REGISTRAR COMBATE
+  // =========================
+
+  registrar(
+    combate: Combate,
+  ): void {
+    this.starting.set(
+      true,
+    );
+
+    this.formError.set(
+      null,
+    );
+
+    this.successMessage.set(
+      null,
+    );
+
     this.combateService
-      .resumenDojos(this.torneoId)
+      .iniciar(
+        combate._id,
+      )
+      .subscribe({
+        next: (
+          actualizado,
+        ) => {
+          this.starting.set(
+            false,
+          );
+
+          this.replaceCombate(
+            actualizado,
+          );
+
+          this.selectCombate(
+            actualizado,
+          );
+
+          this.activeTab.set(
+            'En curso',
+          );
+        },
+
+        error: (err) => {
+          this.starting.set(
+            false,
+          );
+
+          this.formError.set(
+            extractErrorMessage(
+              err,
+              'No se pudo iniciar el combate.',
+            ),
+          );
+        },
+      });
+  }
+
+  // =========================
+  // DOJOS
+  // =========================
+
+  loadDojos(): void {
+    this.combateService
+      .resumenDojos(
+        this.torneoId,
+      )
       .subscribe({
         next: (data) => {
-          this.dojosResumen.set(data);
+          this.dojosResumen.set(
+            data,
+          );
         },
+
         error: (err) => {
           this.formError.set(
             extractErrorMessage(
@@ -424,115 +817,412 @@ import { TorneoFlowCacheService } from '../../core/services/torneo-flow-cache.se
       });
   }
 
-  cambiarDojo(dojoId: string): void {
-    this.dojoFiltro.set(dojoId);
-    this.arenaFiltro.set(null);
-    this.selectedCombateId.set('');
-    this.formError.set(null);
-  }
-
-  cambiarArena(value: string): void {
-    this.arenaFiltro.set(
-      value ? Number(value) : null,
+  cambiarDojo(
+    dojoId: string,
+  ): void {
+    this.dojoFiltro.set(
+      dojoId,
     );
 
-    this.selectedCombateId.set('');
-    this.formError.set(null);
+    this.arenaFiltro.set(
+      null,
+    );
+
+    this.selectedCombateId.set(
+      '',
+    );
+
+    this.formError.set(
+      null,
+    );
+
+    this.successMessage.set(
+      null,
+    );
+
+    this.activeTab.set(
+      'Pendiente',
+    );
   }
 
-    submitResultado(): void {
-      const combate = this.selectedCombate();
-      if (!combate || this.form.invalid) {
-        this.form.markAllAsTouched();
-        return;
-      }
+  cambiarArena(
+    value: string,
+  ): void {
+    this.arenaFiltro.set(
+      value
+        ? Number(value)
+        : null,
+    );
 
-      const raw = this.form.getRawValue();
-      const duracionSegundos = this.parseTiempo(raw.tiempo);
+    this.selectedCombateId.set(
+      '',
+    );
 
-      this.saving.set(true);
-      this.formError.set(null);
+    this.formError.set(
+      null,
+    );
 
-      this.combateService
-        .registrarResultado(combate._id, {
-          resultado: raw.resultado as ResultadoCombate,
-          metodoVictoria: raw.metodoVictoria ?? undefined,
-          duracionSegundos: duracionSegundos ?? undefined,
-          jueces: raw.jueces
-            ? raw.jueces.split(',').map((j) => j.trim()).filter(Boolean)
-            : [],
-          observaciones: raw.observaciones || '',
-        })
-        .subscribe({
-          next: (actualizado) => {
-            this.saving.set(false);
-            this.replaceCombate(actualizado);
-            this.selectCombate(actualizado);
-            this.activeTab.set('Finalizado');
-          },
-          error: (err) => {
-            this.saving.set(false);
-            this.formError.set(
-              extractErrorMessage(err, 'No se pudo guardar el resultado.'),
-            );
-          },
-        });
+    this.successMessage.set(
+      null,
+    );
+  }
+
+  // =========================
+  // GUARDAR RESULTADO
+  // =========================
+
+  submitResultado(): void {
+    const combate =
+      this.selectedCombate();
+
+    if (
+      !combate ||
+      this.form.invalid
+    ) {
+      this.form.markAllAsTouched();
+
+      return;
     }
 
-    cancelarCombate(): void {
-      const combate = this.selectedCombate();
-      if (!combate) return;
+    const raw =
+      this.form.getRawValue();
 
-      this.combateService.cancelar(combate._id).subscribe({
-        next: (actualizado) => {
-          this.replaceCombate(actualizado);
-          this.selectedCombateId.set('');
-          this.activeTab.set('Pendiente');
+    // =========================
+    // NOMBRE DEL GANADOR
+    // =========================
+
+    let ganador =
+      'Empate';
+
+    if (
+      raw.resultado ===
+      ResultadoCombate.GANA_ROBOT_1
+    ) {
+      ganador =
+        combate.robot1.nombre;
+    }
+
+    if (
+      raw.resultado ===
+      ResultadoCombate.GANA_ROBOT_2
+    ) {
+      ganador =
+        combate.robot2.nombre;
+    }
+
+    // =========================
+    // CONFIRMACIÓN
+    // =========================
+
+    const confirmado =
+      window.confirm(
+        `¿Deseas registrar este combate?\n\nResultado: ${ganador}`,
+      );
+
+    if (!confirmado) {
+      return;
+    }
+
+    const duracionSegundos =
+      this.parseTiempo(
+        raw.tiempo,
+      );
+
+    this.saving.set(
+      true,
+    );
+
+    this.formError.set(
+      null,
+    );
+
+    this.successMessage.set(
+      null,
+    );
+
+    // =========================
+    // GUARDAR EN BACKEND
+    // =========================
+
+    this.combateService
+      .registrarResultado(
+        combate._id,
+        {
+          resultado:
+            raw.resultado as ResultadoCombate,
+
+          metodoVictoria:
+            raw.metodoVictoria ??
+            undefined,
+
+          duracionSegundos:
+            duracionSegundos ??
+            undefined,
+
+          jueces:
+            raw.jueces
+              ? raw.jueces
+                  .split(',')
+                  .map(
+                    (juez) =>
+                      juez.trim(),
+                  )
+                  .filter(
+                    Boolean,
+                  )
+              : [],
+
+          observaciones:
+            raw.observaciones ||
+            '',
+        },
+      )
+      .subscribe({
+        next: () => {
+          this.saving.set(
+            false,
+          );
+
+          /*
+           * Quitamos el formulario
+           * del combate registrado.
+           */
+          this.selectedCombateId.set(
+            '',
+          );
+
+          /*
+           * Volvemos a la lista
+           * de combates pendientes.
+           */
+          this.activeTab.set(
+            'Pendiente',
+          );
+
+          /*
+           * Limpiamos el formulario.
+           */
+          this.form.reset({
+            resultado: null,
+            metodoVictoria: null,
+            tiempo: '',
+            jueces: '',
+            observaciones: '',
+          });
+
+          /*
+           * Mensaje solicitado.
+           */
+          this.successMessage.set(
+            'Combate registrado correctamente.',
+          );
+
+          /*
+           * Recargamos los combates
+           * pero NO eliminamos
+           * dojoFiltro.
+           *
+           * Por eso permanece
+           * seleccionado el dojo.
+           */
+          this.load();
+        },
+
+        error: (err) => {
+          this.saving.set(
+            false,
+          );
+
+          this.formError.set(
+            extractErrorMessage(
+              err,
+              'No se pudo guardar el resultado.',
+            ),
+          );
         },
       });
+  }
+
+  // =========================
+  // CANCELAR COMBATE
+  // =========================
+
+  cancelarCombate(): void {
+    const combate =
+      this.selectedCombate();
+
+    if (!combate) {
+      return;
     }
 
-    private replaceCombate(actualizado: Combate): void {
-      this.combates.update((lista) =>
-        lista.map((c) => (c._id === actualizado._id ? actualizado : c)),
-      );
-    }
+    this.combateService
+      .cancelar(
+        combate._id,
+      )
+      .subscribe({
+        next: (
+          actualizado,
+        ) => {
+          this.replaceCombate(
+            actualizado,
+          );
 
-    private parseTiempo(value: string): number | null {
-      const match = value?.trim().match(/^(\d+):([0-5]?\d)$/);
-      if (!match) return null;
-      return parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
-    }
+          this.selectedCombateId.set(
+            '',
+          );
 
-    formatSegundos(segundos: number | null): string {
-      if (segundos === null || segundos === undefined) return '';
-      const min = Math.floor(segundos / 60);
-      const sec = segundos % 60;
-      return `${min}:${sec.toString().padStart(2, '0')}`;
-    }
+          this.activeTab.set(
+            'Pendiente',
+          );
+        },
 
-    equipoNombre(robot: Combate['robot1']): string {
-      const equipo = robot?.equipo;
-      if (!equipo) return '';
-      return typeof equipo === 'string' ? equipo : equipo.nombre;
-    }
-
-    estadoBadgeClass(estado: EstadoCombate): string {
-      switch (estado) {
-        case EstadoCombate.PENDIENTE:
-          return 'badge--neutral';
-        case EstadoCombate.EN_CURSO:
-          return 'badge--warning';
-        default:
-          return 'badge--success';
-      }
-    }
-
-    formatHora(fecha: string): string {
-      if (!fecha) return '';
-      return new Date(fecha).toLocaleTimeString('es-MX', {
-        hour: '2-digit',
-        minute: '2-digit',
+        error: (err) => {
+          this.formError.set(
+            extractErrorMessage(
+              err,
+              'No se pudo cancelar el combate.',
+            ),
+          );
+        },
       });
+  }
+
+  // =========================
+  // ACTUALIZAR COMBATE LOCAL
+  // =========================
+
+  private replaceCombate(
+    actualizado: Combate,
+  ): void {
+    this.combates.update(
+      (lista) =>
+        lista.map(
+          (combate) =>
+            combate._id ===
+            actualizado._id
+              ? actualizado
+              : combate,
+        ),
+    );
+  }
+
+  // =========================
+  // TIEMPO
+  // =========================
+
+  private parseTiempo(
+    value: string,
+  ): number | null {
+    const match =
+      value
+        ?.trim()
+        .match(
+          /^(\d+):([0-5]?\d)$/,
+        );
+
+    if (!match) {
+      return null;
+    }
+
+    return (
+      parseInt(
+        match[1],
+        10,
+      ) *
+        60 +
+      parseInt(
+        match[2],
+        10,
+      )
+    );
+  }
+
+  formatSegundos(
+    segundos:
+      | number
+      | null,
+  ): string {
+    if (
+      segundos === null ||
+      segundos === undefined
+    ) {
+      return '';
+    }
+
+    const min =
+      Math.floor(
+        segundos / 60,
+      );
+
+    const sec =
+      segundos % 60;
+
+    return `${min}:${sec
+      .toString()
+      .padStart(
+        2,
+        '0',
+      )}`;
+  }
+
+  // =========================
+  // EQUIPO
+  // =========================
+
+  equipoNombre(
+    robot: Combate['robot1'],
+  ): string {
+    const equipo =
+      robot?.equipo;
+
+    if (!equipo) {
+      return '';
+    }
+
+    return typeof equipo ===
+      'string'
+      ? equipo
+      : equipo.nombre;
+  }
+
+  // =========================
+  // BADGES
+  // =========================
+
+  estadoBadgeClass(
+    estado: EstadoCombate,
+  ): string {
+    switch (estado) {
+      case EstadoCombate.PENDIENTE:
+        return 'badge--neutral';
+
+      case EstadoCombate.EN_CURSO:
+        return 'badge--warning';
+
+      default:
+        return 'badge--success';
     }
   }
+
+  // =========================
+  // HORA
+  // =========================
+
+  formatHora(
+    fecha: string,
+  ): string {
+    if (!fecha) {
+      return '';
+    }
+
+    return new Date(
+      fecha,
+    ).toLocaleTimeString(
+      'es-MX',
+      {
+        hour: '2-digit',
+        minute: '2-digit',
+      },
+    );
+  }
+}

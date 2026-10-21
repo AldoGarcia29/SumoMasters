@@ -8,8 +8,12 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
+
 import { AuthBrandingPanelComponent } from '../../../shared/components/auth-branding-panel/auth-branding-panel.component';
-import { ApiErrorResponse } from '../../../core/models/auth.model';
+import {
+  ApiErrorResponse,
+  Role,
+} from '../../../core/models/auth.model';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
@@ -39,6 +43,7 @@ export class LoginComponent {
   readonly showPassword = signal(false);
   readonly loading = signal(false);
   readonly errorMessage = signal<string | null>(null);
+
   readonly justRegistered = signal(
     this.route.snapshot.queryParamMap.get('registered') === '1',
   );
@@ -60,18 +65,39 @@ export class LoginComponent {
     const { identifier, password } = this.form.getRawValue();
 
     this.authService
-      .login({ identifier: identifier!, password: password! })
+      .login({
+        identifier: identifier!,
+        password: password!,
+      })
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
-        next: () => this.router.navigateByUrl(this.authService.homeRoute()),
-        error: (err: HttpErrorResponse) => this.handleError(err),
+        next: () => {
+          const user = this.authService.currentUser();
+
+          // STAFF entra directamente a la lista de torneos.
+          if (
+            user?.roles.includes(Role.STAFF) &&
+            !user.roles.includes(Role.ADMIN)
+          ) {
+            this.router.navigateByUrl('/torneos');
+            return;
+          }
+
+          // ADMIN continúa entrando a su página principal.
+          this.router.navigateByUrl('/dashboard');
+        },
+
+        error: (err: HttpErrorResponse) => {
+          this.handleError(err);
+        },
       });
   }
 
   private handleError(err: HttpErrorResponse): void {
     const body = err.error as ApiErrorResponse | undefined;
+
     const message = Array.isArray(body?.message)
-      ? body?.message.join(', ')
+      ? body.message.join(', ')
       : body?.message;
 
     this.errorMessage.set(
