@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment'; // AJUSTA la ruta a tu environment
-import { LiveData, TorneoResumen } from '../models/live.model';
+import { LiveData, RankingPublico, TorneoResumen } from '../models/live.model';
 
 @Injectable({ providedIn: 'root' })
 export class PublicApiService {
@@ -18,5 +18,9 @@ export class PublicApiService {
 
   getLive(id: string): Observable<LiveData> {
     return this.http.get<LiveData>(`${this.base}/torneos/${id}/live`);
+  }
+
+  getRanking(id: string): Observable<RankingPublico> {
+    return this.http.get<RankingPublico>(`${this.base}/torneos/${id}/ranking`);
   }
 }

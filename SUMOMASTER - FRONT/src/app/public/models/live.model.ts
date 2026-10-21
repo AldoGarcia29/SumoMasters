@@ -19,7 +19,28 @@ export interface CombateLive {
 }
 
 export interface LiveData {
-  torneo: TorneoResumen & { horaInicio: string | null; duracionCombateMin: number };
+  torneo: TorneoResumen & {
+    horaInicio: string | null;
+    duracionCombateMin: number;
+  };
   combates: CombateLive[];
+  generadoEn: string;
+}
+
+export interface FilaRankingPublica {
+  posicion: number;
+  robot: string;
+  equipo: string;
+  combates: number;
+  victorias: number;
+  empates: number;
+  derrotas: number;
+  puntos: number;
+  diferencia: number;
+  ultimoResultado: 'Victoria' | 'Derrota' | 'Empate' | null;
+}
+
+export interface RankingPublico {
+  filas: FilaRankingPublica[];
   generadoEn: string;
 }

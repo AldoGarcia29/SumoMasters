@@ -2,16 +2,30 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { EMPTY, Subscription, catchError, interval, switchMap, timer } from 'rxjs';
+import {
+  EMPTY,
+  Subscription,
+  catchError,
+  interval,
+  switchMap,
+  timer,
+} from 'rxjs';
 
-import { CombateLive, LiveData } from '../models/live.model';
+import {
+  CombateLive,
+  FilaRankingPublica,
+  LiveData,
+} from '../models/live.model';
 import { PublicApiService } from '../services/public-api.service';
 
 const POLL_MS = 10_000;
 const ESTADO_FINAL = 'FINALIZADO'; // AJUSTA: debe coincidir con tu enum del backend
 
 const norm = (s: string) =>
-  s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  s
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
 
 @Component({
   selector: 'app-live-torneo',
@@ -22,13 +36,18 @@ const norm = (s: string) =>
 })
 export class LiveTorneoComponent implements OnInit, OnDestroy {
   data: LiveData | null = null;
+  ranking: FilaRankingPublica[] = [];
+  rankingCargado = false;
   error: string | null = null;
   busca = '';
   seg = 0;
 
   private subs = new Subscription();
 
-  constructor(private route: ActivatedRoute, private api: PublicApiService) {}
+  constructor(
+    private route: ActivatedRoute,
+    private api: PublicApiService,
+  ) {}
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -45,7 +64,9 @@ export class LiveTorneoComponent implements OnInit, OnDestroy {
             this.api.getLive(id).pipe(
               catchError((err) => {
                 this.error =
-                  err?.status === 404 ? 'Torneo no disponible' : 'Sin conexión, reintentando…';
+                  err?.status === 404
+                    ? 'Torneo no disponible'
+                    : 'Sin conexión, reintentando…';
                 return EMPTY;
               }),
             ),
@@ -55,6 +76,20 @@ export class LiveTorneoComponent implements OnInit, OnDestroy {
           this.data = d;
           this.error = null;
           this.seg = 0;
+        }),
+    );
+
+    // Ranking público (mismo ciclo de 10 s). Si falla, conserva el último ranking mostrado.
+    this.subs.add(
+      timer(0, POLL_MS)
+        .pipe(
+          switchMap(() =>
+            this.api.getRanking(id).pipe(catchError(() => EMPTY)),
+          ),
+        )
+        .subscribe((r) => {
+          this.ranking = r.filas;
+          this.rankingCargado = true;
         }),
     );
 
@@ -69,7 +104,9 @@ export class LiveTorneoComponent implements OnInit, OnDestroy {
   get propios(): CombateLive[] {
     const q = norm(this.busca.trim());
     if (!this.data || !q) return [];
-    return this.data.combates.filter((c) => c.robots.some((r) => norm(r).includes(q)));
+    return this.data.combates.filter((c) =>
+      c.robots.some((r) => norm(r).includes(q)),
+    );
   }
 
   get proximo(): CombateLive | undefined {
@@ -78,6 +115,29 @@ export class LiveTorneoComponent implements OnInit, OnDestroy {
 
   esPropio(c: CombateLive): boolean {
     return this.propios.includes(c);
+  }
+
+  /** Filas del ranking; si hay texto en el buscador, filtra por robot o equipo. */
+  get rankingFiltrado(): FilaRankingPublica[] {
+    const q = norm(this.busca.trim());
+    if (!q) return this.ranking;
+    return this.ranking.filter(
+      (f) => norm(f.robot).includes(q) || norm(f.equipo).includes(q),
+    );
+  }
+
+  get top5Victorias(): FilaRankingPublica[] {
+    return [...this.ranking]
+      .sort((a, b) => b.victorias - a.victorias || b.puntos - a.puntos)
+      .slice(0, 5);
+  }
+
+  diferenciaLabel(n: number): string {
+    return n > 0 ? `+${n}` : String(n);
+  }
+
+  trackFila(_: number, f: FilaRankingPublica): string {
+    return f.robot;
   }
 
   trackCombate(_: number, c: CombateLive): string {

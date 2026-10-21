@@ -1,11 +1,13 @@
 <main class="live">
-  <p *ngIf="!data">{{ error ?? 'Cargando…' }}</p>
+  <p *ngIf="!data">{{ error ?? "Cargando…" }}</p>
 
   <ng-container *ngIf="data">
     <h1>{{ data.torneo.nombre }}</h1>
     <small>
-      <ng-container *ngIf="data.torneo.fase">{{ data.torneo.fase }} · </ng-container>
-      {{ error ?? 'Actualizado hace ' + seg + ' s' }}
+      <ng-container *ngIf="data.torneo.fase"
+        >{{ data.torneo.fase }} ·
+      </ng-container>
+      {{ error ?? "Actualizado hace " + seg + " s" }}
     </small>
 
     <input
@@ -21,10 +23,14 @@
     </ng-container>
 
     <p class="proximo" *ngIf="proximo as p">
-      <b>Tu próximo combate: #{{ p.numero }}</b> en {{ p.dojo }}<ng-container
-        *ngIf="p.combatesAntes === 0; else faltan"> — ¡es el siguiente!</ng-container>
+      <b>Tu próximo combate: #{{ p.numero }}</b> en {{ p.dojo
+      }}<ng-container *ngIf="p.combatesAntes === 0; else faltan">
+        — ¡es el siguiente!</ng-container
+      >
       <ng-template #faltan>, faltan {{ p.combatesAntes }}</ng-template>
-      <ng-container *ngIf="p.horaEstimada"> (~{{ p.horaEstimada | date: 'shortTime' }})</ng-container>
+      <ng-container *ngIf="p.horaEstimada">
+        (~{{ p.horaEstimada | date: "shortTime" }})</ng-container
+      >
     </p>
 
     <div
@@ -35,15 +41,102 @@
     >
       <b>#{{ c.numero }}</b> · {{ c.dojo }} · {{ c.fase }}
       <div>
-        {{ c.robots.join(' vs ') }}
+        {{ c.robots.join(" vs ") }}
         <ng-container *ngIf="c.ganador"> → ganó {{ c.ganador }}</ng-container>
       </div>
       <small>
         {{ c.estado }}
         <ng-container *ngIf="!terminado(c) && c.horaEstimada">
-          · ~{{ c.horaEstimada | date: 'shortTime' }}
+          · ~{{ c.horaEstimada | date: "shortTime" }}
         </ng-container>
       </small>
     </div>
+
+    <section class="ranking">
+      <h2>Tabla de posiciones</h2>
+      <p *ngIf="!rankingCargado">Cargando ranking…</p>
+      <p *ngIf="rankingCargado && ranking.length === 0">
+        Aún no hay combates finalizados en fase de grupos.
+      </p>
+
+      <div class="tabla-scroll" *ngIf="rankingFiltrado.length > 0">
+        <table class="tabla">
+          <thead>
+            <tr>
+              <th>Pos.</th>
+              <th>Equipo</th>
+              <th>Robot</th>
+              <th>Combates</th>
+              <th>Victorias</th>
+              <th>Empates</th>
+              <th>Derrotas</th>
+              <th>Puntos</th>
+              <th>Diferencia</th>
+              <th>Último combate</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let f of rankingFiltrado; trackBy: trackFila">
+              <td>
+                <span
+                  class="pos"
+                  [class.oro]="f.posicion === 1"
+                  [class.plata]="f.posicion === 2"
+                  [class.bronce]="f.posicion === 3"
+                  >{{ f.posicion }}</span
+                >
+              </td>
+              <td>{{ f.equipo }}</td>
+              <td>{{ f.robot }}</td>
+              <td>{{ f.combates }}</td>
+              <td>{{ f.victorias }}</td>
+              <td>{{ f.empates }}</td>
+              <td>{{ f.derrotas }}</td>
+              <td>
+                <b>{{ f.puntos }}</b>
+              </td>
+              <td
+                [class.pos-dif]="f.diferencia > 0"
+                [class.neg-dif]="f.diferencia < 0"
+              >
+                {{ diferenciaLabel(f.diferencia) }}
+              </td>
+              <td>
+                <span
+                  class="chip"
+                  [class.victoria]="f.ultimoResultado === 'Victoria'"
+                  [class.derrota]="f.ultimoResultado === 'Derrota'"
+                  [class.empate]="f.ultimoResultado === 'Empate'"
+                  >{{ f.ultimoResultado ?? "—" }}</span
+                >
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p
+        *ngIf="
+          busca.trim() && ranking.length > 0 && rankingFiltrado.length === 0
+        "
+      >
+        Ningún robot ni equipo coincide con tu búsqueda.
+      </p>
+
+      <small class="nota">
+        Criterios de desempate: 1. Puntos · 2. Diferencia · 3. Victorias · 4.
+        Enfrentamiento directo. Victoria: 3 puntos · Empate: 1 punto · Derrota:
+        0 puntos.
+      </small>
+
+      <div class="top5" *ngIf="top5Victorias.length > 0">
+        <h3>Top 5 por victorias</h3>
+        <ol>
+          <li *ngFor="let f of top5Victorias">
+            {{ f.robot }} — {{ f.victorias }} victorias
+          </li>
+        </ol>
+      </div>
+    </section>
   </ng-container>
 </main>

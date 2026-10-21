@@ -1,7 +1,111 @@
-.live { max-width: 720px; margin: 0 auto; padding: 16px; }
-h1 { margin: 0; }
-.buscador { width: 100%; margin: 12px 0; padding: 10px; font-size: 16px; box-sizing: border-box; }
-.proximo { background: #fff3c4; padding: 10px; border-radius: 6px; }
-.combate { padding: 8px; border-bottom: 1px solid #ddd; }
-.combate.propio { background: #fff3c4; }
-.combate.terminado { opacity: 0.55; }
+.live {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 16px;
+}
+h1 {
+  margin: 0;
+}
+.buscador {
+  width: 100%;
+  margin: 12px 0;
+  padding: 10px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+.proximo {
+  background: #fff3c4;
+  padding: 10px;
+  border-radius: 6px;
+}
+.combate {
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
+}
+.combate.propio {
+  background: #fff3c4;
+}
+.combate.terminado {
+  opacity: 0.55;
+}
+
+/* ===== Ranking público ===== */
+.ranking {
+  margin-top: 2rem;
+}
+.ranking h2 {
+  margin: 0 0 0.75rem;
+}
+.tabla-scroll {
+  overflow-x: auto;
+}
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.tabla th,
+.tabla td {
+  padding: 0.5rem 0.6rem;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid #e5e7eb;
+}
+.tabla th {
+  font-weight: 600;
+  color: #4b5563;
+}
+.pos {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  background: #e5e7eb;
+  font-weight: 600;
+}
+.pos.oro {
+  background: #fde68a;
+}
+.pos.plata {
+  background: #d1d5db;
+}
+.pos.bronce {
+  background: #fed7aa;
+}
+.pos-dif {
+  color: #16a34a;
+}
+.neg-dif {
+  color: #dc2626;
+}
+.chip {
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  background: #f3f4f6;
+}
+.chip.victoria {
+  background: #dcfce7;
+  color: #166534;
+}
+.chip.derrota {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.chip.empate {
+  background: #fef3c7;
+  color: #92400e;
+}
+.nota {
+  display: block;
+  margin-top: 0.75rem;
+  color: #6b7280;
+}
+.top5 {
+  margin-top: 1.25rem;
+}
+.top5 h3 {
+  margin: 0 0 0.4rem;
+}
