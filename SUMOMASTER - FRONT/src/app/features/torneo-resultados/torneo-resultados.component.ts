@@ -1,3 +1,4 @@
+import { Role } from '../../core/models/auth.model';
 import { CommonModule } from '@angular/common';
 import {
   Component,
@@ -95,8 +96,11 @@ export class TorneoResultadosComponent
    * ADMIN y STAFF pueden iniciar
    * combates y registrar resultados.
    */
-  readonly canManage =
-    inject(AuthService).canManage;
+  private readonly auth = inject(AuthService);
+  readonly canManage = this.auth.canManage;
+  get isStaffOnly(): boolean {
+    return this.auth.hasAnyRole([Role.STAFF]) && !this.auth.hasAnyRole([Role.ADMIN]);
+  }
 
   // =========================
   // SIDEBAR

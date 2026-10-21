@@ -18,7 +18,7 @@ import { UpdateCategoriaDto } from './dto/update-categoria.dto';
 export class CategoriasController {
   constructor(private readonly categoriasService: CategoriasService) {}
 
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN)
   @Post()
   create(@Body() dto: CreateCategoriaDto) {
     return this.categoriasService.create(dto);
@@ -37,7 +37,7 @@ export class CategoriasController {
     return this.categoriasService.findOne(id);
   }
 
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN)
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateCategoriaDto) {
     return this.categoriasService.update(id, dto);

@@ -20,7 +20,7 @@ import { UpdateVisibilidadDto } from '../public/dto/update-visibilidad.dto';
 export class TorneosController {
   constructor(private readonly torneosService: TorneosService) {}
 
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN)
   @Post()
   create(@Body() dto: CreateTorneoDto) {
     return this.torneosService.create(dto);
@@ -40,7 +40,7 @@ export class TorneosController {
     return this.torneosService.findOne(id);
   }
 
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN)
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateTorneoDto) {
     return this.torneosService.update(id, dto);

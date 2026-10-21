@@ -36,6 +36,8 @@ import {
   CombateDocument,
 } from './schemas/combate.schema';
 
+import { ActualizarHorarioCombateDto } from './dto/actualizar-horario-combate.dto';
+
 
 
 
@@ -49,6 +51,67 @@ const POPULATE = [
 
 @Injectable()
 export class CombatesService {
+
+
+
+  async actualizarHorario(
+  torneoId: string,
+  combateId: string,
+  dto: ActualizarHorarioCombateDto,
+): Promise<CombateDocument> {
+  if (
+    !Types.ObjectId.isValid(torneoId) ||
+    !Types.ObjectId.isValid(combateId)
+  ) {
+    throw new BadRequestException(
+      'El identificador del torneo o del combate no es válido.',
+    );
+  }
+
+  const valor = dto.horarioProgramado;
+
+  // También valida aquí antes de modificar la base de datos.
+  if (
+    valor !== null &&
+    (
+      typeof valor !== 'string' ||
+      !/T.*(?:Z|[+-]\d{2}:\d{2})$/.test(valor) ||
+      !Number.isFinite(Date.parse(valor))
+    )
+  ) {
+    throw new BadRequestException(
+      'Debes indicar una fecha y hora válidas con zona horaria.',
+    );
+  }
+
+  const combate = await this.combateModel
+    .findOneAndUpdate(
+      {
+        _id: new Types.ObjectId(combateId),
+        torneo: new Types.ObjectId(torneoId),
+      },
+      {
+        $set: {
+          horarioProgramado:
+            valor === null ? null : new Date(valor),
+        },
+      },
+      {
+        new: true,
+        runValidators: true,
+      },
+    )
+    .populate(POPULATE)
+    .exec();
+
+  if (!combate) {
+    throw new NotFoundException(
+      'El combate no existe en este torneo.',
+    );
+  }
+
+  return combate;
+}
   /** Mismo propósito que en BloquesService: evitar generaciones duplicadas por doble clic o pestañas paralelas. */
   private readonly generandoPorTorneo = new Set<string>();
 

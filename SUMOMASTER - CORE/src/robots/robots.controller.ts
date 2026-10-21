@@ -18,7 +18,7 @@ import { RobotsService } from './robots.service';
 export class RobotsController {
   constructor(private readonly robotsService: RobotsService) {}
 
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN)
   @Post()
   create(@Body() dto: CreateRobotDto) {
     return this.robotsService.create(dto);
@@ -39,7 +39,7 @@ export class RobotsController {
     return this.robotsService.findOne(id);
   }
 
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN)
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateRobotDto) {
     return this.robotsService.update(id, dto);

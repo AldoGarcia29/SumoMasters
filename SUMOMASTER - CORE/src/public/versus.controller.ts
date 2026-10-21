@@ -40,7 +40,7 @@ export class VersusController {
   }
 
   // Solo el personal autorizado puede cambiar la proyección.
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN)
   @Patch('torneos/:id/proyeccion')
   async seleccionar(
     @Param('id') id: string,

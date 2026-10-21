@@ -73,11 +73,11 @@ export class LoginComponent {
             return;
           }
 
-          // STAFF entra directamente a la lista de torneos.
-          if (roles.includes(Role.STAFF)) {
-            this.router.navigateByUrl('/torneos');
-            return;
-          }
+          // STAFF entra directamente a su pantalla de resultados.
+if (roles.includes(Role.STAFF)) {
+  this.router.navigateByUrl('/staff/resultados');
+  return;
+}
 
           // Cuenta sin rol asignado: no se le manda a una ruta que no puede abrir.
           this.authService.logout();

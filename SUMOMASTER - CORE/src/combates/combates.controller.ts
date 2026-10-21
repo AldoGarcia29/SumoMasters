@@ -17,9 +17,26 @@ import {
   FaseCombate,
 } from './enums/combate.enums';
 
+import { ActualizarHorarioCombateDto } from './dto/actualizar-horario-combate.dto';
+
 @Controller()
 export class CombatesController {
   constructor(private readonly combatesService: CombatesService) {}
+
+
+  @Roles(Role.ADMIN, Role.STAFF)
+@Patch('torneos/:torneoId/combates/:id/horario')
+actualizarHorario(
+  @Param('torneoId') torneoId: string,
+  @Param('id') id: string,
+  @Body() dto: ActualizarHorarioCombateDto,
+) {
+  return this.combatesService.actualizarHorario(
+    torneoId,
+    id,
+    dto,
+  );
+}
 
   @Get('torneos/:torneoId/combates')
   findByTorneo(
@@ -32,7 +49,7 @@ export class CombatesController {
     return this.combatesService.findByTorneo(torneoId, { bloque, dojo, estado, fase });
   }
 
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN)
   @Post('torneos/:torneoId/combates/generar')
   generar(@Param('torneoId') torneoId: string, @Body() dto: GenerarCombatesDto) {
     return this.combatesService.generar(torneoId, dto);
@@ -48,7 +65,7 @@ export class CombatesController {
     return this.combatesService.statsGlobal();
   }
 
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN)
   @Post('torneos/:torneoId/combates/asignar-dojos-auto')
   asignarDojosAutomatico(
     @Param('torneoId') torneoId: string,
@@ -62,13 +79,13 @@ export class CombatesController {
     return this.combatesService.findOne(id);
   }
 
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN)
   @Patch('combates/:id/dojo')
   asignarDojo(@Param('id') id: string, @Body() dto: AsignarDojoDto) {
     return this.combatesService.asignarDojo(id, dto);
   }
 
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN)
   @Patch('combates/:id/quitar-dojo')
   quitarDojo(@Param('id') id: string) {
     return this.combatesService.quitarDojo(id);
@@ -86,7 +103,7 @@ export class CombatesController {
     return this.combatesService.registrarResultado(id, dto);
   }
 
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN)
   @Patch('combates/:id/cancelar')
   cancelar(@Param('id') id: string) {
     return this.combatesService.cancelar(id);

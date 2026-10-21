@@ -1290,7 +1290,7 @@
       >
         <a
           class="btn btn--ghost"
-          routerLink="/torneos"
+          [routerLink]="isStaffOnly ? '/staff/resultados' : '/torneos'"
         >
           ← Volver a torneos
         </a>
