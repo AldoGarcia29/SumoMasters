@@ -368,3 +368,10 @@
   color: var(--color-text-muted);
   text-align: center;
 }
+
+@media (max-width: 600px) {
+  .topbar { padding: 12px 14px; gap:8px; min-width:0; }
+  .topbar__left { flex:1; min-width:0; }
+  .topbar__titles h1 { font-size:1rem; }
+  .topbar__actions { gap:6px; }
+}

@@ -421,3 +421,19 @@
 }
 
 
+
+/* Ajustes móviles para registro de resultados */
+@media (max-width: 600px) {
+  :host { display:block; min-width:0; }
+  .resultados-page { padding: 12px; gap:12px; }
+  .resultados-layout { display:grid; grid-template-columns:minmax(0,1fr); gap:12px; }
+  .resultados-col { padding:14px; min-width:0; }
+  .panel { min-width:0; }
+  .panel--header { align-items:flex-start; }
+  .panel--header__actions { width:100%; }
+  .panel--header__actions .btn { max-width:100%; }
+  input, select, textarea { max-width:100%; min-width:0; box-sizing:border-box; font-size:16px; }
+  textarea { resize:vertical; min-height:90px; }
+  .combate-select-list .combate-select-list__item { grid-template-columns:minmax(0,1fr); grid-template-areas:'schedule' 'robots' 'action'; }
+  .combate-select-list__item > .btn, .combate-select-list__item > .badge { justify-self:start; }
+}

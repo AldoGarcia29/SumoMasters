@@ -808,16 +808,4 @@ this.flowCache.setCombates(this.torneoId, [
   closeSidebar(): void {
     this.sidebarOpen.set(false);
   }
-
-  abrirCalendario(input: HTMLInputElement): void {
-  if (input.disabled) return;
-
-  input.focus();
-
-  try {
-    input.showPicker();
-  } catch {
-    // Si el selector no está disponible, permite escribir manualmente.
-  }
-}
 }
