@@ -1,0 +1,116 @@
+<div class="envoltorio" *ngIf="user()">
+  <button
+    type="button"
+    class="perfil"
+    (click)="alternar()"
+    [attr.aria-expanded]="abierto()"
+    aria-haspopup="menu"
+  >
+    <span class="avatar">{{ iniciales() }}</span>
+    <span class="nombre">{{ nombre() }}</span>
+    <svg
+      class="flecha"
+      [class.abierta]="abierto()"
+      viewBox="0 0 24 24"
+      width="14"
+      height="14"
+    >
+      <path
+        d="m6 9 6 6 6-6"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  </button>
+
+  <div class="desplegable" role="menu" *ngIf="abierto()">
+    <div class="cabecera">
+      <p class="cabecera-nombre">{{ nombre() }}</p>
+      <p class="cabecera-email" *ngIf="email()">{{ email() }}</p>
+    </div>
+
+    <a
+      *ngIf="tienePanel()"
+      class="opcion"
+      role="menuitem"
+      [routerLink]="rutaPanel()"
+      (click)="cerrar()"
+    >
+      <svg viewBox="0 0 24 24" width="16" height="16">
+        <rect
+          x="3"
+          y="3"
+          width="7"
+          height="9"
+          rx="1.5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+        />
+        <rect
+          x="14"
+          y="3"
+          width="7"
+          height="5"
+          rx="1.5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+        />
+        <rect
+          x="14"
+          y="12"
+          width="7"
+          height="9"
+          rx="1.5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+        />
+        <rect
+          x="3"
+          y="16"
+          width="7"
+          height="5"
+          rx="1.5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+        />
+      </svg>
+      Ir al panel
+    </a>
+
+    <div class="divisor" *ngIf="tienePanel()"></div>
+
+    <button
+      type="button"
+      class="opcion peligro"
+      role="menuitem"
+      (click)="salir()"
+    >
+      <svg viewBox="0 0 24 24" width="16" height="16">
+        <path
+          d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M16 17l5-5-5-5M21 12H9"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+      Cerrar sesión
+    </button>
+  </div>
+</div>

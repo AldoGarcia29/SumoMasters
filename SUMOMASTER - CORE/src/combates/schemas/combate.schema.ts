@@ -78,6 +78,9 @@ arena: number | null;
   @Prop({ type: String, enum: MetodoVictoria, default: null })
   metodoVictoria: MetodoVictoria | null;
 
+  @Prop({ type: String, default: null })
+  otroMetodoVictoria: string | null;
+
   /** Duración del combate en segundos. */
   @Prop({ type: Number, default: null })
   duracionSegundos: number | null;
