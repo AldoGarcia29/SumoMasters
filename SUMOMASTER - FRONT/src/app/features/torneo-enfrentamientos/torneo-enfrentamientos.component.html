@@ -120,6 +120,32 @@
         </span>
       </section>
 
+      <section
+        class="panel configuracion-horarios"
+        *ngIf="!loading() && combates().length > 0"
+      >
+        <label class="field">
+          <span>Combates por horario</span>
+
+          <input
+            type="number"
+            min="1"
+            step="1"
+            [value]="combatesPorHorario()"
+            (change)="cambiarCombatesPorHorario(
+              $any($event.target).value
+            )"
+          />
+        </label>
+
+        <p>
+          Define cuántos combates compartirán horario.
+          Con 4 combates por horario, una ronda de 8 tendrá
+          dos horarios. Guarda cada horario después de
+          definir esta cantidad.
+        </p>
+      </section>
+
       <p class="table__loading" *ngIf="loading()">
         Cargando enfrentamientos…
       </p>
@@ -152,70 +178,89 @@
             </span>
           </header>
 
-          <!-- Un horario de inicio para toda la ronda -->
-          <div class="ronda-horario">
-            <label>
-              <span>Inicio de {{ ronda.titulo }}</span>
-
-              <input
-                type="datetime-local"
-                step="60"
-                [value]="valorHorarioRonda(
+          <!-- Un horario independiente por tanda -->
+          <div class="ronda-horarios">
+            <div
+              class="ronda-horario"
+              *ngFor="
+                let tanda of tandasDeRonda(
                   ronda.numero,
                   ronda.combates
-                )"
-                [disabled]="guardandoRonda(ronda.numero)"
-                (input)="editarHorarioRonda(
-                  ronda.numero,
-                  $any($event.target).value
-                )"
-              />
-            </label>
-
-            <button
-              type="button"
-              class="btn btn--primary"
-              [disabled]="
-                guardandoRonda(ronda.numero) ||
-                !rondaModificada(ronda.numero)
+                )
               "
-              (click)="guardarHorarioRonda(
-                ronda.numero,
-                ronda.combates
-              )"
             >
-              {{
-                guardandoRonda(ronda.numero)
-                  ? 'Guardando…'
-                  : 'Guardar ronda'
-              }}
-            </button>
+              <label>
+                <span>
+                  {{ tanda.titulo }} ·
+                  Combates {{ tanda.desde }}–{{ tanda.hasta }}
+                </span>
 
-            <small>
-              Hora del centro de México.
-              Después asigna los dojos.
-            </small>
+                <input
+                  type="datetime-local"
+                  step="60"
+                  [value]="valorHorarioRonda(
+                    tanda.clave,
+                    tanda.combates
+                  )"
+                  [disabled]="guardandoRonda(tanda.clave)"
+                  [attr.aria-label]="
+                    ronda.titulo + ', ' + tanda.titulo
+                  "
+                  (input)="editarHorarioRonda(
+                    tanda.clave,
+                    $any($event.target).value
+                  )"
+                />
+              </label>
+
+              <button
+                type="button"
+                class="btn btn--primary"
+                [disabled]="
+                  guardandoRonda(tanda.clave) ||
+                  !rondaModificada(tanda.clave)
+                "
+                (click)="guardarHorarioRonda(
+                  tanda.clave,
+                  tanda.combates
+                )"
+              >
+                {{
+                  guardandoRonda(tanda.clave)
+                    ? 'Guardando…'
+                    : 'Guardar horario'
+                }}
+              </button>
+
+              <small>
+                Hora del centro de México.
+                Después asigna los dojos.
+              </small>
+
+              <p
+                class="ronda-aviso"
+                *ngIf="horariosDistintos(tanda.combates)"
+              >
+                Hay horarios diferentes o incompletos en
+                esta tanda. Al guardar, se aplicará el
+                horario elegido a sus
+                {{ tanda.combates.length }} combates.
+              </p>
+            </div>
           </div>
-
-          <p
-            class="ronda-aviso"
-            *ngIf="horariosDistintos(ronda.combates)"
-          >
-            Hay horarios diferentes o incompletos.
-            Al guardar, se aplicará el inicio seleccionado
-            a todos los combates de esta ronda.
-          </p>
 
           <!-- Cruces ordenados por bloque dentro de la ronda -->
           <div class="table-wrapper">
             <table class="table programa-table">
               <thead>
                 <tr>
-                  <th>Bloque</th>
-                  <th>Combate</th>
-                  <th>Robot 1</th>
-                  <th></th>
-                  <th>Robot 2</th>
+                  <th scope="col">Bloque</th>
+                  <th scope="col">Combate</th>
+                  <th scope="col">Robot 1</th>
+                  <th scope="col">
+                    <span aria-label="Contra">VS</span>
+                  </th>
+                  <th scope="col">Robot 2</th>
                 </tr>
               </thead>
 

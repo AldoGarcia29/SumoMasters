@@ -51,11 +51,55 @@ export class TorneoEnfrentamientosComponent
   implements OnInit
 {
 
+readonly combatesPorHorario = signal(4);
+
+cambiarCombatesPorHorario(valor: string): void {
+  const cantidad = Number(valor);
+
+  if (
+    !Number.isInteger(cantidad) ||
+    cantidad < 1 ||
+    Object.values(this.guardandoRondas()).some(Boolean)
+  ) {
+    return;
+  }
+
+  this.combatesPorHorario.set(cantidad);
+}
+
+tandasDeRonda(
+  numero: number,
+  combates: Combate[],
+): {
+  clave: string;
+  titulo: string;
+  desde: number;
+  hasta: number;
+  combates: Combate[];
+}[] {
+  const cantidad = this.combatesPorHorario();
+  const tandas = [];
+
+  for (let inicio = 0; inicio < combates.length; inicio += cantidad) {
+    const seleccionados = combates.slice(inicio, inicio + cantidad);
+
+    tandas.push({
+      clave: `${numero}:tanda:${inicio / cantidad + 1}`,
+      titulo: `Horario ${inicio / cantidad + 1}`,
+      desde: inicio + 1,
+      hasta: inicio + seleccionados.length,
+      combates: seleccionados,
+    });
+  }
+
+  return tandas;
+}
+
 
 readonly horariosRonda = signal<Record<string, string>>({});
 readonly guardandoRondas = signal<Record<string, boolean>>({});
 
-private claveRonda(numero: number): string {
+private claveRonda(numero: number | string): string {
   return `${this.activeFase()}:${numero}`;
 }
 
@@ -83,7 +127,7 @@ valorHorario(combate: Combate): string {
 }
 
 valorHorarioRonda(
-  numero: number,
+  numero: number | string,
   combates: Combate[],
 ): string {
   const clave = this.claveRonda(numero);
@@ -111,7 +155,7 @@ horariosDistintos(combates: Combate[]): boolean {
   ).size > 1;
 }
 
-editarHorarioRonda(numero: number, valor: string): void {
+editarHorarioRonda(numero: number | string, valor: string): void {
   const clave = this.claveRonda(numero);
 
   this.horariosRonda.update((actuales) => ({
@@ -120,11 +164,11 @@ editarHorarioRonda(numero: number, valor: string): void {
   }));
 }
 
-guardandoRonda(numero: number): boolean {
+guardandoRonda(numero: number | string): boolean {
   return this.guardandoRondas()[this.claveRonda(numero)] ?? false;
 }
 
-rondaModificada(numero: number): boolean {
+rondaModificada(numero: number | string): boolean {
   return Object.prototype.hasOwnProperty.call(
     this.horariosRonda(),
     this.claveRonda(numero),
@@ -132,7 +176,7 @@ rondaModificada(numero: number): boolean {
 }
 
 guardarHorarioRonda(
-  numero: number,
+  numero: number | string,
   combates: Combate[],
 ): void {
   if (
