@@ -183,11 +183,20 @@
             <div
               class="ronda-horario"
               *ngFor="
+<<<<<<< HEAD
                 let tanda of tandasDeRonda(
                   ronda.numero,
                   ronda.combates
                 )
               "
+=======
+  let tanda of tandasDeRonda(
+    ronda.numero,
+    ronda.combates
+  );
+  trackBy: identificarTanda
+"
+>>>>>>> eaea2700d59aa0879fcb3d4156afaeff00827e91
             >
               <label>
                 <span>
@@ -196,6 +205,7 @@
                 </span>
 
                 <input
+<<<<<<< HEAD
                   type="datetime-local"
                   step="60"
                   [value]="valorHorarioRonda(
@@ -211,6 +221,22 @@
                     $any($event.target).value
                   )"
                 />
+=======
+  #horarioInput
+  type="datetime-local"
+  step="60"
+  [value]="valorHorarioRonda(
+    tanda.clave,
+    tanda.combates
+  )"
+  [disabled]="guardandoRonda(tanda.clave)"
+  (click)="abrirCalendario(horarioInput)"
+  (input)="editarHorarioRonda(
+    tanda.clave,
+    $any($event.target).value
+  )"
+/>
+>>>>>>> eaea2700d59aa0879fcb3d4156afaeff00827e91
               </label>
 
               <button

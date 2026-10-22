@@ -31,6 +31,7 @@ export class CombatesController {
   private readonly asignaciones: AsignacionesStaffService,
 ) {}
 
+<<<<<<< HEAD
   @Roles(Role.ADMIN)
   @Post('asignaciones-staff')
   crearAsignacion(@Body() dto: CrearAsignacionStaffDto) {
@@ -57,6 +58,10 @@ export class CombatesController {
 
 
   @Roles(Role.ADMIN)
+=======
+
+  @Roles(Role.ADMIN, Role.STAFF)
+>>>>>>> eaea2700d59aa0879fcb3d4156afaeff00827e91
 @Patch('torneos/:torneoId/combates/:id/horario')
 actualizarHorario(
   @Param('torneoId') torneoId: string,
@@ -70,7 +75,10 @@ actualizarHorario(
   );
 }
 
+<<<<<<< HEAD
   @Roles(Role.ADMIN, Role.STAFF)
+=======
+>>>>>>> eaea2700d59aa0879fcb3d4156afaeff00827e91
   @Get('torneos/:torneoId/combates')
   findByTorneo(
     @Param('torneoId') torneoId: string,

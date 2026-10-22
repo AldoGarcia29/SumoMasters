@@ -808,4 +808,24 @@ this.flowCache.setCombates(this.torneoId, [
   closeSidebar(): void {
     this.sidebarOpen.set(false);
   }
+identificarTanda(
+  _index: number,
+  tanda: { clave: string },
+): string {
+  return tanda.clave;
+}
+  abrirCalendario(input: HTMLInputElement): void {
+  if (input.disabled) return;
+
+  input.focus();
+
+  try {
+    input.showPicker();
+  } catch {
+    // Permite introducir la fecha y hora manualmente
+    // si el navegador no puede abrir el selector.
+  }
+}
+
+
 }
