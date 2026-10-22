@@ -809,6 +809,13 @@ this.flowCache.setCombates(this.torneoId, [
     this.sidebarOpen.set(false);
   }
 
+  identificarTanda(
+    _index: number,
+    tanda: { clave: string },
+  ): string {
+    return tanda.clave;
+  }
+
   abrirCalendario(input: HTMLInputElement): void {
   if (input.disabled) return;
 
