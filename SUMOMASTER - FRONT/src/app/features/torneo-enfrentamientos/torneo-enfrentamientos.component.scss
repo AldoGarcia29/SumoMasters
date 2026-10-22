@@ -9,13 +9,8 @@
 }
 
 .panel--header {
-<<<<<<< HEAD
   gap: 1rem;
   flex-wrap: wrap;
-=======
-  flex-wrap: wrap;
-  gap: 1rem;
->>>>>>> eaea2700d59aa0879fcb3d4156afaeff00827e91
 }
 
 .panel--header__info {
@@ -26,12 +21,9 @@
 
   h2 {
     margin: 0 0 0.25rem;
-<<<<<<< HEAD
-=======
-    color: var(--color-text);
->>>>>>> eaea2700d59aa0879fcb3d4156afaeff00827e91
     font-family: var(--font-display);
     font-size: 1.05rem;
+    color: var(--color-text);
   }
 
   p {
@@ -44,11 +36,11 @@
 
 .panel--header__icon {
   display: flex;
-  flex: none;
   align-items: center;
   justify-content: center;
   width: 2.5rem;
   height: 2.5rem;
+  flex: none;
   color: var(--color-primary);
   background: #f1e9ff;
   border-radius: 0.65rem;
@@ -81,58 +73,6 @@
   }
 }
 
-<<<<<<< HEAD
-=======
-.configuracion-horarios {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-  padding: 1.25rem;
-
-  .field {
-    display: flex;
-    flex: 0 1 15rem;
-    flex-direction: column;
-    gap: 0.55rem;
-    min-width: 0;
-    margin: 0;
-
-    > span {
-      color: var(--color-text);
-      font-size: 0.85rem;
-      font-weight: 600;
-    }
-  }
-
-  input {
-    box-sizing: border-box;
-    width: 100%;
-    min-width: 0;
-    min-height: 44px;
-    padding: 0.75rem;
-    color: var(--color-text);
-    background: #fff;
-    border: 1px solid #e5dcf7;
-    border-radius: 0.75rem;
-    font: inherit;
-
-    &:focus-visible {
-      outline: 2px solid #b99ae9;
-      outline-offset: 2px;
-    }
-  }
-
-  p {
-    flex: 1 1 16rem;
-    margin: 0;
-    color: var(--color-text-muted);
-    font-size: 0.85rem;
-    line-height: 1.6;
-  }
-}
-
->>>>>>> eaea2700d59aa0879fcb3d4156afaeff00827e91
 .programa-rondas {
   display: flex;
   flex-direction: column;
@@ -150,22 +90,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-<<<<<<< HEAD
   gap: 1rem;
-=======
-  flex-wrap: wrap;
-  gap: 0.75rem;
->>>>>>> eaea2700d59aa0879fcb3d4156afaeff00827e91
   padding: 1rem 1.25rem;
   color: #fff;
   background: #25163f;
 
   h3 {
     margin: 0;
-<<<<<<< HEAD
-=======
-    color: #fff;
->>>>>>> eaea2700d59aa0879fcb3d4156afaeff00827e91
     font-family: var(--font-display);
     font-size: 0.95rem;
     font-weight: 700;
@@ -178,130 +109,14 @@
   }
 }
 
-<<<<<<< HEAD
 .table-wrapper {
   width: 100%;
-=======
-.ronda-horarios {
-  display: grid;
-  grid-template-columns: repeat(
-    auto-fit,
-    minmax(min(100%, 24rem), 1fr)
-  );
-  align-items: start;
-  gap: 1rem;
-  padding: 1.25rem;
-  background: #faf8ff;
-  border-bottom: 1px solid #eee8f7;
-}
-
-.ronda-horario {
-  display: flex;
-  align-items: flex-end;
-  flex-wrap: wrap;
-  gap: 0.85rem;
-  min-width: 0;
-  margin: 0;
-  padding: 1rem;
-  background: #fff;
-  border: 1px solid #e8dff8;
-  border-radius: 0.85rem;
-
-  label {
-    display: flex;
-    flex: 1 1 15rem;
-    flex-direction: column;
-    gap: 0.55rem;
-    min-width: 0;
-
-    > span {
-      color: var(--color-text);
-      font-size: 0.85rem;
-      font-weight: 600;
-      line-height: 1.5;
-    }
-  }
-
-  input {
-    box-sizing: border-box;
-    width: 100%;
-    min-width: 0;
-    min-height: 44px;
-    padding: 0.75rem;
-    color: var(--color-text);
-    color-scheme: light;
-    background: #fff;
-    border: 1px solid #dfd3f2;
-    border-radius: 0.65rem;
-    font: inherit;
-    font-size: 0.85rem;
-
-    &:focus-visible {
-      outline: 2px solid #b99ae9;
-      outline-offset: 2px;
-    }
-
-    &:disabled {
-      color: var(--color-text-muted);
-      background: #f3f0f7;
-      cursor: not-allowed;
-      opacity: 0.7;
-    }
-
-    &::-webkit-calendar-picker-indicator {
-      padding: 0.2rem;
-      cursor: pointer;
-      opacity: 0.8;
-    }
-  }
-
-  .btn {
-    flex: 0 0 auto;
-    min-height: 44px;
-    white-space: nowrap;
-
-    &:disabled {
-      cursor: not-allowed;
-      opacity: 0.55;
-    }
-  }
-
-  small {
-    flex: 1 1 100%;
-    color: var(--color-text-muted);
-    font-size: 0.75rem;
-    line-height: 1.5;
-  }
-}
-
-.ronda-aviso {
-  box-sizing: border-box;
-  flex: 1 1 100%;
-  min-width: 0;
-  margin: 0;
-  padding: 0.8rem 1rem;
-  color: #8a641e;
-  background: #fff8e8;
-  border: 1px solid #f2e2bc;
-  border-radius: 0.6rem;
-  font-size: 0.8rem;
-  line-height: 1.5;
-}
-
-.table-wrapper {
-  width: 100%;
-  min-width: 0;
->>>>>>> eaea2700d59aa0879fcb3d4156afaeff00827e91
   overflow-x: auto;
 }
 
 .programa-table {
   width: 100%;
-<<<<<<< HEAD
   min-width: 760px;
-=======
-  min-width: 600px;
->>>>>>> eaea2700d59aa0879fcb3d4156afaeff00827e91
   border-collapse: collapse;
 
   thead th {
@@ -339,19 +154,11 @@
     font-size: 0.74rem;
     font-weight: 700;
     text-align: center;
-<<<<<<< HEAD
-=======
-    white-space: nowrap;
->>>>>>> eaea2700d59aa0879fcb3d4156afaeff00827e91
   }
 }
 
 .bloque-etiqueta {
   display: inline-flex;
-<<<<<<< HEAD
-=======
-  align-items: center;
->>>>>>> eaea2700d59aa0879fcb3d4156afaeff00827e91
   padding: 0.3rem 0.6rem;
   color: #7541b9;
   background: #f1e9ff;
@@ -363,13 +170,7 @@
 
 .empty-hint {
   padding: 1.5rem;
-<<<<<<< HEAD
   text-align: center;
-=======
-  color: var(--color-text-muted);
-  text-align: center;
-  line-height: 1.6;
->>>>>>> eaea2700d59aa0879fcb3d4156afaeff00827e91
 
   .link {
     display: block;
@@ -392,36 +193,16 @@
   .panel--header {
     align-items: stretch;
     flex-direction: column;
-<<<<<<< HEAD
   }
 
   .panel--header > .btn {
     width: 100%;
-=======
-
-    > .btn {
-      width: 100%;
-    }
-  }
-
-  .configuracion-horarios {
-    align-items: stretch;
-    flex-direction: column;
-    padding: 1rem;
-
-    .field,
-    p {
-      flex: none;
-      width: 100%;
-    }
->>>>>>> eaea2700d59aa0879fcb3d4156afaeff00827e91
   }
 
   .ronda-header {
     padding: 0.9rem 1rem;
   }
 
-<<<<<<< HEAD
   .panel--footer-actions {
     align-items: stretch;
     flex-direction: column;
@@ -552,19 +333,10 @@
 }
 
 @media (max-width: 600px) {
-=======
-  .ronda-horarios {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0.85rem;
-    padding: 1rem;
-  }
-
->>>>>>> eaea2700d59aa0879fcb3d4156afaeff00827e91
   .ronda-horario {
     align-items: stretch;
     flex-direction: column;
 
-<<<<<<< HEAD
     input,
     .btn {
       width: 100%;
@@ -659,34 +431,5 @@
 
   small {
     color: var(--color-text-muted);
-=======
-    label,
-    .btn,
-    small,
-    .ronda-aviso {
-      flex: none;
-      width: 100%;
-      box-sizing: border-box;
-    }
-  }
-
-  .programa-table {
-    thead th,
-    tbody td {
-      padding: 0.8rem;
-    }
-  }
-
-  .panel--footer-actions {
-    align-items: stretch;
-    flex-direction: column;
-    gap: 0.75rem;
-
-    .btn {
-      width: 100%;
-      box-sizing: border-box;
-      text-align: center;
-    }
->>>>>>> eaea2700d59aa0879fcb3d4156afaeff00827e91
   }
 }

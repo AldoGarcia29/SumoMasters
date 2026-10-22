@@ -1,3 +1,4 @@
+import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { SidebarComponent } from '../../shared/components/sidebar/sidebar.component';
@@ -14,7 +15,7 @@ import { Dojo } from '../../core/models/dojo.model';
 @Component({
   selector: 'app-usuarios',
   standalone: true,
-  imports: [CommonModule, SidebarComponent, TopbarComponent],
+  imports: [CommonModule, FormsModule, SidebarComponent, TopbarComponent],
   templateUrl: './usuarios.component.html',
   styleUrl: './usuarios.component.scss',
 })
