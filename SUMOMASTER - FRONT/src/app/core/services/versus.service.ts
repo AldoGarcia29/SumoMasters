@@ -13,6 +13,10 @@ export interface CombateVersus {
   _id: string;
   numero: number;
   fase: string;
+
+  ronda?: number | null;
+  horarioProgramado?: string | null;
+
   bloque: { _id: string; nombre: string } | null;
   dojo: { _id: string; nombre: string } | null;
   arena: number | null;
