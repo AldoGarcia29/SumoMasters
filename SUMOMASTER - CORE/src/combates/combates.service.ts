@@ -193,7 +193,9 @@ export class CombatesService {
       const claves = new Set(asignaciones.map(a => `${a.dojo}:${a.fecha}`));
       return combates.filter(c => {
         const dojoId = (c.dojo as any)?._id?.toString() ?? c.dojo?.toString();
-        return !!c.horarioProgramado && claves.has(`${dojoId}:${this.asignaciones.fechaLocal(c.horarioProgramado)}`);
+        // Sin horario programado se usa la fecha de hoy (jornada actual).
+        const fechaCombate = c.horarioProgramado ?? new Date();
+        return claves.has(`${dojoId}:${this.asignaciones.fechaLocal(fechaCombate)}`);
       });
     }
     return combates;
@@ -206,7 +208,7 @@ export class CombatesService {
     if (this.staffOnly(user)) {
       await this.asignaciones.exigir(user!.id, c.torneo.toString(),
         (c.dojo as any)?._id?.toString() ?? c.dojo?.toString() ?? '',
-        c.horarioProgramado);
+        c.horarioProgramado ?? new Date());
     }
   }
 

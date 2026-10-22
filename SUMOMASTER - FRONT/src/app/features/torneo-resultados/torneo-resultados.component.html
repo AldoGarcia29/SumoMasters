@@ -217,7 +217,14 @@
               QUE UTILIZARÁ STAFF
             -->
 
-            <label class="field">
+            <!-- STAFF: dojo asignado automáticamente (sin selector) -->
+            <div class="field" *ngIf="isStaffOnly && dojosAsignados().length === 1">
+              <span>Dojo asignado</span>
+              <strong>{{ dojosAsignados()[0].nombre }}</strong>
+            </div>
+
+            <!-- STAFF con más de un dojo hoy, o ADMIN -->
+            <label class="field" *ngIf="!isStaffOnly || dojosAsignados().length > 1">
               <span>
                 Dojo asignado
               </span>
@@ -236,11 +243,11 @@
 
                 <option
                   *ngFor="
-                    let item of dojosResumen()
+                    let item of (isStaffOnly ? dojosAsignados() : dojosResumen())
                   "
-                  [value]="item.dojo._id"
+                  [value]="isStaffOnly ? $any(item)._id : $any(item).dojo._id"
                 >
-                  {{ item.dojo.nombre }}
+                  {{ isStaffOnly ? $any(item).nombre : $any(item).dojo.nombre }}
                 </option>
 
               </select>
@@ -508,8 +515,9 @@
               class="table__empty"
               *ngIf="!dojoFiltro()"
             >
-              Selecciona el dojo en el que
-              vas a registrar los combates.
+              {{ isStaffOnly && staffSinAsignacion()
+                ? 'No tienes un dojo asignado para hoy en este torneo.'
+                : 'Selecciona el dojo en el que vas a registrar los combates.' }}
             </li>
 
             <!-- No hay combates -->

@@ -1,4 +1,7 @@
 import { Role } from '../../core/models/auth.model';
+import { forkJoin } from 'rxjs';
+import { AsignacionesStaffService } from '../../core/services/asignaciones-staff.service';
+import { DojoService } from '../../core/services/dojo.service';
 import { CommonModule } from '@angular/common';
 import {
   Component,
@@ -91,6 +94,13 @@ export class TorneoResultadosComponent
 
   private readonly rankingService =
     inject(RankingService);
+
+  private readonly asignacionesService = inject(AsignacionesStaffService);
+  private readonly dojoService = inject(DojoService);
+
+  /** Dojos asignados al STAFF para hoy en este torneo. */
+  readonly dojosAsignados = signal<{ _id: string; nombre: string }[]>([]);
+  readonly staffSinAsignacion = signal(false);
 
   /**
    * ADMIN y STAFF pueden iniciar
@@ -415,6 +425,7 @@ export class TorneoResultadosComponent
     if (this.isStaffOnly) {
       const dojoUrl = this.route.snapshot.queryParamMap.get('dojo');
       if (dojoUrl) this.dojoFiltro.set(dojoUrl);
+      this.cargarDojosAsignados();
     }
     const faseUrl =
       this.route.snapshot
@@ -459,6 +470,39 @@ export class TorneoResultadosComponent
   }
 
   // =========================
+  // DOJO ASIGNADO (STAFF)
+  // =========================
+
+  /**
+   * El STAFF no elige dojo: se toma de sus asignaciones de hoy
+   * para este torneo y solo ve los combates de ese dojo.
+   */
+  private cargarDojosAsignados(): void {
+    const hoy = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Mexico_City', year: 'numeric', month: '2-digit', day: '2-digit',
+    }).format(new Date());
+    forkJoin({
+      asignaciones: this.asignacionesService.mias(),
+      dojos: this.dojoService.findAll(),
+    }).subscribe({
+      next: ({ asignaciones, dojos }) => {
+        const ids = new Set(
+          asignaciones.filter(a => a.torneo === this.torneoId && a.fecha === hoy).map(a => a.dojo),
+        );
+        const lista = dojos
+          .filter(d => ids.has(d._id))
+          .map(d => ({ _id: d._id, nombre: d.nombre }));
+        this.dojosAsignados.set(lista);
+        this.staffSinAsignacion.set(lista.length === 0);
+        if (lista.length && !lista.some(d => d._id === this.dojoFiltro())) {
+          this.dojoFiltro.set(lista[0]._id);
+        }
+      },
+      error: () => this.formError.set('No se pudieron cargar tus asignaciones de dojo.'),
+    });
+  }
+
+  // =========================
   // CARGAR COMBATES
   // =========================
 
@@ -500,10 +544,6 @@ export class TorneoResultadosComponent
               else resumen.set(dojo._id, { dojo, combatesAsignados: 1 });
             }
             this.dojosResumen.set([...resumen.values()]);
-            const disponibles = [...resumen.keys()];
-            if (!disponibles.includes(this.dojoFiltro())) {
-              this.dojoFiltro.set(disponibles.length ? disponibles[0] : '');
-            }
           }
 
           const seleccionadoExiste =
