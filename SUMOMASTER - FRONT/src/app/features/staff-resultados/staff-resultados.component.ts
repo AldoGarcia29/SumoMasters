@@ -25,7 +25,14 @@ import { TopbarComponent } from '../../shared/components/topbar/topbar.component
           <p *ngIf="!esStaff()">Selecciona un torneo para registrar los resultados de sus combates.</p>
           <p *ngIf="loading()">Cargando torneos...</p>
           <p *ngIf="error()" role="alert">{{ error() }}</p>
-          <p *ngIf="!loading() && !error() && esStaff() && !asignacionesVigentes().length">No tienes dojos asignados para hoy. Solicita al administrador una asignación para esta fecha.</p>
+          <p *ngIf="!loading() && !error() && esStaff() && !asignacionesVigentes().length && !asignaciones().length">No hay asignaciones vinculadas a tu cuenta. Pide al administrador que compruebe el usuario y el torneo.</p>
+          <p *ngIf="!loading() && !error() && esStaff() && !asignacionesVigentes().length && asignaciones().length">Tienes asignaciones registradas, pero ninguna corresponde a hoy. Consulta las fechas a continuación.</p>
+          <div class="staff-list" *ngIf="esStaff() && !asignacionesVigentes().length">
+            <div *ngFor="let a of asignaciones()" class="staff-torneo">
+              <span><strong>{{ nombreTorneo(a.torneo) }} · {{ nombreDojo(a.dojo) }}</strong><small>Asignado para {{ a.fecha }}</small></span>
+              <span>Otra fecha</span>
+            </div>
+          </div>
           <p *ngIf="!loading() && !error() && !esStaff() && !torneos().length">No hay torneos disponibles.</p>
           <div class="staff-list" *ngIf="esStaff()">
             <a *ngFor="let a of asignacionesVigentes()" class="staff-torneo"
