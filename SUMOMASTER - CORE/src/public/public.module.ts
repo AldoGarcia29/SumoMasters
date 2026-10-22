@@ -12,11 +12,17 @@ import { PublicCacheService } from './public-cache.service';
 import { VersusController } from './versus.controller';
 import { RankingModule } from '../ranking/ranking.module';
 
+import {
+  Proyeccion,
+  ProyeccionSchema,
+} from './schemas/proyeccion.schema';
+
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Torneo.name, schema: TorneoSchema },
       { name: Combate.name, schema: CombateSchema },
+      { name: Proyeccion.name, schema: ProyeccionSchema },
     ]),
     RankingModule, // reutiliza RankingService.calcular() para el ranking público
     // 120 peticiones por minuto por IP (en un venue muchos comparten wifi; sube si hace falta)
