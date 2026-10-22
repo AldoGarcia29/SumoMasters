@@ -1,6 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { forkJoin } from 'rxjs';
+import { AsignacionesStaffService, AsignacionStaff } from '../../core/services/asignaciones-staff.service';
+import { AuthService } from '../../core/services/auth.service';
+import { Role } from '../../core/models/auth.model';
 import { TorneoService } from '../../core/services/torneo.service';
 import { Torneo } from '../../core/models/torneo.model';
 import { SidebarComponent } from '../../shared/components/sidebar/sidebar.component';
@@ -17,11 +21,20 @@ import { TopbarComponent } from '../../shared/components/topbar/topbar.component
       <main class="staff-main">
         <section class="staff-panel">
           <h1>Registro de resultados</h1>
-          <p>Selecciona un torneo para registrar los resultados de sus combates.</p>
+          <p *ngIf="esStaff()">Selecciona tu dojo asignado para registrar resultados. Si tienes una sola asignación para hoy, se abrirá automáticamente.</p>
+          <p *ngIf="!esStaff()">Selecciona un torneo para registrar los resultados de sus combates.</p>
           <p *ngIf="loading()">Cargando torneos...</p>
           <p *ngIf="error()" role="alert">{{ error() }}</p>
-          <p *ngIf="!loading() && !error() && !torneos().length">No hay torneos disponibles.</p>
-          <div class="staff-list">
+          <p *ngIf="!loading() && !error() && esStaff() && !asignacionesVigentes().length">No tienes dojos asignados para hoy. Solicita al administrador una asignación para esta fecha.</p>
+          <p *ngIf="!loading() && !error() && !esStaff() && !torneos().length">No hay torneos disponibles.</p>
+          <div class="staff-list" *ngIf="esStaff()">
+            <a *ngFor="let a of asignacionesVigentes()" class="staff-torneo"
+               [routerLink]="['/torneos', a.torneo, 'resultados']" [queryParams]="{dojo: a.dojo}">
+              <span><strong>{{ nombreTorneo(a.torneo) }} · {{ nombreDojo(a.dojo) }}</strong><small>Fecha: {{ a.fecha }}</small></span>
+              <span>Ver mis combates →</span>
+            </a>
+          </div>
+          <div class="staff-list" *ngIf="!esStaff()">
             <a *ngFor="let torneo of torneos()" class="staff-torneo"
                [routerLink]="['/torneos', torneo._id, 'resultados']">
               <span><strong>{{ torneo.nombre }}</strong><small>{{ torneo.estado }}</small></span>
@@ -57,14 +70,45 @@ import { TopbarComponent } from '../../shared/components/topbar/topbar.component
 })
 export class StaffResultadosComponent implements OnInit {
   private readonly torneosService = inject(TorneoService);
+  private readonly asignacionesService = inject(AsignacionesStaffService);
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+  readonly esStaff = () => this.auth.hasAnyRole([Role.STAFF]) && !this.auth.hasAnyRole([Role.ADMIN]);
+  readonly asignaciones = signal<AsignacionStaff[]>([]);
+  readonly dojos = signal<{_id: string; nombre: string}[]>([]);
+  readonly asignacionesVigentes = () => {
+    const hoy = new Intl.DateTimeFormat('en-CA', {timeZone:'America/Mexico_City', year:'numeric', month:'2-digit', day:'2-digit'}).format(new Date());
+    return this.asignaciones().filter(a => a.fecha === hoy);
+  };
+  nombreTorneo(id: string): string { return this.torneos().find(t => t._id === id)?.nombre ?? 'Torneo'; }
+  nombreDojo(id: string): string { return this.dojos().find(d => d._id === id)?.nombre ?? 'Dojo asignado'; }
   readonly sidebarOpen = signal(false);
   readonly torneos = signal<Torneo[]>([]);
   readonly loading = signal(true);
   readonly error = signal('');
   ngOnInit(): void {
-    this.torneosService.findAll().subscribe({
-      next: (torneos) => { this.torneos.set(torneos); this.loading.set(false); },
-      error: () => { this.error.set('No se pudieron cargar los torneos.'); this.loading.set(false); },
+    if (!this.esStaff()) {
+      this.torneosService.findAll().subscribe({
+        next: torneos => { this.torneos.set(torneos); this.loading.set(false); },
+        error: () => { this.error.set('No se pudieron cargar los torneos.'); this.loading.set(false); },
+      });
+      return;
+    }
+    forkJoin({
+      asignaciones: this.asignacionesService.mias(),
+      torneos: this.torneosService.findAll(),
+    }).subscribe({
+      next: ({asignaciones, torneos}) => {
+        this.asignaciones.set(asignaciones);
+        this.torneos.set(torneos);
+        this.loading.set(false);
+        const vigentes = this.asignacionesVigentes();
+        if (vigentes.length === 1) {
+          const a = vigentes[0];
+          this.router.navigate(['/torneos', a.torneo, 'resultados'], {queryParams: {dojo: a.dojo}});
+        }
+      },
+      error: () => { this.error.set('No se pudieron cargar tus asignaciones de dojo.'); this.loading.set(false); },
     });
   }
 }

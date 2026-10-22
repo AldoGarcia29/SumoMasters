@@ -60,10 +60,12 @@
                   </span>
                 </td>
                 <td class="table__actions">
-                  <button type="button" *ngIf="usuario.roles.includes(Role.STAFF)" (click)="abrirAsignaciones(usuario)"
-                    title="Asignar dojos por torneo y fecha" aria-label="Asignar dojos"
-                    style="color:#5b21b6;font-weight:700;width:auto;padding:0 10px">Dojos</button>
-                  <button type="button" aria-label="Editar roles" title="Editar roles" (click)="openRolesModal(usuario)">
+                  <button type="button" *ngIf="usuario.roles.includes(Role.STAFF)"
+                    class="btn-dojos" title="Asignar dojos por torneo y fecha"
+                    aria-label="Asignar dojos" (click)="abrirAsignaciones(usuario)">
+                    Dojos
+                  </button>
+                  <button type="button" aria-label="Editar roles"  title="Editar roles" (click)="openRolesModal(usuario)">
                     <svg viewBox="0 0 24 24" width="16" height="16">
                       <path d="M4 20h4L18 10l-4-4L4 16v4Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
                     </svg>
@@ -136,38 +138,49 @@
   </div>
 </div>
 
-<div class="modal-backdrop" *ngIf="asignacionUsuario() as juez" (click)="cerrarAsignaciones()">
-  <div class="modal" (click)="$event.stopPropagation()" style="max-width:540px;width:calc(100vw - 32px)">
+<!-- Modal asignación de dojos STAFF -->
+<div class="modal-backdrop" *ngIf="asignacionUsuario() as usuario" (click)="cerrarAsignaciones()">
+  <div class="modal modal--asignaciones" (click)="$event.stopPropagation()">
     <div class="modal__header">
-      <h3>Asignar dojos a {{ juez.name }}</h3>
+      <h3>Asignar dojos a {{ usuario.name }}</h3>
       <button type="button" class="modal__close" (click)="cerrarAsignaciones()" aria-label="Cerrar">✕</button>
     </div>
-    <div class="modal__body" style="display:grid;gap:14px">
-      <label>Torneo
-        <select style="width:100%;padding:10px" [value]="torneoElegido()" (change)="torneoElegido.set($any($event.target).value)">
-          <option value="">Selecciona un torneo</option>
-          <option *ngFor="let t of torneos()" [value]="t._id">{{ t.nombre }}</option>
-        </select>
-      </label>
-      <label>Dojo
-        <select style="width:100%;padding:10px" [value]="dojoElegido()" (change)="dojoElegido.set($any($event.target).value)">
-          <option value="">Selecciona un dojo</option>
-          <option *ngFor="let d of dojos()" [value]="d._id">{{ d.nombre }}</option>
-        </select>
-      </label>
-      <label>Fecha
-        <input type="date" style="width:100%;padding:10px" [value]="fechaElegida()" (change)="fechaElegida.set($any($event.target).value)" />
-      </label>
-      <p class="panel__error" *ngIf="asignacionError()">{{ asignacionError() }}</p>
-      <button type="button" class="btn btn--primary" [disabled]="guardandoAsignacion()" (click)="guardarAsignacion()">
+    <div class="modal__body asignacion-form">
+      <label for="torneo-staff">Torneo</label>
+      <select id="torneo-staff" [value]="torneoElegido()" (change)="torneoElegido.set($any($event.target).value)">
+        <option value="">Seleccionar torneo</option>
+        <option *ngFor="let torneo of torneos()" [value]="torneo._id">{{ torneo.nombre }}</option>
+      </select>
+
+      <label for="dojo-staff">Dojo</label>
+      <select id="dojo-staff" [value]="dojoElegido()" (change)="dojoElegido.set($any($event.target).value)">
+        <option value="">Seleccionar dojo</option>
+        <option *ngFor="let dojo of dojos()" [value]="dojo._id">{{ dojo.nombre }}</option>
+      </select>
+
+      <label for="fecha-staff">Fecha</label>
+      <input id="fecha-staff" type="date" [value]="fechaElegida()"
+        (change)="fechaElegida.set($any($event.target).value)" />
+
+      <p class="asignacion-error" *ngIf="asignacionError()">{{ asignacionError() }}</p>
+      <p class="asignacion-exito" *ngIf="asignacionExito()">{{ asignacionExito() }}</p>
+
+      <h4>Asignaciones actuales</h4>
+      <p *ngIf="asignacionesDeUsuario(usuario.id).length === 0">Todavía no tiene dojos asignados.</p>
+      <div class="asignacion-lista" *ngFor="let asignacion of asignacionesDeUsuario(usuario.id)">
+        <div>
+          <strong>{{ nombreDojo(asignacion.dojo) }}</strong>
+          <span>{{ nombreTorneo(asignacion.torneo) }} · {{ asignacion.fecha }}</span>
+        </div>
+        <button type="button" (click)="eliminarAsignacion(asignacion._id)" aria-label="Eliminar asignación">Eliminar</button>
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button type="button" class="btn btn--ghost" (click)="cerrarAsignaciones()">Cerrar</button>
+      <button type="button" class="btn btn--primary" (click)="guardarAsignacion()"
+        [disabled]="guardandoAsignacion() || !torneoElegido() || !dojoElegido() || !fechaElegida()">
         {{ guardandoAsignacion() ? 'Guardando…' : 'Guardar asignación' }}
       </button>
-      <h4>Asignaciones existentes</h4>
-      <p *ngIf="asignacionesDeUsuario(juez.id).length === 0">Este STAFF todavía no tiene asignaciones.</p>
-      <div *ngFor="let a of asignacionesDeUsuario(juez.id)" style="display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid #ddd;padding:8px 0">
-        <span>{{ nombreTorneo(a.torneo) }} — {{ nombreDojo(a.dojo) }} — {{ a.fecha }}</span>
-        <button type="button" class="btn btn--ghost" (click)="eliminarAsignacion(a._id)">Quitar</button>
-      </div>
     </div>
   </div>
 </div>
