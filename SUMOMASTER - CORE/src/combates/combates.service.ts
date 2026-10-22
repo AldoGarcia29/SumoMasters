@@ -3,7 +3,6 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
-  ForbiddenException,
 } from '@nestjs/common';
 
 import { InjectModel } from '@nestjs/mongoose';
@@ -26,11 +25,8 @@ import { GenerarCombatesDto } from './dto/generar-combates.dto';
 import { RegistrarResultadoDto } from './dto/registrar-resultado.dto';
 
 import { Combate, CombateDocument } from './schemas/combate.schema';
-<<<<<<< HEAD
 import { AsignacionesStaffService } from './asignaciones-staff.service';
 import { AuthenticatedUser } from '../common/interfaces/jwt-payload.interface';
-=======
->>>>>>> eaea2700d59aa0879fcb3d4156afaeff00827e91
 
 import { ActualizarHorarioCombateDto } from './dto/actualizar-horario-combate.dto';
 
@@ -125,10 +121,7 @@ export class CombatesService {
       estado?: string;
       fase?: string;
     },
-<<<<<<< HEAD
     user?: AuthenticatedUser,
-=======
->>>>>>> eaea2700d59aa0879fcb3d4156afaeff00827e91
   ): Promise<CombateDocument[]> {
     if (!Types.ObjectId.isValid(torneoId)) {
       throw new BadRequestException(
@@ -181,7 +174,6 @@ export class CombatesService {
     console.log(
       `[Combates] Encontrados antes de populate: ${totalSinPopulate}`,
     );
-<<<<<<< HEAD
 
     const combates = await this.combateModel
       .find(query)
@@ -219,26 +211,6 @@ export class CombatesService {
   }
 
   async findOne(id: string, user?: AuthenticatedUser): Promise<CombateDocument> {
-=======
-
-    const combates = await this.combateModel
-      .find(query)
-      .populate(POPULATE)
-      .sort({
-        turno: 1,
-        arena: 1,
-        bloque: 1,
-        numero: 1,
-      })
-      .exec();
-
-    console.log(`[Combates] Devueltos después de populate: ${combates.length}`);
-
-    return combates;
-  }
-
-  async findOne(id: string): Promise<CombateDocument> {
->>>>>>> eaea2700d59aa0879fcb3d4156afaeff00827e91
     const combate = await this.combateModel
       .findById(id)
       .populate(POPULATE)
@@ -740,7 +712,6 @@ export class CombatesService {
       .exec();
 
     if (!combate) throw new NotFoundException('Combate no encontrado');
-    await this.verificarAcceso(combate, user);
     return combate;
   }
 
@@ -900,11 +871,7 @@ export class CombatesService {
       .exec();
   }
 
-<<<<<<< HEAD
   async iniciar(id: string, user?: AuthenticatedUser): Promise<CombateDocument> {
-=======
-  async iniciar(id: string): Promise<CombateDocument> {
->>>>>>> eaea2700d59aa0879fcb3d4156afaeff00827e91
     const combate = await this.combateModel.findById(id).exec();
     if (!combate) throw new NotFoundException('Combate no encontrado');
 
@@ -913,7 +880,6 @@ export class CombatesService {
       throw new BadRequestException('Este combate ya fue finalizado');
     }
 
-<<<<<<< HEAD
     const actualizado = await this.combateModel.findOneAndUpdate(
       { _id: id, estado: { $ne: EstadoCombate.FINALIZADO }, resultado: null },
       { $set: { estado: EstadoCombate.EN_CURSO },
@@ -926,25 +892,6 @@ export class CombatesService {
 
   async registrarResultado(
     id: string, dto: RegistrarResultadoDto, user?: AuthenticatedUser,
-=======
-    combate.estado = EstadoCombate.EN_CURSO;
-    combate.historial.push({
-      hora: new Date(),
-      descripcion: 'Combate iniciado',
-      tipo: 'info',
-    });
-    await combate.save();
-
-    return this.combateModel
-      .findById(id)
-      .populate(POPULATE)
-      .exec() as Promise<CombateDocument>;
-  }
-
-  async registrarResultado(
-    id: string,
-    dto: RegistrarResultadoDto,
->>>>>>> eaea2700d59aa0879fcb3d4156afaeff00827e91
   ): Promise<CombateDocument> {
     const combate = await this.combateModel.findById(id).exec();
     if (!combate) throw new NotFoundException('Combate no encontrado');
@@ -952,7 +899,6 @@ export class CombatesService {
     if (!dto.metodoVictoria || (dto.metodoVictoria === MetodoVictoria.OTRO && !dto.otroMetodoVictoria?.trim())) {
       throw new BadRequestException('Selecciona el método de victoria y especifica Otro cuando corresponda');
     }
-<<<<<<< HEAD
     // Una sola escritura condicional atómica: el segundo STAFF no puede sobrescribir el primero.
     const actualizado = await this.combateModel.findOneAndUpdate(
       { _id: id, estado: { $ne: EstadoCombate.FINALIZADO }, resultado: null },
@@ -971,40 +917,6 @@ export class CombatesService {
     if (!actualizado) throw new ConflictException(
       'Este combate ya tiene un resultado registrado. Actualiza la lista para consultarlo.');
     return actualizado;
-=======
-
-    combate.resultado = dto.resultado;
-    if (
-      !dto.metodoVictoria ||
-      (dto.metodoVictoria === MetodoVictoria.OTRO &&
-        !dto.otroMetodoVictoria?.trim())
-    ) {
-      throw new BadRequestException(
-        'Debes indicar el método de victoria. Si eliges Otro, especifícalo.',
-      );
-    }
-    combate.metodoVictoria = dto.metodoVictoria;
-    combate.otroMetodoVictoria =
-      dto.metodoVictoria === MetodoVictoria.OTRO
-        ? dto.otroMetodoVictoria!.trim()
-        : null;
-    combate.duracionSegundos = dto.duracionSegundos ?? null;
-    combate.jueces = dto.jueces ?? [];
-    combate.observaciones = dto.observaciones ?? '';
-    combate.estado = EstadoCombate.FINALIZADO;
-    combate.historial.push({
-      hora: new Date(),
-      descripcion: `Combate finalizado — ${dto.resultado}`,
-      tipo: 'success',
-    });
-
-    await combate.save();
-
-    return this.combateModel
-      .findById(id)
-      .populate(POPULATE)
-      .exec() as Promise<CombateDocument>;
->>>>>>> eaea2700d59aa0879fcb3d4156afaeff00827e91
   }
 
   async cancelar(id: string): Promise<CombateDocument> {
