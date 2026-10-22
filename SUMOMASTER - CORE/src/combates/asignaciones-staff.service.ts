@@ -36,22 +36,29 @@ export class AsignacionesStaffService {
       );
     } catch (e) { throw new BadRequestException('No se pudo guardar la asignación'); }
   }
+  // Acepta ids guardados como ObjectId o como texto (datos creados con versiones anteriores).
+  private variantes(id: string): (Types.ObjectId | string)[] {
+    return [new Types.ObjectId(id), id];
+  }
   async listar(torneoId?: string, usuarioId?: string) {
     const filtro: Record<string, unknown> = {};
     if (torneoId) {
       if (!Types.ObjectId.isValid(torneoId)) throw new BadRequestException('Torneo inválido');
-      filtro['torneo'] = new Types.ObjectId(torneoId);
+      filtro['torneo'] = { $in: this.variantes(torneoId) };
     }
     if (usuarioId) {
       if (!Types.ObjectId.isValid(usuarioId)) throw new BadRequestException('Usuario inválido');
-      filtro['usuario'] = new Types.ObjectId(usuarioId);
+      filtro['usuario'] = { $in: this.variantes(usuarioId) };
     }
-    const resultados = await this.asignaciones.find(filtro).sort({ fecha: 1 }).lean().exec();
+    // aggregate no castea tipos, por eso encuentra ambas formas
+    const resultados = await this.asignaciones.aggregate([{ $match: filtro }, { $sort: { fecha: 1 } }]).exec();
     if (usuarioId && resultados.length === 0) {
       const total = await this.asignaciones.countDocuments();
+      const usuariosConAsignacion = (await this.asignaciones.distinct('usuario')).map(String);
       console.warn('[STAFF ASIGNACIONES] Sin coincidencias para usuario autenticado', {
+        usuarioAutenticadoId: usuarioId,
         totalAsignaciones: total,
-        consultaConUsuario: true,
+        usuariosConAsignacion,
       });
     }
     return resultados;
@@ -65,10 +72,14 @@ export class AsignacionesStaffService {
   async permitido(usuarioId: string, torneoId: string, dojoId: string, fecha: Date | null) {
     if (!fecha || !dojoId) return false;
     if (![usuarioId, torneoId, dojoId].every(id => Types.ObjectId.isValid(id))) return false;
-    return !!await this.asignaciones.exists({
-      usuario: new Types.ObjectId(usuarioId), torneo: new Types.ObjectId(torneoId),
-      dojo: new Types.ObjectId(dojoId), fecha: this.fechaLocal(fecha),
-    });
+    const r = await this.asignaciones.aggregate([
+      { $match: {
+        usuario: { $in: this.variantes(usuarioId) }, torneo: { $in: this.variantes(torneoId) },
+        dojo: { $in: this.variantes(dojoId) }, fecha: this.fechaLocal(fecha),
+      } },
+      { $limit: 1 },
+    ]).exec();
+    return r.length > 0;
   }
   async exigir(usuarioId: string, torneoId: string, dojoId: string, fecha: Date | null) {
     if (!await this.permitido(usuarioId, torneoId, dojoId, fecha))

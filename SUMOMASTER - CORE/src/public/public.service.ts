@@ -67,24 +67,6 @@ function porOrden(a: any, b: any): number {
   );
 }
 
-function robotPublico(
-  robot: any,
-): { nombre: string; imagenUrl: string | null } | null {
-  if (!robot || typeof robot.nombre !== 'string') {
-    return null;
-  }
-
-  const imagen =
-    typeof robot.imagenUrl === 'string'
-      ? robot.imagenUrl.trim()
-      : '';
-
-  return {
-    nombre: robot.nombre,
-    imagenUrl: imagen || null,
-  };
-}
-
 @Injectable()
 export class PublicService {
   constructor(
@@ -122,15 +104,15 @@ export class PublicService {
     // Campos reales del schema Combate: robot1, robot2, resultado (no existen "robots" ni "ganador").
     // Solo se publican nombres: nunca imágenes, jueces ni observaciones.
     const combates: any[] = await this.combateModel
-  .find({ torneo: torneoId })
-  .select(
-    'numero fase ronda horarioProgramado bloque dojo turno arena estado resultado robot1 robot2',
-  )
-  .populate('robot1', 'nombre imagenUrl')
-  .populate('robot2', 'nombre imagenUrl')
-  .populate('dojo', 'nombre')
-  .populate('bloque', 'nombre')
-  .lean();
+      .find({ torneo: torneoId })
+      .select(
+        'numero fase bloque dojo turno arena estado resultado robot1 robot2',
+      )
+      .populate('robot1', 'nombre')
+      .populate('robot2', 'nombre')
+      .populate('dojo', 'nombre')
+      .populate('bloque', 'nombre')
+      .lean();
 
     combates.sort(porOrden);
 
@@ -172,26 +154,17 @@ export class PublicService {
             : null;
 
       return {
-  id: String(c._id),
-  numero: c.numero,
-  fase: c.fase ? nombreDe(c.fase) : null,
-  ronda: c.ronda ?? null,
-  horarioProgramado: aISO(c.horarioProgramado),
-
-  dojo,
-  bloque: c.bloque ? nombreDe(c.bloque) : null,
-
-  robots: [robot1, robot2].filter(Boolean),
-
-  robot1: robotPublico(c.robot1),
-  robot2: robotPublico(c.robot2),
-
-  estado,
-  ganador,
-  empate: c.resultado === ResultadoCombate.EMPATE,
-  combatesAntes,
-  horaEstimada,
-};
+        numero: c.numero,
+        fase: c.fase ? nombreDe(c.fase) : null,
+        dojo,
+        bloque: c.bloque ? nombreDe(c.bloque) : null,
+        robots: [robot1, robot2].filter(Boolean),
+        estado,
+        ganador,
+        empate: c.resultado === ResultadoCombate.EMPATE,
+        combatesAntes,
+        horaEstimada,
+      };
     });
 
     // Fase actual: la del primer combate sin terminar (o la última si ya terminó todo).
