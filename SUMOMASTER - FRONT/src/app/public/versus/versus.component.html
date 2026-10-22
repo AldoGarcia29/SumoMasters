@@ -26,28 +26,20 @@
     <!-- Combate seleccionado por el organizador -->
     <ng-container *ngIf="d.combate as c; else espera">
       <div class="detalles">
-        <span>{{ c.fase }}</span>
+  <span>{{ c.fase }}</span>
 
-        <span *ngIf="c.bloque">
-          {{ c.bloque.nombre }}
-        </span>
+  <span *ngIf="c.bloque">
+    {{ c.bloque.nombre.replace('Bloque', 'Grupo') }}
+  </span>
 
-        <span>
-          {{ c.dojo?.nombre || 'Dojo por asignar' }}
-        </span>
+  <span>
+    {{ c.dojo?.nombre || 'Dojo por asignar' }}
+  </span>
 
-        <span>
-          Arena {{ c.arena ?? '—' }}
-        </span>
-
-        <span>
-          Turno {{ c.turno ?? '—' }}
-        </span>
-
-        <span>
-          Combate #{{ c.numero }}
-        </span>
-      </div>
+  <span>
+    Combate #{{ c.numero }}
+  </span>
+</div>
 
       <section
   *ngFor="let pelea of [c]; trackBy: identificarCombate"
