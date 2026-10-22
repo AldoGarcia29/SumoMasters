@@ -7,12 +7,25 @@ export interface TorneoResumen {
   fase: string | null;
 }
 
+export interface RobotLive {
+  nombre: string;
+  imagenUrl: string | null;
+}
+
 export interface CombateLive {
+  id?: string;
   numero: number;
   fase: string | null;
+  ronda?: number | null;
+  horarioProgramado?: string | null;
+
   dojo: string;
   bloque: string | null;
   robots: string[];
+
+  robot1?: RobotLive | null;
+  robot2?: RobotLive | null;
+
   estado: string;
   ganador: string | null;
   empate: boolean;
