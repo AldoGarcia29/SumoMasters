@@ -180,10 +180,17 @@ export class PublicService {
       .populate('categoria', 'nombre')
       .lean();
     if (!t) return null;
+    // Campos explícitos para la respuesta pública.
+    const filtro = {
+      torneo: new Types.ObjectId(torneoId),
+    };
 
-    // La respuesta pública incluye solo campos explícitos; no incluye base64 ni datos internos.
+    const total = await this.combateModel
+      .countDocuments(filtro)
+      .exec();
+
     const combates: any[] = await this.combateModel
-      .find({ torneo: new Types.ObjectId(torneoId) })
+      .find(filtro)
       .select(
         'numero fase ronda bloque dojo turno arena horarioProgramado estado resultado metodoVictoria otroMetodoVictoria robot1 robot2 placeholder1 placeholder2',
       )
@@ -191,8 +198,16 @@ export class PublicService {
       .populate('robot2', 'nombre imagenUrl')
       .populate('dojo', 'nombre')
       .populate('bloque', 'nombre')
-      .lean();
+      .lean()
+      .exec();
 
+    console.log('[PublicLive]', {
+      torneoId,
+      baseDeDatos: this.combateModel.db.name,
+      coleccion: this.combateModel.collection.name,
+      encontrados: total,
+      devueltos: combates.length,
+    });
     combates.sort(porOrden);
     const numeroPorRobot = new Map<string, number>(
       (t.participantes ?? []).map((participante: any) => [
