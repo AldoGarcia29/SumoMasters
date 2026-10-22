@@ -40,6 +40,14 @@ export class TorneosController {
     return this.torneosService.findOne(id);
   }
 
+  @Get(':id/robots/:robotId/ficha')
+  fichaRobot(
+    @Param('id') id: string,
+    @Param('robotId') robotId: string,
+  ) {
+    return this.torneosService.fichaRobot(id, robotId);
+  }
+
   @Roles(Role.ADMIN)
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateTorneoDto) {

@@ -1,13 +1,21 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { Robot } from '../../../core/models/robot.model';
+import { RobotFichaDialogService } from '../../../core/services/robot-ficha-dialog.service';
 
 @Component({
   selector: 'app-robot-chip',
   standalone: true,
   imports: [CommonModule],
   template: `
-    <span class="robot-chip">
+    <button
+      type="button"
+      class="robot-chip"
+      [class.robot-chip--clickable]="puedeAbrirFicha"
+      [disabled]="!puedeAbrirFicha"
+      [attr.aria-label]="puedeAbrirFicha ? 'Abrir ficha de ' + robot?.nombre : null"
+      (click)="abrirFicha()"
+    >
       <img
         *ngIf="robot?.imagenUrl; else placeholder"
         class="robot-chip__avatar"
@@ -26,10 +34,13 @@ import { Robot } from '../../../core/models/robot.model';
       </ng-template>
 
       <span class="robot-chip__meta">
-        <span class="robot-chip__name">{{ robot?.nombre ?? '—' }}</span>
+        <span class="robot-chip__name">
+          <strong *ngIf="numeroVisible">#{{ numeroLabel }}</strong>
+          {{ robot?.nombre ?? '—' }}
+        </span>
         <small class="robot-chip__team" *ngIf="showEquipo && equipoNombre">{{ equipoNombre }}</small>
       </span>
-    </span>
+    </button>
   `,
   styles: [
     `
@@ -42,9 +53,28 @@ import { Robot } from '../../../core/models/robot.model';
       .robot-chip {
         display: flex;
         align-items: center;
+        padding: 0;
         gap: 0.5rem;
         min-width: 0;
         max-width: 100%;
+        color: inherit;
+        text-align: left;
+        background: transparent;
+        border: 0;
+        font: inherit;
+      }
+
+      .robot-chip--clickable {
+        cursor: pointer;
+      }
+
+      .robot-chip--clickable:hover .robot-chip__name {
+        color: var(--color-primary, #7043b5);
+        text-decoration: underline;
+      }
+
+      .robot-chip:disabled {
+        opacity: 1;
       }
 
       .robot-chip__avatar {
@@ -92,6 +122,44 @@ import { Robot } from '../../../core/models/robot.model';
 export class RobotChipComponent {
   @Input() robot: Robot | null | undefined;
   @Input() showEquipo = true;
+  @Input() torneoId: string | null = null;
+  @Input() numeroParticipante: number | null = null;
+  @Input() participantes?:
+    | { robot: Robot | string; numero: number }[]
+    | null = null;
+  @Input() publico = false;
+
+  constructor(private readonly fichaDialog: RobotFichaDialogService) {}
+
+  get puedeAbrirFicha(): boolean {
+    return !!this.torneoId && !!this.robot?._id;
+  }
+
+  get numeroLabel(): string {
+    return String(this.numeroVisible).padStart(3, '0');
+  }
+
+  get numeroVisible(): number | null {
+    if (this.numeroParticipante !== null) return this.numeroParticipante;
+    const robotId = this.robot?._id;
+    if (!robotId) return null;
+    const participante = this.participantes?.find((item) =>
+      typeof item.robot === 'string'
+        ? item.robot === robotId
+        : item.robot._id === robotId,
+    );
+    return participante?.numero ?? null;
+  }
+
+  abrirFicha(): void {
+    if (!this.puedeAbrirFicha || !this.robot?._id || !this.torneoId) return;
+    this.fichaDialog.open({
+      torneoId: this.torneoId,
+      robotId: this.robot._id,
+      numero: this.numeroVisible,
+      publico: this.publico,
+    });
+  }
 
   get equipoNombre(): string {
     const equipo = this.robot?.equipo;

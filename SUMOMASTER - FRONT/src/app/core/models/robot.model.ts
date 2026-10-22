@@ -15,7 +15,7 @@ export interface Robot {
   categoria: Categoria | string;
   pesoKg: number | null;
   estado: EstadoRobot;
-  imagenUrl?: string;
+  imagenUrl?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }

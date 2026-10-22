@@ -100,7 +100,7 @@
                   </td>
                   <td>{{ fila.equipoNombre }}</td>
                   <td>
-                    <app-robot-chip [robot]="robotChipData(fila)" [showEquipo]="false" />
+                    <app-robot-chip [robot]="robotChipData(fila)" [showEquipo]="false" [torneoId]="torneoId" [participantes]="torneo()?.participantes" />
                   </td>
                   <td>{{ fila.combates }}</td>
                   <td>{{ fila.victorias }}</td>

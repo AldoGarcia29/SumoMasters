@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Robot, RobotPayload } from '../models/robot.model';
+import { RobotFicha } from '../models/robot-ficha.model';
 
 @Injectable({ providedIn: 'root' })
 export class RobotService {
@@ -28,6 +29,12 @@ export class RobotService {
 
   findOne(id: string): Observable<Robot> {
     return this.http.get<Robot>(`${this.apiUrl}/${id}`);
+  }
+
+  fichaTorneo(torneoId: string, robotId: string): Observable<RobotFicha> {
+    return this.http.get<RobotFicha>(
+      `${environment.coreApiUrl}/torneos/${torneoId}/robots/${robotId}/ficha`,
+    );
   }
 
   create(payload: RobotPayload): Observable<Robot> {

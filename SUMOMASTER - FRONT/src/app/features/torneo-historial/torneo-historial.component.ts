@@ -58,8 +58,10 @@ export class TorneoHistorialComponent implements OnInit {
     return this.combates().filter((c) => {
       const matchesTerm =
         !term ||
-        c.robot1.nombre.toLowerCase().includes(term) ||
-        c.robot2.nombre.toLowerCase().includes(term);
+        c.robot1?.nombre.toLowerCase().includes(term) ||
+        c.robot2?.nombre.toLowerCase().includes(term) ||
+        c.placeholder1?.toLowerCase().includes(term) ||
+        c.placeholder2?.toLowerCase().includes(term);
       const matchesBloque = !this.bloqueFiltro() || c.bloque?._id === this.bloqueFiltro();
       const matchesDojo = !this.dojoFiltro() || c.dojo?._id === this.dojoFiltro();
       const matchesEstado = !this.estadoFiltro() || c.estado === this.estadoFiltro();
@@ -150,8 +152,8 @@ export class TorneoHistorialComponent implements OnInit {
     if (!combate.resultado) return '—';
     if (combate.resultado === 'Empate') return 'Empate';
     return combate.resultado === 'Gana Robot 1'
-      ? `Gana ${combate.robot1.nombre}`
-      : `Gana ${combate.robot2.nombre}`;
+      ? `Gana ${combate.robot1?.nombre ?? combate.placeholder1 ?? 'Por definir'}`
+      : `Gana ${combate.robot2?.nombre ?? combate.placeholder2 ?? 'Por definir'}`;
   }
 
   formatDuracion(segundos: number | null): string {

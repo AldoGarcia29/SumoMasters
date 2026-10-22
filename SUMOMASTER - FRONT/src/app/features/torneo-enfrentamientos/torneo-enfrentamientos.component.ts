@@ -368,6 +368,8 @@ nombreBloqueCombate(combate: Combate): string {
     );
 
     return (
+      !!combate.robot1 &&
+      !!combate.robot2 &&
       ids.has(String(combate.robot1._id)) &&
       ids.has(String(combate.robot2._id))
     );

@@ -199,6 +199,19 @@ export class TorneosComponent implements OnInit {
     return this.form.controls.robotsInscritos.value.includes(robotId);
   }
 
+  numeroRobotInscrito(robotId: string): number | null {
+    const participante = this.selectedTorneo()?.participantes?.find((item) =>
+      typeof item.robot === 'string'
+        ? item.robot === robotId
+        : item.robot._id === robotId,
+    );
+    return participante?.numero ?? null;
+  }
+
+  numeroLabel(numero: number | null): string {
+    return numero === null ? '' : `#${String(numero).padStart(3, '0')} `;
+  }
+
   todosRobotsSeleccionados(): boolean {
   const robots = this.robotsDisponibles();
   const seleccionados = this.form.controls.robotsInscritos.value;

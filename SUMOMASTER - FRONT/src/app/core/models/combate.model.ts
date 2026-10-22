@@ -47,8 +47,10 @@ export interface Combate {
   ronda: number | null;
   /** Fecha y hora programada; los combates antiguos pueden no tenerla. */
 horarioProgramado?: string | null;
-  robot1: Robot;
-  robot2: Robot;
+  robot1: Robot | null;
+  robot2: Robot | null;
+  placeholder1?: string | null;
+  placeholder2?: string | null;
   dojo: Dojo | null;
   /** Turno programado del combate. */
   turno: number | null;
