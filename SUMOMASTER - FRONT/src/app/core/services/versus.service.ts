@@ -5,7 +5,7 @@ import { environment } from '../../../environments/environment';
 export interface RobotVersus {
   _id: string;
   nombre: string;
-  imagenUrl?: string;
+  imagenUrl?: string | null;
   equipo?: { _id: string; nombre: string } | string | null;
 }
 
@@ -13,6 +13,10 @@ export interface CombateVersus {
   _id: string;
   numero: number;
   fase: string;
+
+  ronda?: number | null;
+  horarioProgramado?: string | null;
+
   bloque: { _id: string; nombre: string } | null;
   dojo: { _id: string; nombre: string } | null;
   arena: number | null;
@@ -21,6 +25,8 @@ export interface CombateVersus {
   resultado: string | null;
   robot1: RobotVersus | null;
   robot2: RobotVersus | null;
+  placeholder1?: string | null;
+  placeholder2?: string | null;
 }
 
 export interface ProyeccionVersus {
@@ -47,15 +53,33 @@ export class VersusService {
   }
 
   mostrar(torneoId: string, combateId: string | null) {
-    return this.http.patch(
-      `${this.base}/torneos/${torneoId}/proyeccion`,
-      { combateId },
-    );
-  }
+  return this.http.patch(
+    `${this.base}/proyeccion/principal`,
+    {
+      torneoId,
+      combateId,
+    },
+  );
+}
+
+publicoPrincipal() {
+  return this.http.get<ProyeccionVersus | null>(
+    `${this.base}/public/versus/principal`,
+  );
+}
 
   publico(torneoId: string) {
     return this.http.get<ProyeccionVersus>(
       `${this.base}/public/torneos/${torneoId}/versus`,
     );
   }
+
+  seleccionPrincipal() {
+  return this.http.get<{
+    torneoId: string | null;
+    combateId: string | null;
+  }>(
+    `${this.base}/proyeccion/principal`,
+  );
+}
 }

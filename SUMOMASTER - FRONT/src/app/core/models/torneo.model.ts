@@ -15,6 +15,8 @@ export interface Torneo {
   categoria: Categoria | string;
   estado: EstadoTorneo;
   robotsInscritos: (Robot | string)[];
+  participantes?: { robot: Robot | string; numero: number }[];
+  ultimoNumero?: number;
   tamanioBloque: number;
   createdAt?: string;
   updatedAt?: string;

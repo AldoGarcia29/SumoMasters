@@ -878,6 +878,11 @@ export class CombatesService {
     if (!combate) throw new NotFoundException('Combate no encontrado');
 
     await this.verificarAcceso(combate, user);
+    if (!combate.robot1 || !combate.robot2) {
+      throw new BadRequestException(
+        'No se puede iniciar el combate hasta que estén definidos ambos robots.',
+      );
+    }
     if (combate.estado === EstadoCombate.FINALIZADO) {
       throw new BadRequestException('Este combate ya fue finalizado');
     }
@@ -898,6 +903,11 @@ export class CombatesService {
     const combate = await this.combateModel.findById(id).exec();
     if (!combate) throw new NotFoundException('Combate no encontrado');
     await this.verificarAcceso(combate, user);
+    if (!combate.robot1 || !combate.robot2) {
+      throw new BadRequestException(
+        'No se puede registrar el resultado hasta que estén definidos ambos robots.',
+      );
+    }
     if (!dto.metodoVictoria || (dto.metodoVictoria === MetodoVictoria.OTRO && !dto.otroMetodoVictoria?.trim())) {
       throw new BadRequestException('Selecciona el método de victoria y especifica Otro cuando corresponda');
     }

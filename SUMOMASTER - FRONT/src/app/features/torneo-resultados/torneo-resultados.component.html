@@ -445,6 +445,8 @@
                 <app-robot-chip
                   [robot]="combate.robot1"
                   [showEquipo]="false"
+                  [torneoId]="torneoId"
+                  [participantes]="torneo()?.participantes"
                 />
 
                 <span class="table__vs">
@@ -454,6 +456,8 @@
                 <app-robot-chip
                   [robot]="combate.robot2"
                   [showEquipo]="false"
+                  [torneoId]="torneoId"
+                  [participantes]="torneo()?.participantes"
                 />
 
               </div>
@@ -622,15 +626,15 @@
 
                 <img
                   *ngIf="
-                    combate.robot1.imagenUrl;
+                    combate.robot1?.imagenUrl;
                     else placeholder1
                   "
                   class="versus-box__photo"
                   [src]="
-                    combate.robot1.imagenUrl
+                    combate.robot1?.imagenUrl
                   "
                   [alt]="
-                    combate.robot1.nombre
+                    participanteLabel(combate.robot1, combate.placeholder1)
                   "
                 />
 
@@ -688,7 +692,7 @@
                   class="versus-box__name"
                 >
                   {{
-                    combate.robot1.nombre
+                    participanteLabel(combate.robot1, combate.placeholder1)
                   }}
                 </span>
 
@@ -728,15 +732,15 @@
 
                 <img
                   *ngIf="
-                    combate.robot2.imagenUrl;
+                    combate.robot2?.imagenUrl;
                     else placeholder2
                   "
                   class="versus-box__photo"
                   [src]="
-                    combate.robot2.imagenUrl
+                    combate.robot2?.imagenUrl
                   "
                   [alt]="
-                    combate.robot2.nombre
+                    participanteLabel(combate.robot2, combate.placeholder2)
                   "
                 />
 
@@ -794,7 +798,7 @@
                   class="versus-box__name"
                 >
                   {{
-                    combate.robot2.nombre
+                    participanteLabel(combate.robot2, combate.placeholder2)
                   }}
                 </span>
 
@@ -827,7 +831,9 @@
               *ngIf="
                 combate.estado !==
                   'Finalizado' &&
-                canManage();
+                canManage() &&
+                combate.robot1 &&
+                combate.robot2;
                 else soloLectura
               "
             >
@@ -855,7 +861,7 @@
 
                     Gana
                     {{
-                      combate.robot1.nombre
+                      participanteLabel(combate.robot1, combate.placeholder1)
                     }}
                   </label>
 
@@ -886,7 +892,7 @@
 
                     Gana
                     {{
-                      combate.robot2.nombre
+                      participanteLabel(combate.robot2, combate.placeholder2)
                     }}
                   </label>
 

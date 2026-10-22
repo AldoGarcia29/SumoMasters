@@ -10,12 +10,11 @@ const TODOS_LOS_ROLES = roleGuard(ALL_ROLES);
 
 export const routes: Routes = [
   // =========================
-  // LISTA AUTENTICADA Y DETALLE PÚBLICO DE TORNEOS
+  // PÁGINAS PÚBLICAS DE TORNEOS EN VIVO
   // =========================
 
   {
     path: 'live',
-    canActivate: [authGuard, TODOS_LOS_ROLES],
     loadComponent: () =>
       import('./public/torneos-publicos/torneos-publicos.component').then(
         (m) => m.TorneosPublicosComponent,
@@ -32,6 +31,7 @@ export const routes: Routes = [
 
   {
     path: 'live/:id/combates',
+    canActivate: [authGuard],
     loadComponent: () =>
       import('./public/live-combates/live-combates.component').then(
         (m) => m.LiveCombatesComponent,

@@ -268,8 +268,8 @@ export class TorneoClasificadosComponent implements OnInit {
         .filter((combate) => combate.fase === fase)
         .sort((a, b) => a.numero - b.numero)
         .map((combate) => ({
-          robot1Id: combate.robot1._id,
-          robot2Id: combate.robot2._id,
+          robot1Id: combate.robot1?._id ?? '',
+          robot2Id: combate.robot2?._id ?? '',
         })),
     );
   }

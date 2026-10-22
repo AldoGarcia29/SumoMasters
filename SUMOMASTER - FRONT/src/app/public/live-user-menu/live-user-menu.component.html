@@ -1,4 +1,4 @@
-<div class="envoltorio" *ngIf="user()">
+<div class="envoltorio" *ngIf="user(); else visitante">
   <button
     type="button"
     class="perfil"
@@ -33,7 +33,6 @@
     </div>
 
     <a
-      *ngIf="tienePanel()"
       class="opcion"
       role="menuitem"
       [routerLink]="rutaPanel()"
@@ -81,10 +80,10 @@
           stroke-width="1.6"
         />
       </svg>
-      Ir al panel
+      Mi cuenta
     </a>
 
-    <div class="divisor" *ngIf="tienePanel()"></div>
+    <div class="divisor"></div>
 
     <button
       type="button"
@@ -114,3 +113,10 @@
     </button>
   </div>
 </div>
+
+<ng-template #visitante>
+  <nav class="visitante" aria-label="Acceso a la cuenta">
+    <a routerLink="/auth/login">Iniciar sesión</a>
+    <a class="registro" routerLink="/auth/register">Registro</a>
+  </nav>
+</ng-template>

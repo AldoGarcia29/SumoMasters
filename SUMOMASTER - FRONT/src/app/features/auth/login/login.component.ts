@@ -75,7 +75,12 @@ export class LoginComponent {
             return;
           }
 
-          this.router.navigateByUrl(this.authService.homeRoute());
+          const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+          this.router.navigateByUrl(
+            this.esRutaRetornoCombates(returnUrl)
+              ? returnUrl
+              : this.authService.homeRoute(),
+          );
         },
 
         error: (err: HttpErrorResponse) => {
@@ -94,5 +99,9 @@ export class LoginComponent {
     this.errorMessage.set(
       message ?? 'No se pudo iniciar sesión. Intenta nuevamente.',
     );
+  }
+
+  private esRutaRetornoCombates(returnUrl: string | null): returnUrl is string {
+    return !!returnUrl && /^\/live\/[a-f\d]{24}\/combates(?:\?.*)?$/i.test(returnUrl);
   }
 }

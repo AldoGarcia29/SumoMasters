@@ -672,3 +672,17 @@ app-topbar {
     padding: 1rem;
   }
 }
+.robot-name-button {
+  padding: 0;
+  color: inherit;
+  text-align: inherit;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.robot-name-button:hover {
+  color: var(--color-primary, #7043b5);
+  text-decoration: underline;
+}

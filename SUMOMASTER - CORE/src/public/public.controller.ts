@@ -40,7 +40,7 @@ export class PublicController {
   ) {}
 
   @Get('torneos')
-  @Header('Cache-Control', 'public, max-age=30')
+  @Header('Cache-Control', 'public, max-age=5')
   lista() {
     return this.cache.wrap(LISTA_KEY, LISTA_TTL_MS, () =>
       this.service.listarTorneosPublicos(),
@@ -71,5 +71,20 @@ export class PublicController {
     );
     if (!data) throw new NotFoundException('Torneo no encontrado');
     return data;
+  }
+
+  @Get('torneos/:id/robots/:robotId/ficha')
+  @Header('Cache-Control', 'public, max-age=5')
+  async fichaRobot(
+    @Param('id') id: string,
+    @Param('robotId') robotId: string,
+  ) {
+    if (!/^[a-f\d]{24}$/i.test(id) || !/^[a-f\d]{24}$/i.test(robotId)) {
+      throw new BadRequestException('id inválido');
+    }
+
+    const ficha = await this.service.armarFichaRobot(id, robotId);
+    if (!ficha) throw new NotFoundException('Robot o torneo no encontrado');
+    return ficha;
   }
 }

@@ -89,9 +89,9 @@
                   <td>{{ formatFechaHora(combate.updatedAt || combate.createdAt) }}</td>
                   <td>{{ combate.bloque?.nombre ?? '—' }}</td>
                   <td>{{ combate.dojo?.nombre ?? '—' }}</td>
-                  <td><app-robot-chip [robot]="combate.robot1" [showEquipo]="false" /></td>
+                  <td><app-robot-chip [robot]="combate.robot1" [showEquipo]="false" [torneoId]="torneoId" [participantes]="torneo()?.participantes" /></td>
                   <td class="table__vs">vs</td>
-                  <td><app-robot-chip [robot]="combate.robot2" [showEquipo]="false" /></td>
+                  <td><app-robot-chip [robot]="combate.robot2" [showEquipo]="false" [torneoId]="torneoId" [participantes]="torneo()?.participantes" /></td>
                   <td>
                     <span class="badge" [class]="estadoBadgeClass(combate.estado)">{{ resultadoLabel(combate) }}</span>
                   </td>
@@ -130,9 +130,9 @@
           </div>
 
           <div class="detail-versus">
-            <app-robot-chip [robot]="combate.robot1" />
+            <app-robot-chip [robot]="combate.robot1" [torneoId]="torneoId" [participantes]="torneo()?.participantes" />
             <span class="table__vs">VS</span>
-            <app-robot-chip [robot]="combate.robot2" />
+            <app-robot-chip [robot]="combate.robot2" [torneoId]="torneoId" [participantes]="torneo()?.participantes" />
           </div>
 
           <p class="detail-resultado" *ngIf="combate.resultado">

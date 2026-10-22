@@ -8,12 +8,11 @@ import {
   signal,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Role } from '../../core/models/auth.model';
 import { AuthService } from '../../core/services/auth.service';
 
 /**
  * Menú de usuario para las páginas públicas de /live.
- * Solo se muestra si hay una sesión iniciada; permite cerrar sesión desde aquí.
+ * Permite acceder o cerrar sesión desde las páginas públicas de /live.
  */
 @Component({
   selector: 'app-live-user-menu',
@@ -41,12 +40,6 @@ export class LiveUserMenuComponent {
     const primera = partes[0][0] ?? '';
     const ultima = partes.length > 1 ? partes[partes.length - 1][0] : '';
     return (primera + ultima).toUpperCase();
-  });
-
-  /** ADMIN o STAFF pueden volver al panel; un usuario sin permisos solo puede cerrar sesión. */
-  readonly tienePanel = computed(() => {
-    const roles = this.user()?.roles ?? [];
-    return roles.includes(Role.ADMIN) || roles.includes(Role.STAFF);
   });
 
   readonly rutaPanel = computed(() => {

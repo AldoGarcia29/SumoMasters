@@ -54,11 +54,17 @@ ronda: number | null;
 @Prop({ type: Date, default: null })
 horarioProgramado!: Date | null;
 
-  @Prop({ type: Types.ObjectId, ref: 'Robot', required: true })
-  robot1: Types.ObjectId;
+  @Prop({ type: Types.ObjectId, ref: 'Robot', default: null })
+  robot1: Types.ObjectId | null;
 
-  @Prop({ type: Types.ObjectId, ref: 'Robot', required: true })
-  robot2: Types.ObjectId;
+  @Prop({ type: Types.ObjectId, ref: 'Robot', default: null })
+  robot2: Types.ObjectId | null;
+
+  @Prop({ type: String, default: null })
+  placeholder1?: string | null;
+
+  @Prop({ type: String, default: null })
+  placeholder2?: string | null;
 
   @Prop({ type: Types.ObjectId, ref: 'Dojo', default: null })
   dojo: Types.ObjectId | null;
