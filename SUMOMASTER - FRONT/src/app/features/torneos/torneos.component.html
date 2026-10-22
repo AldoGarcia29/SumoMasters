@@ -204,6 +204,7 @@
                     al módulo operativo del torneo.
                   -->
                   <a
+                    *appCan="'manage'"
                     class="btn btn--primary btn--sm"
                     [routerLink]="[
                       '/torneos',
@@ -302,7 +303,6 @@
 
                   <!-- Solo ADMIN -->
                   <button
-                    *appCan="'admin'"
                     type="button"
                     aria-label="Ver"
                     title="Ver torneo"
