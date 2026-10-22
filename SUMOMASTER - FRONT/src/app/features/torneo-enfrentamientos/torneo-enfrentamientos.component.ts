@@ -30,6 +30,8 @@ import {
   FaseCombate,
 } from '../../core/models/combate.model';
 
+import { catchError, forkJoin, of } from 'rxjs';
+
 @Component({
   selector: 'app-torneo-enfrentamientos',
   standalone: true,
@@ -50,28 +52,20 @@ export class TorneoEnfrentamientosComponent
 {
 
 
-  readonly horariosEditados = signal<Record<string, string>>({});
-readonly guardandoHorarios = signal<Record<string, boolean>>({});
+readonly horariosRonda = signal<Record<string, string>>({});
+readonly guardandoRondas = signal<Record<string, boolean>>({});
+
+private claveRonda(numero: number): string {
+  return `${this.activeFase()}:${numero}`;
+}
 
 valorHorario(combate: Combate): string {
-  const editados = this.horariosEditados();
-
-  if (
-    Object.prototype.hasOwnProperty.call(
-      editados,
-      combate._id,
-    )
-  ) {
-    return editados[combate._id];
-  }
-
   if (!combate.horarioProgramado) return '';
 
   const fecha = new Date(combate.horarioProgramado);
 
   if (!Number.isFinite(fecha.getTime())) return '';
 
-  // Muestra el horario del evento en Querétaro.
   const partes = new Intl.DateTimeFormat('en-GB', {
     timeZone: 'America/Mexico_City',
     year: 'numeric',
@@ -82,119 +76,156 @@ valorHorario(combate: Combate): string {
     hourCycle: 'h23',
   }).formatToParts(fecha);
 
-  const valor = (tipo: string): string =>
-    partes.find((parte) => parte.type === tipo)?.value ?? '';
+  const parte = (tipo: string): string =>
+    partes.find((item) => item.type === tipo)?.value ?? '';
 
-  return `${valor('year')}-${valor('month')}-${valor('day')}T${valor('hour')}:${valor('minute')}`;
+  return `${parte('year')}-${parte('month')}-${parte('day')}T${parte('hour')}:${parte('minute')}`;
 }
 
-editarHorario(combateId: string, valor: string): void {
-  this.horariosEditados.update((actuales) => ({
+valorHorarioRonda(
+  numero: number,
+  combates: Combate[],
+): string {
+  const clave = this.claveRonda(numero);
+  const editados = this.horariosRonda();
+
+  if (Object.prototype.hasOwnProperty.call(editados, clave)) {
+    return editados[clave];
+  }
+
+  const valores = combates.map(
+    (combate) => this.valorHorario(combate),
+  );
+
+  // No muestra como uniforme un horario que aún
+  // solo está guardado en algunos combates.
+  return valores.length > 0 &&
+    valores.every((valor) => valor === valores[0])
+      ? valores[0]
+      : '';
+}
+
+horariosDistintos(combates: Combate[]): boolean {
+  return new Set(
+    combates.map((combate) => this.valorHorario(combate)),
+  ).size > 1;
+}
+
+editarHorarioRonda(numero: number, valor: string): void {
+  const clave = this.claveRonda(numero);
+
+  this.horariosRonda.update((actuales) => ({
     ...actuales,
-    [combateId]: valor,
+    [clave]: valor,
   }));
 }
 
-horarioModificado(combateId: string): boolean {
+guardandoRonda(numero: number): boolean {
+  return this.guardandoRondas()[this.claveRonda(numero)] ?? false;
+}
+
+rondaModificada(numero: number): boolean {
   return Object.prototype.hasOwnProperty.call(
-    this.horariosEditados(),
-    combateId,
+    this.horariosRonda(),
+    this.claveRonda(numero),
   );
 }
 
-guardarHorario(combate: Combate): void {
+guardarHorarioRonda(
+  numero: number,
+  combates: Combate[],
+): void {
   if (
-    this.guardandoHorarios()[combate._id] ||
-    !this.horarioModificado(combate._id)
+    this.guardandoRonda(numero) ||
+    !this.rondaModificada(numero) ||
+    combates.length === 0
   ) {
     return;
   }
 
-  const valor = this.valorHorario(combate);
-
-  // Para el evento en Querétaro, el horario se envía
-  // con desplazamiento UTC-06:00.
-  const horario = valor
-    ? `${valor}:00-06:00`
-    : null;
+  const clave = this.claveRonda(numero);
+  const fase = this.activeFase();
+  const valor = this.valorHorarioRonda(numero, combates);
+  const horario = valor ? `${valor}:00-06:00` : null;
 
   if (
     horario !== null &&
     !Number.isFinite(Date.parse(horario))
   ) {
-    this.errorMessage.set(
-      'Selecciona una fecha y hora válidas.',
-    );
+    this.errorMessage.set('Selecciona una fecha y hora válidas.');
     return;
   }
 
-  this.guardandoHorarios.update((actuales) => ({
+  this.guardandoRondas.update((actuales) => ({
     ...actuales,
-    [combate._id]: true,
+    [clave]: true,
   }));
 
   this.errorMessage.set(null);
   this.successMessage.set(null);
 
-  this.combateService
-    .actualizarHorario(
-      this.torneoId,
-      combate._id,
-      horario,
-    )
-    .subscribe({
-      next: (actualizado) => {
-        this.combates.update((actuales) =>
-          actuales.map((item) =>
-            item._id === actualizado._id
-              ? actualizado
-              : item,
-          ),
-        );
-
-        const cacheados =
-          this.flowCache.getCombates(this.torneoId) ?? [];
-
-        this.flowCache.setCombates(
+  forkJoin(
+    combates.map((combate) =>
+      this.combateService
+        .actualizarHorario(
           this.torneoId,
-          cacheados.map((item) =>
-            item._id === actualizado._id
-              ? actualizado
-              : item,
-          ),
-        );
+          combate._id,
+          horario,
+        )
+        .pipe(
+          catchError(() => of(null)),
+        ),
+    ),
+  ).subscribe((respuestas) => {
+    const actualizados = respuestas.filter(
+      (item): item is Combate => item !== null,
+    );
 
-        this.horariosEditados.update((actuales) => {
-          const copia = { ...actuales };
-          delete copia[combate._id];
-          return copia;
-        });
+    const porId = new Map(
+      actualizados.map((item) => [item._id, item]),
+    );
 
-        this.guardandoHorarios.update((actuales) => ({
-          ...actuales,
-          [combate._id]: false,
-        }));
+    this.combates.update((actuales) =>
+      actuales.map((item) => porId.get(item._id) ?? item),
+    );
 
-        this.successMessage.set(
-          horario
-            ? 'Horario guardado correctamente.'
-            : 'Horario eliminado correctamente.',
-        );
-      },
-      error: (err) => {
-        this.guardandoHorarios.update((actuales) => ({
-          ...actuales,
-          [combate._id]: false,
-        }));
+    const cacheados =
+      this.flowCache.getCombates(this.torneoId) ?? [];
 
+    this.flowCache.setCombates(
+      this.torneoId,
+      cacheados.map((item) => porId.get(item._id) ?? item),
+    );
+
+    this.guardandoRondas.update((actuales) => ({
+      ...actuales,
+      [clave]: false,
+    }));
+
+    if (actualizados.length !== combates.length) {
+      if (this.activeFase() === fase) {
         this.errorMessage.set(
-          extractErrorMessage(
-            err,
-            'No se pudo guardar el horario.',
-          ),
+          `Se guardaron ${actualizados.length} de ${combates.length} horarios. Pulsa Guardar ronda para reintentar los restantes.`,
         );
-      },
+      }
+
+      return;
+    }
+
+    this.horariosRonda.update((actuales) => {
+      const copia = { ...actuales };
+      delete copia[clave];
+      return copia;
     });
+
+    if (this.activeFase() === fase) {
+      this.successMessage.set(
+        horario
+          ? 'Hora de inicio de la ronda guardada.'
+          : 'Horario de la ronda eliminado.',
+      );
+    }
+  });
 }
 
 
@@ -277,10 +308,29 @@ guardarHorario(combate: Combate): void {
 });
 
 nombreBloqueCombate(combate: Combate): string {
-  const id = this.obtenerBloqueId(combate);
+  const bloqueId = this.obtenerBloqueId(combate);
+
+  const bloque = this.bloques().find(
+    (item) => item._id === bloqueId,
+  );
+
+  if (bloque) return bloque.nombre;
+
+  // Si la referencia del combate está incompleta,
+  // identifica el bloque por sus participantes.
+  const porRobots = this.bloques().find((item) => {
+    const ids = new Set(
+      item.robots.map((robot) => String(robot._id)),
+    );
+
+    return (
+      ids.has(String(combate.robot1._id)) &&
+      ids.has(String(combate.robot2._id))
+    );
+  });
 
   return (
-    this.bloques().find((bloque) => bloque._id === id)?.nombre ??
+    porRobots?.nombre ??
     combate.bloque?.nombre ??
     'Sin bloque'
   );
