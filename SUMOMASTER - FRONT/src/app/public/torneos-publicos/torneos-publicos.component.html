@@ -1,27 +1,111 @@
-<div class="app-shell">
-  <app-sidebar [isOpen]="sidebarOpen()" (closeRequested)="closeSidebar()" />
-  <div class="app-shell__backdrop" *ngIf="sidebarOpen()" (click)="closeSidebar()"></div>
+<main class="pagina">
+  <header class="barra">
+    <a class="marca" routerLink="/live" aria-label="MECAMEX Live">
+      <span class="marca-icono">M</span>
+      <span>MECAMEX <b>LIVE</b></span>
+    </a>
+    <app-live-user-menu />
+  </header>
 
-  <div class="app-shell__main">
-    <app-topbar
-      title="Torneos en vivo"
-      subtitle="Seguimiento público de torneos"
-      (menuToggle)="toggleSidebar()"
-    />
+  <section class="hero">
+    <div class="hero-copy">
+      <p class="eyebrow">COMPETENCIA · TECNOLOGÍA · COMUNIDAD</p>
+      <h1>MECAMEX <span>2026</span></h1>
+      <p class="intro">Sigue la acción, los resultados y cada enfrentamiento en tiempo real.</p>
+      <div class="estado-evento">
+        <i></i>
+        <b>{{ torneosEnVivo.length ? "TORNEOS EN VIVO" : "COBERTURA EN DIRECTO" }}</b>
+        <span>{{ horaActual | date: "EEEE d 'de' MMMM · HH:mm:ss" }}</span>
+      </div>
+    </div>
+    <div class="hero-kpis">
+      <div><strong>{{ lista?.length ?? "—" }}</strong><span>Torneos públicos</span></div>
+      <div><strong>{{ torneosEnVivo.length }}</strong><span>En vivo ahora</span></div>
+      <div><strong>{{ torneosFinalizados.length }}</strong><span>Finalizados</span></div>
+    </div>
+  </section>
 
-    <main class="lista">
-      <h1>Torneos</h1>
-      <p *ngIf="error">No se pudo cargar la lista.</p>
-      <p *ngIf="!lista && !error">Cargando…</p>
-      <p *ngIf="lista && lista.length === 0">No hay torneos públicos por ahora.</p>
+  <p class="alerta" *ngIf="error">{{ error }}</p>
+  <p class="cargando" *ngIf="!lista && !error">Cargando torneos…</p>
+  <p class="vacio" *ngIf="lista?.length === 0">No hay torneos públicos por ahora.</p>
 
-      <a class="item" *ngFor="let t of lista" [routerLink]="['/live', t.id]">
-        <b>{{ t.nombre }}</b>
-        <div>
-          {{ t.fecha | date: 'mediumDate' }}
-          <ng-container *ngIf="t.estado">· {{ t.estado }}</ng-container>
+  <section class="seccion" *ngIf="torneosEnVivo.length">
+    <div class="titulo-seccion">
+      <div><p class="eyebrow">AHORA MISMO</p><h2><i class="pulso"></i> En vivo ahora</h2></div>
+      <span class="contador">{{ torneosEnVivo.length }}</span>
+    </div>
+    <div class="tarjetas">
+      <a class="torneo-card tarjeta-live" *ngFor="let torneo of torneosEnVivo; trackBy: trackTorneo"
+        [routerLink]="['/live', torneo.id]">
+        <div class="tarjeta-top">
+          <span class="badge-live"><i></i> EN VIVO</span>
+          <span>{{ torneo.fecha | date: "mediumDate" }}</span>
         </div>
+        <h3>{{ torneo.nombre }}</h3>
+        <p>{{ torneo.categoria ?? "Categoría por confirmar" }}</p>
+        <div class="kpis-tarjeta">
+          <span><b>{{ torneo.robots }}</b> robots</span>
+          <span><b>{{ torneo.combatesEnCurso }}</b> en curso</span>
+          <span><b>{{ torneo.combates }}</b> combates</span>
+        </div>
+        <span class="abrir">Ver torneo <b>→</b></span>
       </a>
-    </main>
-  </div>
-</div>
+    </div>
+  </section>
+
+  <section class="seccion">
+    <div class="titulo-seccion">
+      <div><p class="eyebrow">CALENDARIO</p><h2>Próximos</h2></div>
+    </div>
+    <p class="vacio" *ngIf="lista && proximosPorFecha.length === 0">No hay próximos torneos publicados.</p>
+    <div *ngFor="let grupo of proximosPorFecha; trackBy: trackFecha" class="grupo-fecha">
+      <h3>{{ fechaLegible(grupo.clave) ? (fechaLegible(grupo.clave) | date: "EEEE d 'de' MMMM") : grupo.clave }}</h3>
+      <div class="tarjetas">
+        <a class="torneo-card" *ngFor="let torneo of grupo.torneos; trackBy: trackTorneo"
+          [routerLink]="['/live', torneo.id]">
+          <div class="tarjeta-top">
+            <span class="badge-programado">{{ torneo.estado ?? "Programado" }}</span>
+            <span>{{ torneo.fecha | date: "shortTime" }}</span>
+          </div>
+          <h3>{{ torneo.nombre }}</h3>
+          <p>{{ torneo.categoria ?? "Categoría por confirmar" }}</p>
+          <div class="kpis-tarjeta">
+            <span><b>{{ torneo.robots }}</b> robots</span>
+            <span><b>{{ torneo.combates }}</b> combates</span>
+            <span *ngIf="torneo.fase"><b>{{ torneo.fase }}</b></span>
+          </div>
+          <span class="abrir">Ver detalles <b>→</b></span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="seccion" *ngIf="torneosFinalizados.length">
+    <div class="titulo-seccion">
+      <div><p class="eyebrow">TORNEOS CONCLUIDOS</p><h2>Finalizados</h2></div>
+    </div>
+    <div class="tarjetas">
+      <a class="torneo-card finalizado" *ngFor="let torneo of torneosFinalizados; trackBy: trackTorneo"
+        [routerLink]="['/live', torneo.id]">
+        <div class="tarjeta-top">
+          <span class="badge-finalizado">Finalizado</span>
+          <span>{{ torneo.fecha | date: "mediumDate" }}</span>
+        </div>
+        <h3>{{ torneo.nombre }}</h3>
+        <p>{{ torneo.categoria ?? "Categoría por confirmar" }}</p>
+        <div class="campeon" *ngIf="torneo.campeon">
+          <span>🏆 Campeón</span><b>{{ torneo.campeon }}</b>
+        </div>
+        <div class="kpis-tarjeta">
+          <span><b>{{ torneo.robots }}</b> robots</span>
+          <span><b>{{ torneo.combates }}</b> combates</span>
+        </div>
+        <span class="abrir">Ver resultados <b>→</b></span>
+      </a>
+    </div>
+  </section>
+
+  <footer>
+    Datos públicos · Actualizado hace {{ segundosDesdeActualizacion }}s · Refresco automático cada 5 segundos
+  </footer>
+</main>

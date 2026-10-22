@@ -4,6 +4,18 @@ import { EstadoTorneo } from '../enums/estado-torneo.enum';
 
 export type TorneoDocument = HydratedDocument<Torneo>;
 
+@Schema({ _id: false })
+export class ParticipanteTorneo {
+  @Prop({ type: Types.ObjectId, ref: 'Robot', required: true })
+  robot: Types.ObjectId;
+
+  @Prop({ type: Number, required: true, min: 1 })
+  numero: number;
+}
+
+export const ParticipanteTorneoSchema =
+  SchemaFactory.createForClass(ParticipanteTorneo);
+
 @Schema({
   collection: 'torneos',
   timestamps: true,
@@ -32,6 +44,12 @@ export class Torneo {
   /** Robots inscritos que participarán en este torneo. */
   @Prop({ type: [Types.ObjectId], ref: 'Robot', default: [] })
   robotsInscritos: Types.ObjectId[];
+
+  @Prop({ type: [ParticipanteTorneoSchema], default: [] })
+  participantes: ParticipanteTorneo[];
+
+  @Prop({ type: Number, default: 0, min: 0 })
+  ultimoNumero: number;
 
   /** Tamaño de bloque usado en la fase de grupos (por defecto 16). */
   @Prop({ default: 16, min: 2 })

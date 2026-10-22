@@ -189,6 +189,8 @@
 
               <app-robot-chip
                 [robot]="combate.robot1"
+                [torneoId]="torneoId"
+                [participantes]="torneo()?.participantes"
                 [showEquipo]="false"
               />
 
@@ -196,6 +198,8 @@
 
               <app-robot-chip
                 [robot]="combate.robot2"
+                [torneoId]="torneoId"
+                [participantes]="torneo()?.participantes"
                 [showEquipo]="false"
               />
             </li>
@@ -288,6 +292,8 @@
               <!-- Robot 1 -->
               <app-robot-chip
                 [robot]="combate.robot1"
+                [torneoId]="torneoId"
+                [participantes]="torneo()?.participantes"
                 [showEquipo]="false"
               />
 
@@ -296,6 +302,8 @@
               <!-- Robot 2 -->
               <app-robot-chip
                 [robot]="combate.robot2"
+                [torneoId]="torneoId"
+                [participantes]="torneo()?.participantes"
                 [showEquipo]="false"
               />
 

@@ -157,7 +157,9 @@
               </div>
 
               <h3>
-                {{ datos.subcampeon.robotNombre }}
+                <button type="button" class="robot-name-button" (click)="abrirFicha(datos.subcampeon)">
+                  {{ etiquetaRobot(datos.subcampeon) }}
+                </button>
               </h3>
 
               <p>
@@ -199,7 +201,9 @@
               </div>
 
               <h3>
-                {{ datos.campeon.robotNombre }}
+                <button type="button" class="robot-name-button" (click)="abrirFicha(datos.campeon)">
+                  {{ etiquetaRobot(datos.campeon) }}
+                </button>
               </h3>
 
               <p>
@@ -241,7 +245,9 @@
               </div>
 
               <h3>
-                {{ datos.tercerLugar.robotNombre }}
+                <button type="button" class="robot-name-button" (click)="abrirFicha(datos.tercerLugar)">
+                  {{ etiquetaRobot(datos.tercerLugar) }}
+                </button>
               </h3>
 
               <p>
@@ -300,7 +306,9 @@
                         </span>
 
                         <strong>
-                          {{ datos.campeon.robotNombre }}
+                          <button type="button" class="robot-name-button" (click)="abrirFicha(datos.campeon)">
+                            {{ etiquetaRobot(datos.campeon) }}
+                          </button>
                         </strong>
                       </div>
                     </td>
@@ -330,7 +338,9 @@
                         </span>
 
                         <strong>
-                          {{ datos.subcampeon.robotNombre }}
+                          <button type="button" class="robot-name-button" (click)="abrirFicha(datos.subcampeon)">
+                            {{ etiquetaRobot(datos.subcampeon) }}
+                          </button>
                         </strong>
                       </div>
                     </td>
@@ -360,7 +370,9 @@
                         </span>
 
                         <strong>
-                          {{ datos.tercerLugar.robotNombre }}
+                          <button type="button" class="robot-name-button" (click)="abrirFicha(datos.tercerLugar)">
+                            {{ etiquetaRobot(datos.tercerLugar) }}
+                          </button>
                         </strong>
                       </div>
                     </td>
@@ -390,7 +402,9 @@
                         </span>
 
                         <strong>
-                          {{ datos.cuartoLugar.robotNombre }}
+                          <button type="button" class="robot-name-button" (click)="abrirFicha(datos.cuartoLugar)">
+                            {{ etiquetaRobot(datos.cuartoLugar) }}
+                          </button>
                         </strong>
                       </div>
                     </td>

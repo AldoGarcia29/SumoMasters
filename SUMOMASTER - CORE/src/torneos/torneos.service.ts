@@ -6,13 +6,14 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { MongoServerError } from 'mongodb';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { CreateTorneoDto } from './dto/create-torneo.dto';
 import { UpdateTorneoDto } from './dto/update-torneo.dto';
 import { Torneo, TorneoDocument } from './schemas/torneo.schema';
 import { PublicCacheService } from '../public/public-cache.service';
 import { UpdateHorarioDto } from '../public/dto/update-horario.dto';
 import { LISTA_KEY, liveKey } from '../public/public.constants';
+import { PublicService } from '../public/public.service';
 
 const POPULATE = [
   { path: 'categoria', select: 'nombre tipoCombate' },
@@ -21,6 +22,7 @@ const POPULATE = [
     select: 'nombre imagenUrl equipo pesoKg createdAt',
     populate: { path: 'equipo', select: 'nombre' },
   },
+  { path: 'participantes.robot', select: 'nombre imagenUrl equipo pesoKg' },
 ];
 
 @Injectable()
@@ -28,19 +30,27 @@ export class TorneosService {
   constructor(
     @InjectModel(Torneo.name)
     private readonly torneoModel: Model<TorneoDocument>,
-    // SE CORRIGIÓ: Se inyecta el servicio para poder usar this.publicCache
     private readonly publicCache: PublicCacheService,
+    private readonly publicService: PublicService,
   ) {}
 
   async create(dto: CreateTorneoDto): Promise<TorneoDocument> {
     const torneo = new this.torneoModel({
       ...dto,
+      robotsInscritos: [],
       nombre: dto.nombre.trim(),
     });
 
     try {
       await torneo.save();
-      return torneo.populate(POPULATE);
+      await this.inscribirRobots(torneo.id, dto.robotsInscritos ?? []);
+      this.invalidatePublicData(torneo.id);
+      const creado = await this.torneoModel
+        .findById(torneo.id)
+        .populate(POPULATE)
+        .exec();
+      if (!creado) throw new NotFoundException('Torneo no encontrado');
+      return creado;
     } catch (error: unknown) {
       this.handleDuplicateKeyError(error);
       throw error;
@@ -82,10 +92,22 @@ export class TorneosService {
 
   async update(id: string, dto: UpdateTorneoDto): Promise<TorneoDocument> {
     try {
+      if (dto.robotsInscritos !== undefined) {
+        await this.inscribirRobots(id, dto.robotsInscritos);
+      }
+
+      const { robotsInscritos, ...campos } = dto;
       const torneo = await this.torneoModel
         .findByIdAndUpdate(
           id,
-          { $set: dto },
+          {
+            $set: {
+              ...campos,
+              ...(robotsInscritos !== undefined
+                ? { robotsInscritos }
+                : {}),
+            },
+          },
           { new: true, runValidators: true },
         )
         .populate(POPULATE)
@@ -94,12 +116,76 @@ export class TorneosService {
       if (!torneo) {
         throw new NotFoundException('Torneo no encontrado');
       }
+      if (robotsInscritos !== undefined) this.invalidatePublicData(id);
 
       return torneo;
     } catch (error: unknown) {
       this.handleDuplicateKeyError(error);
       throw error;
     }
+  }
+
+  async fichaRobot(torneoId: string, robotId: string) {
+    const ficha = await this.publicService.armarFichaRobot(
+      torneoId,
+      robotId,
+      false,
+    );
+    if (!ficha) throw new NotFoundException('Robot o torneo no encontrado');
+    return ficha;
+  }
+
+  private async inscribirRobots(
+    torneoId: string,
+    robotIds: string[],
+  ): Promise<void> {
+    const idsUnicos = [...new Set(robotIds)];
+    for (const robotId of idsUnicos) {
+      const id = new Types.ObjectId(robotId);
+      const numero = { $add: [{ $ifNull: ['$ultimoNumero', 0] }, 1] };
+      const actualizado = await this.torneoModel.findOneAndUpdate(
+        {
+          _id: torneoId,
+          'participantes.robot': { $ne: id },
+        },
+        [
+          {
+            $set: {
+              ultimoNumero: numero,
+              robotsInscritos: {
+                $setUnion: [{ $ifNull: ['$robotsInscritos', []] }, [id]],
+              },
+              participantes: {
+                $concatArrays: [
+                  { $ifNull: ['$participantes', []] },
+                  [{ robot: id, numero }],
+                ],
+              },
+            },
+          },
+        ],
+        { returnDocument: 'after', updatePipeline: true },
+      );
+
+      if (actualizado) continue;
+
+      const torneo = await this.torneoModel
+        .findById(torneoId)
+        .select('_id participantes')
+        .lean()
+        .exec();
+      if (!torneo) throw new NotFoundException('Torneo no encontrado');
+      if (!torneo.participantes?.some((p) => p.robot.equals(id))) {
+        throw new ConflictException(
+          `No se pudo asignar número al robot ${robotId}`,
+        );
+      }
+    }
+  }
+
+  private invalidatePublicData(torneoId: string): void {
+    this.publicCache.invalidate(liveKey(torneoId));
+    this.publicCache.invalidate(LISTA_KEY);
   }
 
   async remove(id: string): Promise<{ deleted: boolean }> {

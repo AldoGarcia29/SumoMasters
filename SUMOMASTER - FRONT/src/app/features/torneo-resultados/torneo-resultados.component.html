@@ -438,6 +438,8 @@
                 <app-robot-chip
                   [robot]="combate.robot1"
                   [showEquipo]="false"
+                  [torneoId]="torneoId"
+                  [participantes]="torneo()?.participantes"
                 />
 
                 <span class="table__vs">
@@ -447,6 +449,8 @@
                 <app-robot-chip
                   [robot]="combate.robot2"
                   [showEquipo]="false"
+                  [torneoId]="torneoId"
+                  [participantes]="torneo()?.participantes"
                 />
 
               </div>
@@ -622,7 +626,7 @@
                     combate.robot1?.imagenUrl
                   "
                   [alt]="
-                    combate.robot1?.nombre || combate.placeholder1 || 'Por definir'
+                    participanteLabel(combate.robot1, combate.placeholder1)
                   "
                 />
 
@@ -680,7 +684,7 @@
                   class="versus-box__name"
                 >
                   {{
-                    combate.robot1?.nombre || combate.placeholder1 || 'Por definir'
+                    participanteLabel(combate.robot1, combate.placeholder1)
                   }}
                 </span>
 
@@ -728,7 +732,7 @@
                     combate.robot2?.imagenUrl
                   "
                   [alt]="
-                    combate.robot2?.nombre || combate.placeholder2 || 'Por definir'
+                    participanteLabel(combate.robot2, combate.placeholder2)
                   "
                 />
 
@@ -786,7 +790,7 @@
                   class="versus-box__name"
                 >
                   {{
-                    combate.robot2?.nombre || combate.placeholder2 || 'Por definir'
+                    participanteLabel(combate.robot2, combate.placeholder2)
                   }}
                 </span>
 
@@ -849,7 +853,7 @@
 
                     Gana
                     {{
-                      combate.robot1.nombre || combate.placeholder1 || 'Por definir'
+                      participanteLabel(combate.robot1, combate.placeholder1)
                     }}
                   </label>
 
@@ -880,7 +884,7 @@
 
                     Gana
                     {{
-                      combate.robot2.nombre || combate.placeholder2 || 'Por definir'
+                      participanteLabel(combate.robot2, combate.placeholder2)
                     }}
                   </label>
 

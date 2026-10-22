@@ -32,6 +32,7 @@ import { TorneoFlowCacheService } from '../../core/services/torneo-flow-cache.se
 
 import { DojoResumen } from '../../core/models/dojo.model';
 import { Torneo } from '../../core/models/torneo.model';
+import { Robot } from '../../core/models/robot.model';
 
 import {
   Combate,
@@ -143,6 +144,22 @@ export class TorneoResultadosComponent
 
   readonly torneo =
     signal<Torneo | null>(null);
+
+  participanteLabel(
+    robot: Robot | null,
+    placeholder: string | null | undefined,
+  ): string {
+    if (!robot) return placeholder || 'Por definir';
+    const participante = this.torneo()?.participantes?.find((item) =>
+      typeof item.robot === 'string'
+        ? item.robot === robot._id
+        : item.robot._id === robot._id,
+    );
+    const numero = participante?.numero;
+    const prefijo =
+      numero === undefined ? '' : `#${String(numero).padStart(3, '0')} `;
+    return `${prefijo}${robot.nombre}`;
+  }
 
   // =========================
   // COMBATES
@@ -920,16 +937,20 @@ export class TorneoResultadosComponent
       raw.resultado ===
       ResultadoCombate.GANA_ROBOT_1
     ) {
-      ganador =
-        combate.robot1?.nombre ?? combate.placeholder1 ?? 'Por definir';
+      ganador = this.participanteLabel(
+        combate.robot1,
+        combate.placeholder1,
+      );
     }
 
     if (
       raw.resultado ===
       ResultadoCombate.GANA_ROBOT_2
     ) {
-      ganador =
-        combate.robot2?.nombre ?? combate.placeholder2 ?? 'Por definir';
+      ganador = this.participanteLabel(
+        combate.robot2,
+        combate.placeholder2,
+      );
     }
 
     // =========================

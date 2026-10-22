@@ -134,6 +134,11 @@
             {{ loading() ? 'Ingresando…' : 'Iniciar sesión' }}
           </button>
 
+          <a class="btn btn--live" routerLink="/live">
+            <span class="btn--live__indicator" aria-hidden="true"></span>
+            Ver torneos en vivo
+          </a>
+
           <p class="auth-form__footer">
             ¿No tienes cuenta?
             <a class="link link--strong" routerLink="/auth/register">Regístrate aquí</a>

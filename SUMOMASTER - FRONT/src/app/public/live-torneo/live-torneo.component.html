@@ -1,103 +1,218 @@
-<main class="live">
-  <app-live-user-menu />
-  <p *ngIf="!data">{{ error ?? "Cargando…" }}</p>
+<main class="live-page">
+  <header class="barra">
+    <a class="marca" routerLink="/live" aria-label="MECAMEX Live">
+      <span class="marca-icono">M</span>
+      <span>MECAMEX <b>LIVE</b></span>
+    </a>
+    <app-live-user-menu />
+  </header>
 
-  <ng-container *ngIf="data">
-    <h1>{{ data.torneo.nombre }}</h1>
-    <small *ngIf="data.torneo.fase || error">
-      {{ data.torneo.fase
-      }}<ng-container *ngIf="data.torneo.fase && error"> · </ng-container
-      >{{ error }}
-    </small>
+  <p class="alerta" *ngIf="error">{{ error }}</p>
+  <p class="cargando" *ngIf="!data && !error">Cargando torneo…</p>
 
-    <nav class="menu">
-      <a class="activo">Tabla de posiciones</a>
-      <a [routerLink]="['/live', id, 'combates']">Combates</a>
+  <ng-container *ngIf="data as live">
+    <section class="hero">
+      <div>
+        <a class="volver" routerLink="/live">← Todos los torneos</a>
+        <p class="eyebrow">MECAMEX 2026 · SEGUIMIENTO EN DIRECTO</p>
+        <h1>{{ live.torneo.nombre }}</h1>
+        <p class="hero-detalle">
+          <span *ngIf="live.torneo.fecha">{{ live.torneo.fecha | date: "longDate" }}</span>
+          <span *ngIf="live.torneo.categoria">{{ live.torneo.categoria }}</span>
+          <span *ngIf="live.torneo.fase">{{ live.torneo.fase }}</span>
+        </p>
+      </div>
+      <div class="live-state">
+        <span class="pulso" [class.activo]="enCurso.length > 0"></span>
+        {{ enCurso.length ? "EN VIVO" : "SEGUIMIENTO EN VIVO" }}
+        <small>Hora local {{ horaActual | date: "shortTime" }}</small>
+        <small>Actualizado hace {{ segundosDesdeActualizacion }}s</small>
+      </div>
+    </section>
+
+    <nav class="nav-secciones" aria-label="Secciones del torneo">
+      <a href="#en-vivo">En vivo</a>
+      <a href="#siguientes">Siguientes</a>
+      <a href="#resultados">Resultados</a>
+      <a href="#grupos">Grupos</a>
+      <a href="#llave">Llave</a>
+      <a href="#robots">Robots</a>
     </nav>
 
-    <input
-      class="buscador"
-      type="search"
-      placeholder="Busca tu robot"
-      [(ngModel)]="busca"
-    />
+    <section class="resumen">
+      <article><strong>{{ live.torneo.robots }}</strong><span>Robots</span></article>
+      <article><strong>{{ live.torneo.combates }}</strong><span>Combates</span></article>
+      <article><strong>{{ live.torneo.combatesEnCurso }}</strong><span>En curso</span></article>
+      <article><strong>{{ live.torneo.combatesPendientes }}</strong><span>Pendientes</span></article>
+    </section>
 
-    <section class="ranking">
-      <h2>Tabla de posiciones</h2>
-      <p *ngIf="!rankingCargado">Cargando ranking…</p>
-      <p *ngIf="rankingCargado && ranking.length === 0">
-        Aún no hay combates finalizados en fase de grupos.
-      </p>
-
-      <div class="tabla-scroll" *ngIf="rankingFiltrado.length > 0">
-        <table class="tabla">
-          <thead>
-            <tr>
-              <th>Pos.</th>
-              <th>Equipo</th>
-              <th>Robot</th>
-              <th>Combates</th>
-              <th>Victorias</th>
-              <th>Empates</th>
-              <th>Derrotas</th>
-              <th>Puntos</th>
-              <th>Diferencia</th>
-              <th>Último combate</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let f of rankingFiltrado; trackBy: trackFila">
-              <td>
-                <span
-                  class="pos"
-                  [class.oro]="f.posicion === 1"
-                  [class.plata]="f.posicion === 2"
-                  [class.bronce]="f.posicion === 3"
-                  >{{ f.posicion }}</span
-                >
-              </td>
-              <td>{{ equipoLabel(f.equipo) }}</td>
-              <td>{{ f.robot }}</td>
-              <td>{{ f.combates }}</td>
-              <td>{{ f.victorias }}</td>
-              <td>{{ f.empates }}</td>
-              <td>{{ f.derrotas }}</td>
-              <td>
-                <b>{{ f.puntos }}</b>
-              </td>
-              <td
-                [class.pos-dif]="f.diferencia > 0"
-                [class.neg-dif]="f.diferencia < 0"
-              >
-                {{ diferenciaLabel(f.diferencia) }}
-              </td>
-              <td>
-                <span
-                  class="chip"
-                  [class.victoria]="f.ultimoResultado === 'Victoria'"
-                  [class.derrota]="f.ultimoResultado === 'Derrota'"
-                  [class.empate]="f.ultimoResultado === 'Empate'"
-                  >{{ f.ultimoResultado ?? "—" }}</span
-                >
-              </td>
-            </tr>
-          </tbody>
-        </table>
+    <section class="seccion" id="en-vivo">
+      <div class="titulo-seccion">
+        <div><p class="eyebrow">AHORA MISMO</p><h2>En vivo</h2></div>
+        <span class="contador">{{ enCurso.length }} {{ enCurso.length === 1 ? "combate" : "combates" }}</span>
       </div>
+      <p class="vacio" *ngIf="enCurso.length === 0">No hay combates en curso en este momento.</p>
+      <article class="combate-card en-curso" *ngFor="let combate of enCurso; trackBy: trackCombate">
+        <div class="combate-meta">
+          <span class="estado-live"><i></i> EN CURSO</span>
+          <span>Combate #{{ combate.numero }}</span>
+          <span *ngIf="combate.dojo">Dojo {{ combate.dojo }}</span>
+          <span *ngIf="combate.bloque">{{ combate.bloque }}</span>
+          <span *ngIf="combate.horarioProgramado">Hora {{ combate.horarioProgramado | date: "shortTime" }}</span>
+        </div>
+        <div class="versus">
+          <ng-container *ngFor="let robot of combate.robotsDetalle; let last = last">
+            <button type="button" class="robot-link" [disabled]="!robot.id"
+              (click)="abrirFicha(robot.id, robot.numero)">
+              <b *ngIf="robot.id">#{{ numeroLabel(robot.numero) }}</b>
+              <span>{{ robot.nombre }}</span>
+            </button>
+            <span class="vs" *ngIf="!last">VS</span>
+          </ng-container>
+        </div>
+      </article>
+    </section>
 
-      <p
-        *ngIf="
-          busca.trim() && ranking.length > 0 && rankingFiltrado.length === 0
-        "
-      >
-        Ningún robot ni equipo coincide con tu búsqueda.
-      </p>
+    <section class="seccion" id="siguientes">
+      <div class="titulo-seccion">
+        <div><p class="eyebrow">COLA DE COMBATES</p><h2>Siguientes</h2></div>
+      </div>
+      <p class="vacio" *ngIf="siguientes.length === 0">No hay combates pendientes.</p>
+      <article class="fila-combate" *ngFor="let combate of siguientes; trackBy: trackCombate">
+        <b class="numero-combate">#{{ combate.numero }}</b>
+        <div class="fila-contenido">
+          <div class="fila-robots">
+            <ng-container *ngFor="let robot of combate.robotsDetalle; let last = last">
+              <button type="button" class="robot-link" [disabled]="!robot.id"
+                (click)="abrirFicha(robot.id, robot.numero)">
+                <b *ngIf="robot.id">#{{ numeroLabel(robot.numero) }}</b>
+                {{ robot.nombre }}
+              </button><span *ngIf="!last" class="vs-inline">vs</span>
+            </ng-container>
+          </div>
+          <small>{{ combate.fase }} <span *ngIf="combate.bloque">· {{ combate.bloque }}</span></small>
+        </div>
+        <div class="fila-hora">
+          <b *ngIf="combate.combatesAntes === 0">Siguiente</b>
+          <span *ngIf="combate.combatesAntes !== null && combate.combatesAntes > 0">
+            {{ combate.combatesAntes }} antes
+          </span>
+          <time *ngIf="combate.horaEstimada">{{ combate.horaEstimada | date: "shortTime" }}</time>
+          <small *ngIf="combate.horaEstimada">{{ cuentaRegresiva(combate.horaEstimada) }}</small>
+          <span *ngIf="combate.dojo">Dojo {{ combate.dojo }}</span>
+        </div>
+      </article>
+    </section>
 
-      <small class="nota">
-        Criterios de desempate: 1. Puntos · 2. Diferencia · 3. Victorias · 4.
-        Enfrentamiento directo. Victoria: 3 puntos · Empate: 1 punto · Derrota:
-        0 puntos.
-      </small>
+    <section class="seccion" id="resultados">
+      <div class="titulo-seccion">
+        <div><p class="eyebrow">COMBATES TERMINADOS</p><h2>Resultados</h2></div>
+      </div>
+      <p class="vacio" *ngIf="resultados.length === 0">Los resultados aparecerán aquí al finalizar los combates.</p>
+      <article class="fila-combate resultado" *ngFor="let combate of resultados; trackBy: trackCombate">
+        <b class="numero-combate">#{{ combate.numero }}</b>
+        <div class="fila-contenido">
+          <div class="fila-robots">
+            <ng-container *ngFor="let robot of combate.robotsDetalle; let last = last">
+              <button type="button" class="robot-link" [class.ganador]="robot.id && robot.numero === combate.ganadorNumero"
+                [disabled]="!robot.id" (click)="abrirFicha(robot.id, robot.numero)">
+                <b *ngIf="robot.id">#{{ numeroLabel(robot.numero) }}</b> {{ robot.nombre }}
+              </button><span *ngIf="!last" class="vs-inline">vs</span>
+            </ng-container>
+          </div>
+          <small>{{ combate.empate ? "Empate" : "Ganó " + (combate.ganadorNumero ? "#" + numeroLabel(combate.ganadorNumero) + " " : "") + (combate.ganador ?? "") }}
+            <span *ngIf="combate.metodoVictoria">· {{ combate.metodoVictoria }}</span>
+          </small>
+        </div>
+        <span class="fase-label">{{ combate.fase }}</span>
+      </article>
+    </section>
+
+    <section class="seccion" id="grupos">
+      <div class="titulo-seccion">
+        <div><p class="eyebrow">FASE DE GRUPOS</p><h2>Grupos</h2></div>
+      </div>
+      <p class="vacio" *ngIf="live.grupos.length === 0">Todavía no hay grupos de torneo.</p>
+      <article class="grupo" *ngFor="let grupo of live.grupos; trackBy: trackGrupo">
+        <h3>{{ grupo.nombre }}</h3>
+        <div class="tabla-scroll">
+          <table>
+            <thead><tr><th>#</th><th>Robot</th><th>Equipo</th><th>G</th><th>P</th><th>Pts</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let fila of grupo.filas">
+                <td>{{ fila.numero === null ? "—" : "#" + numeroLabel(fila.numero) }}</td>
+                <td><button type="button" class="robot-link" (click)="abrirFicha(fila.robotId, fila.numero)">{{ fila.robot }}</button></td>
+                <td>{{ fila.equipo }}</td>
+                <td>{{ fila.victorias }}</td>
+                <td>{{ fila.derrotas }}</td>
+                <td><b>{{ fila.puntos }}</b></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    <section class="seccion" id="llave">
+      <div class="titulo-seccion">
+        <div><p class="eyebrow">ELIMINACIÓN DIRECTA</p><h2>Llave</h2></div>
+      </div>
+      <p class="vacio" *ngIf="llave.length === 0">La llave aparecerá cuando se generen los combates eliminatorios.</p>
+      <div class="rondas">
+        <article class="ronda" *ngFor="let ronda of llave">
+          <h3>{{ ronda.fase }}</h3>
+          <div class="llave-combate" *ngFor="let combate of ronda.combates; trackBy: trackCombate">
+            <b>Combate #{{ combate.numero }}</b>
+            <span *ngFor="let robot of combate.robotsDetalle">
+              <button type="button" class="robot-link" [disabled]="!robot.id"
+                (click)="abrirFicha(robot.id, robot.numero)">
+                <ng-container *ngIf="robot.id">#{{ numeroLabel(robot.numero) }} </ng-container>{{ robot.nombre }}
+              </button>
+            </span>
+            <small>{{ combate.estado }}</small>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="seccion" id="robots">
+      <div class="titulo-seccion">
+        <div><p class="eyebrow">PARTICIPANTES</p><h2>Robots</h2></div>
+        <span class="contador">{{ live.robots.length }}</span>
+      </div>
+      <p class="vacio" *ngIf="live.robots.length === 0">No hay robots inscritos.</p>
+      <div class="robots-grid">
+        <button type="button" class="robot-card" *ngFor="let robot of live.robots; trackBy: trackRobot"
+          (click)="abrirFicha(robot.id, robot.numero)">
+          <span class="robot-numero">#{{ numeroLabel(robot.numero) }}</span>
+          <b>{{ robot.nombre }}</b>
+          <span>{{ robot.equipo }} · {{ robot.institucion }}</span>
+          <small>{{ robot.grupo ?? "Sin grupo" }} <ng-container *ngIf="robot.categoria">· {{ robot.categoria }}</ng-container></small>
+        </button>
+      </div>
+    </section>
+
+    <section class="podio" *ngIf="live.podio as podio">
+      <p class="eyebrow">CAMPEÓN DEL TORNEO</p>
+      <h2>🏆 {{ podio.campeon.robot }}</h2>
+      <button type="button" class="robot-link" (click)="abrirFicha(podio.campeon.robotId, podio.campeon.numero)">
+        #{{ numeroLabel(podio.campeon.numero) }} · Ver ficha
+      </button>
+      <div class="podio-places">
+        <button type="button" class="robot-link" (click)="abrirFicha(podio.subcampeon.robotId, podio.subcampeon.numero)">
+          2.º · #{{ numeroLabel(podio.subcampeon.numero) }} {{ podio.subcampeon.robot }}
+        </button>
+        <button *ngIf="podio.tercerLugar as tercero" type="button" class="robot-link"
+          (click)="abrirFicha(tercero.robotId, tercero.numero)">
+          3.º · #{{ numeroLabel(tercero.numero) }} {{ tercero.robot }}
+        </button>
+        <button *ngIf="podio.cuartoLugar as cuarto" type="button" class="robot-link"
+          (click)="abrirFicha(cuarto.robotId, cuarto.numero)">
+          4.º · #{{ numeroLabel(cuarto.numero) }} {{ cuarto.robot }}
+        </button>
+      </div>
     </section>
   </ng-container>
+
+  <footer>Datos públicos del torneo · Actualización automática cada 5 segundos</footer>
 </main>

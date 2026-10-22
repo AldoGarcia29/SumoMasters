@@ -15,8 +15,9 @@ import { TorneoService } from '../../core/services/torneo.service';
 import { RankingService } from '../../core/services/ranking.service';
 import { Torneo } from '../../core/models/torneo.model';
 import { FaseCombate } from '../../core/models/combate.model';
-import { PodioTorneo } from '../../core/models/podio.model';
+import { LugarPodio, PodioTorneo } from '../../core/models/podio.model';
 import { extractErrorMessage } from '../../core/utils/error-message.util';
+import { RobotFichaDialogService } from '../../core/services/robot-ficha-dialog.service';
 
 @Component({
   selector: 'app-torneo-podio',
@@ -39,6 +40,9 @@ export class TorneoPodioComponent implements OnInit {
 
   private readonly rankingService =
     inject(RankingService);
+
+  private readonly fichaDialog =
+    inject(RobotFichaDialogService);
 
   readonly torneoId =
     this.route.snapshot.paramMap.get('id') ?? '';
@@ -124,5 +128,29 @@ export class TorneoPodioComponent implements OnInit {
 
   closeSidebar(): void {
     this.sidebarOpen.set(false);
+  }
+
+  etiquetaRobot(lugar: LugarPodio): string {
+    const numero = this.numeroRobot(lugar.robotId);
+    return numero === undefined
+      ? lugar.robotNombre
+      : `#${String(numero).padStart(3, '0')} ${lugar.robotNombre}`;
+  }
+
+  abrirFicha(lugar: LugarPodio): void {
+    this.fichaDialog.open({
+      torneoId: this.torneoId,
+      robotId: lugar.robotId,
+      numero: this.numeroRobot(lugar.robotId) ?? null,
+      publico: false,
+    });
+  }
+
+  private numeroRobot(robotId: string): number | undefined {
+    return this.torneo()?.participantes?.find((item) =>
+      typeof item.robot === 'string'
+        ? item.robot === robotId
+        : item.robot._id === robotId,
+    )?.numero;
   }
 }

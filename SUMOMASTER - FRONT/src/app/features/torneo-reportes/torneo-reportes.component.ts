@@ -125,7 +125,7 @@ export class TorneoReportesComponent implements OnInit {
         const rows = filas.map((f) => [
           f.posicion,
           f.equipoNombre,
-          f.robotNombre,
+          this.etiquetaRobot(f.robotId, f.robotNombre),
           f.combates,
           f.victorias,
           f.empates,
@@ -156,8 +156,8 @@ export class TorneoReportesComponent implements OnInit {
           c.fase,
           c.bloque?.nombre ?? '—',
           c.numero,
-          c.robot1?.nombre ?? c.placeholder1 ?? 'Por definir',
-          c.robot2?.nombre ?? c.placeholder2 ?? 'Por definir',
+          this.etiquetaCombateRobot(c.robot1, c.placeholder1),
+          this.etiquetaCombateRobot(c.robot2, c.placeholder2),
           c.resultado ?? 'Sin registrar',
           c.metodoVictoria ?? '—',
           c.estado,
@@ -186,8 +186,8 @@ export class TorneoReportesComponent implements OnInit {
           c.createdAt ? new Date(c.createdAt).toLocaleString('es-MX') : '—',
           c.bloque?.nombre ?? '—',
           c.dojo?.nombre ?? '—',
-          c.robot1?.nombre ?? c.placeholder1 ?? 'Por definir',
-          c.robot2?.nombre ?? c.placeholder2 ?? 'Por definir',
+          this.etiquetaCombateRobot(c.robot1, c.placeholder1),
+          this.etiquetaCombateRobot(c.robot2, c.placeholder2),
           c.resultado ?? '—',
           c.duracionSegundos ?? '—',
           c.jueces.join(' / '),
@@ -224,7 +224,7 @@ export class TorneoReportesComponent implements OnInit {
       const institucion = this.institucionPorEquipoId.get(equipoId) ?? '—';
 
       const actual = equiposMap.get(equipoId) ?? { nombre: equipoNombre, institucion, robots: [] };
-      actual.robots.push(robot.nombre);
+      actual.robots.push(this.etiquetaRobot(robot._id, robot.nombre));
       equiposMap.set(equipoId, actual);
     }
 
@@ -253,7 +253,7 @@ export class TorneoReportesComponent implements OnInit {
         }
         const rows = [[
           (torneo?.categoria as any)?.nombre ?? '—',
-          campeon.robotNombre,
+          this.etiquetaRobot(campeon.robotId, campeon.robotNombre),
           campeon.equipoNombre,
           campeon.puntos,
           campeon.victorias,
@@ -272,6 +272,27 @@ export class TorneoReportesComponent implements OnInit {
   private onError(): void {
     this.generando.set(null);
     this.errorMessage.set('No se pudo generar el reporte. Intenta nuevamente.');
+  }
+
+  private etiquetaCombateRobot(
+    robot: Robot | null,
+    placeholder: string | null | undefined,
+  ): string {
+    return robot
+      ? this.etiquetaRobot(robot._id, robot.nombre)
+      : placeholder ?? 'Por definir';
+  }
+
+  private etiquetaRobot(robotId: string, nombre: string): string {
+    const participante = this.torneo()?.participantes?.find((item) =>
+      typeof item.robot === 'string'
+        ? item.robot === robotId
+        : item.robot._id === robotId,
+    );
+    const numero = participante?.numero;
+    return numero === undefined
+      ? nombre
+      : `#${String(numero).padStart(3, '0')} ${nombre}`;
   }
 
   private descargarCsv(nombreArchivo: string, headers: string[], rows: (string | number)[][]): void {

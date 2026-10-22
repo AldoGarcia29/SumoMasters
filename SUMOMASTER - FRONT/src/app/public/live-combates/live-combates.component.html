@@ -1,86 +1,159 @@
-<main class="live">
-  <app-live-user-menu />
-  <p *ngIf="!data">{{ error ?? "Cargando…" }}</p>
+<main class="combates-page">
+  <header class="barra">
+    <a class="marca" routerLink="/live" aria-label="Volver a MECAMEX Live">
+      <span class="marca-icono">M</span>
+      <span>MECAMEX <b>LIVE</b></span>
+    </a>
+    <app-live-user-menu />
+  </header>
 
-  <ng-container *ngIf="data">
-    <h1>{{ data.torneo.nombre }}</h1>
-    <small *ngIf="data.torneo.fase || error">
-      {{ data.torneo.fase
-      }}<ng-container *ngIf="data.torneo.fase && error"> · </ng-container
-      >{{ error }}
-    </small>
+  <p class="alerta" *ngIf="error">{{ error }}</p>
+  <p class="cargando" *ngIf="!data && !error">Cargando torneo…</p>
 
-    <nav class="menu">
-      <a [routerLink]="['/live', id]">Tabla de posiciones</a>
-      <a class="activo">Combates</a>
+  <ng-container *ngIf="data as live">
+    <section class="hero">
+      <div>
+        <a class="volver" [routerLink]="['/live', id]">← Vista pública del torneo</a>
+        <p class="eyebrow">SEGUIMIENTO PERSONAL</p>
+        <h1>{{ live.torneo.nombre }}</h1>
+        <p class="hero-subtitle">
+          <span *ngIf="live.torneo.fecha">{{ live.torneo.fecha | date: "longDate" }}</span>
+          <span>Hora local {{ horaActual | date: "shortTime" }}</span>
+        </p>
+      </div>
+      <div class="actualizacion">
+        <span class="indicador"></span>
+        <span>Actualizado hace {{ segundosDesdeActualizacion }}s</span>
+        <small>Refresco automático cada 5 segundos</small>
+      </div>
+    </section>
+
+    <nav class="nav-paginas">
+      <a [routerLink]="['/live', id]">Resumen</a>
+      <a class="activo">Mis combates</a>
     </nav>
 
-    <input
-      class="buscador"
-      type="search"
-      placeholder="Busca tu robot"
-      [(ngModel)]="busca"
-    />
+    <section class="seccion seguimiento">
+      <div class="titulo">
+        <div><p class="eyebrow">PERSONALIZA TU VISTA</p><h2>Mis robots</h2></div>
+        <span class="contador">{{ robotsSeguidos.length }} siguiendo</span>
+      </div>
+      <p class="ayuda">Busca por número de participante o nombre y agrégalo a tu seguimiento. Se guarda en este navegador para este torneo.</p>
 
-    <label class="filtro">
-      <input type="checkbox" [(ngModel)]="soloPendientes" />
-      Ocultar combates finalizados
-    </label>
+      <label class="campo-busqueda">
+        <span aria-hidden="true">⌕</span>
+        <input type="search" [(ngModel)]="busca" placeholder="Ej. #012 o nombre del robot"
+          aria-label="Buscar robot por número o nombre" />
+      </label>
 
-    <ng-container *ngIf="busca.trim()">
-      <p *ngIf="propios.length === 0">No encontré ese robot.</p>
-      <p *ngIf="propios.length > 0 && !proximo">Tus combates ya terminaron.</p>
-    </ng-container>
+      <div class="coincidencias" *ngIf="busca.trim()">
+        <p *ngIf="robotsCoincidentes.length === 0">No se encontraron robots con ese número o nombre.</p>
+        <button type="button" class="coincidencia" *ngFor="let robot of robotsCoincidentes"
+          [disabled]="esSeguido(robot.id)" (click)="seguirRobot(robot)">
+          <span class="numero">#{{ numeroLabel(robot.numero) }}</span>
+          <span class="coincidencia-info"><b>{{ robot.nombre }}</b><small>{{ robot.equipo }} · {{ robot.institucion }}</small></span>
+          <span class="accion">{{ esSeguido(robot.id) ? "Siguiendo" : "+ Seguir" }}</span>
+        </button>
+      </div>
 
-    <p class="proximo" *ngIf="proximo as p">
-      <b>Tu próximo combate: #{{ p.numero }}</b>
-      <ng-container *ngIf="p.fase"> · {{ p.fase }}</ng-container>
-      <ng-container *ngIf="p.dojo; else sinDojo">
-        en {{ p.dojo
-        }}<ng-container *ngIf="p.combatesAntes === 0; else faltan">
-          — ¡es el siguiente!</ng-container
-        >
-        <ng-template #faltan>, faltan {{ p.combatesAntes }}</ng-template>
-        <ng-container *ngIf="p.horaEstimada">
-          (~{{ p.horaEstimada | date: "shortTime" }})</ng-container
-        >
-      </ng-container>
-      <ng-template #sinDojo> — dojo por asignar</ng-template>
+      <p class="alerta-storage" *ngIf="seguimientoError">{{ seguimientoError }}</p>
+      <p class="vacio" *ngIf="robotsSeguidos.length === 0 && !busca.trim()">
+        Aún no sigues robots. Busca por número o nombre para añadirlos.
+      </p>
+
+      <div class="seguidos" *ngIf="robotsSeguidos.length">
+        <article class="robot-seguido" *ngFor="let robot of robotsSeguidos; trackBy: trackRobot">
+          <div class="robot-seguido-top">
+            <span class="numero">#{{ numeroLabel(robot.numero) }}</span>
+            <button type="button" class="quitar" (click)="dejarDeSeguir(robot.id)"
+              [attr.aria-label]="'Dejar de seguir ' + robot.nombre">×</button>
+          </div>
+          <h3>{{ robot.nombre }}</h3>
+          <p class="record">Récord del torneo <b>G {{ record(robot).victorias }}</b><span>·</span><b>P {{ record(robot).derrotas }}</b></p>
+        </article>
+      </div>
+    </section>
+
+    <section class="proximo-panel" *ngIf="proximoCombate as proximo">
+      <div class="proximo-cabecera">
+        <div><p class="eyebrow">TU PRÓXIMO COMBATE</p><h2>Combate #{{ proximo.numero }}</h2></div>
+        <span class="estado-proximo"
+          [class.en-curso]="estadoProximo(proximo) === 'En curso'"
+          [class.urgente]="estadoProximo(proximo) === 'Prepárate' || estadoProximo(proximo).startsWith('Dirígete')">
+          {{ estadoProximo(proximo) }}
+        </span>
+      </div>
+      <div class="proximo-versus" *ngIf="proximo.robotsDetalle.length >= 2; else rivalNoDefinido">
+        <ng-container *ngFor="let robot of proximo.robotsDetalle; let last = last">
+          <button *ngIf="robot.id; else rivalPendiente" type="button" class="robot-link"
+            (click)="abrirFicha(robot)">
+            <b>#{{ numeroLabel(robot.numero) }}</b>{{ robot.nombre }}
+          </button>
+          <ng-template #rivalPendiente><span class="placeholder">{{ robot.nombre }}</span></ng-template>
+          <span *ngIf="!last" class="vs">VS</span>
+        </ng-container>
+      </div>
+      <ng-template #rivalNoDefinido>
+        <div class="proximo-versus">
+          <span class="placeholder">Tu robot vs Ganador GC1</span>
+        </div>
+      </ng-template>
+      <div class="proximo-detalles">
+        <span>{{ proximo.fase }}</span>
+        <span *ngIf="proximo.dojo">Dojo {{ proximo.dojo }}</span>
+        <span *ngIf="proximo.horaEstimada">{{ cuentaRegresiva(proximo.horaEstimada) }} · {{ proximo.horaEstimada | date: "shortTime" }}</span>
+        <span *ngIf="proximo.combatesAntes !== null && proximo.combatesAntes > 0">{{ proximo.combatesAntes }} combate(s) antes</span>
+      </div>
+    </section>
+    <p class="vacio" *ngIf="robotsSeguidos.length && misCombates.length && !proximoCombate">
+      Tus combates ya terminaron.
     </p>
 
-    <p *ngIf="total === 0">Aún no hay combates generados para este torneo.</p>
-    <p *ngIf="total > 0 && grupos.length === 0">
-      No hay combates pendientes por ahora.
-    </p>
-
-    <section class="fase" *ngFor="let g of grupos; trackBy: trackGrupo">
-      <h2>
-        {{ g.fase }}
-        <small
-          >{{ g.finalizados }} de {{ g.combates.length }} finalizados</small
-        >
-      </h2>
-
-      <div
-        class="combate"
-        *ngFor="let c of g.combates; trackBy: trackCombate"
-        [class.propio]="esPropio(c)"
-        [class.terminado]="terminado(c)"
-      >
-        <b>#{{ c.numero }}</b>
-        <ng-container *ngIf="c.bloque"> · {{ c.bloque }}</ng-container>
-        · {{ c.dojo || "Dojo por asignar" }}
-        <div class="vs">{{ c.robots.join(" vs ") }}</div>
-        <small>
-          <ng-container *ngIf="c.ganador">Ganó {{ c.ganador }}</ng-container>
-          <ng-container *ngIf="c.empate">Empate</ng-container>
-          <ng-container *ngIf="!c.ganador && !c.empate">{{
-            c.estado
-          }}</ng-container>
-          <ng-container *ngIf="!terminado(c) && c.horaEstimada">
-            · ~{{ c.horaEstimada | date: "shortTime" }}
-          </ng-container>
-        </small>
+    <section class="seccion">
+      <div class="titulo">
+        <div><p class="eyebrow">AGENDA DEL TORNEO</p><h2>Línea de tiempo</h2></div>
+      </div>
+      <p class="vacio" *ngIf="live.combates.length === 0">Aún no hay combates generados para este torneo.</p>
+      <div class="dia" *ngFor="let grupo of gruposDia; trackBy: trackGrupo">
+        <h3>{{ fechaDeGrupo(grupo.fecha) ? (fechaDeGrupo(grupo.fecha) | date: "EEEE d 'de' MMMM") : grupo.fecha }}</h3>
+        <article class="timeline-card" *ngFor="let combate of grupo.combates; trackBy: trackCombate"
+          [class.seguido]="misCombates.includes(combate)"
+          [class.timeline-en-curso]="estadoTimeline(combate) === 'En curso'"
+          [class.timeline-proximo]="estadoTimeline(combate) === 'Próximo'"
+          [class.timeline-finalizado]="estadoTimeline(combate) === 'Finalizado'">
+          <div class="timeline-estado">
+            <i></i>{{ estadoTimeline(combate) }}
+          </div>
+          <div class="timeline-top">
+            <b>Combate #{{ combate.numero }}</b>
+            <span>{{ combate.fase }}<ng-container *ngIf="combate.bloque"> · {{ combate.bloque }}</ng-container></span>
+            <span *ngIf="combate.dojo">Dojo {{ combate.dojo }}</span>
+            <time *ngIf="combate.horarioProgramado">{{ combate.horarioProgramado | date: "shortTime" }}</time>
+            <time *ngIf="!combate.horarioProgramado && combate.horaEstimada">{{ combate.horaEstimada | date: "shortTime" }}</time>
+          </div>
+          <div class="combate-versus">
+            <ng-container *ngFor="let robot of combate.robotsDetalle; let last = last">
+              <button *ngIf="robot.id; else robotPlaceholder" type="button" class="robot-link"
+                [class.ganador]="robot.numero !== null && robot.numero === combate.ganadorNumero"
+                (click)="abrirFicha(robot)">
+                <b>#{{ numeroLabel(robot.numero) }}</b>{{ robot.nombre }}
+              </button>
+              <ng-template #robotPlaceholder><span class="placeholder">{{ robot.nombre }}</span></ng-template>
+              <span *ngIf="!last" class="vs">vs</span>
+            </ng-container>
+          </div>
+          <div class="resultado" *ngIf="terminado(combate)">
+            <span *ngIf="combate.empate">Empate</span>
+            <span *ngIf="!combate.empate && combate.ganador">
+              Ganó <b *ngIf="combate.ganadorNumero">#{{ numeroLabel(combate.ganadorNumero) }}</b> {{ combate.ganador }}
+            </span>
+            <span *ngIf="combate.metodoVictoria">· {{ combate.metodoVictoria }}</span>
+          </div>
+          <div class="cola" *ngIf="!terminado(combate) && combate.horaEstimada">
+            <span *ngIf="combate.combatesAntes !== null">{{ combate.combatesAntes === 0 ? "Siguiente en su Dojo" : combate.combatesAntes + " combate(s) antes" }}</span>
+            <span>{{ cuentaRegresiva(combate.horaEstimada) }}</span>
+          </div>
+        </article>
       </div>
     </section>
   </ng-container>

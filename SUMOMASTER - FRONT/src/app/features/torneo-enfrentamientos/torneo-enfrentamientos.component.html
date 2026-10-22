@@ -278,6 +278,8 @@
                     <app-robot-chip
                       [robot]="combate.robot1"
                       [showEquipo]="false"
+                      [torneoId]="torneoId"
+                      [participantes]="torneo()?.participantes"
                     />
                   </td>
 
@@ -287,6 +289,8 @@
                     <app-robot-chip
                       [robot]="combate.robot2"
                       [showEquipo]="false"
+                      [torneoId]="torneoId"
+                      [participantes]="torneo()?.participantes"
                     />
                   </td>
                 </tr>
