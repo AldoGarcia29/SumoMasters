@@ -183,12 +183,11 @@
             <div
               class="ronda-horario"
               *ngFor="
-  let tanda of tandasDeRonda(
-    ronda.numero,
-    ronda.combates
-  );
-  trackBy: identificarTanda
-"
+                let tanda of tandasDeRonda(
+                  ronda.numero,
+                  ronda.combates
+                )
+              "
             >
               <label>
                 <span>

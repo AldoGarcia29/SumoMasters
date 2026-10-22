@@ -887,58 +887,48 @@
 
               <!-- MÉTODO -->
 
-<label class="field">
-  <span>Método de victoria *</span>
+              <label class="field">
 
-  <select formControlName="metodoVictoria">
-    <option [ngValue]="null">
-      Selecciona un método
-    </option>
+                <span>
+                  Método de victoria *
+                </span>
 
-    <option
-      *ngFor="let metodo of metodosVictoria"
-      [value]="metodo"
-    >
-      {{ metodo }}
-    </option>
-  </select>
-</label>
+                <select
+                  formControlName="metodoVictoria"
+                >
 
-<label
-  class="field"
-  *ngIf="form.controls.metodoVictoria.value === 'Otro'"
->
-  <span>Otro método de victoria *</span>
+                  <option [ngValue]="null">
+                    Selecciona un método
+                  </option>
 
-  <input
-    type="text"
-    formControlName="otroMetodoVictoria"
-    maxlength="150"
-    placeholder="Escribe el método de victoria"
-  />
+                  <option
+                    *ngFor="
+                      let metodo of
+                        metodosVictoria
+                    "
+                    [value]="metodo"
+                  >
+                    {{ metodo }}
+                  </option>
 
-  <small
-    style="color: #dc2626; font-weight: 600;"
-    *ngIf="
-      form.controls.otroMetodoVictoria.touched &&
-      !form.controls.otroMetodoVictoria.value.trim()
-    "
-  >
-    Es obligatorio especificar el método.
-  </small>
-</label>
+                </select>
 
-<small
-  style="color: #dc2626; font-weight: 600;"
-  *ngIf="
-    form.controls.metodoVictoria.touched &&
-    form.controls.metodoVictoria.invalid
-  "
->
-  Selecciona un método de victoria.
-</small>
+              </label>
 
-<div class="field-row">
+              <label class="field" *ngIf="form.controls.metodoVictoria.value === 'Otro'">
+                <span>Otro método de victoria *</span>
+                <input type="text" formControlName="otroMetodoVictoria" maxlength="150"
+                  placeholder="Escribe el método de victoria" />
+                <small style="color: #dc2626; font-weight: 600;" *ngIf="form.controls.otroMetodoVictoria.touched && !form.controls.otroMetodoVictoria.value.trim()">
+                  Es obligatorio especificar el método.
+                </small>
+              </label>
+              <small style="color: #dc2626; font-weight: 600;" *ngIf="form.controls.metodoVictoria.touched && form.controls.metodoVictoria.invalid">
+                Selecciona un método de victoria.
+              </small>
+              <!-- TIEMPO Y JUECES -->
+
+              <div class="field-row">
 
                 <label class="field">
 

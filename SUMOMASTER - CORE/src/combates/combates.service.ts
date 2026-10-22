@@ -659,20 +659,10 @@ async generarRondaEliminatoria(
     );
   }
 
-<<<<<<< HEAD
   await this.combateModel.deleteMany({
     torneo: torneoObjectId,
     fase: FaseCombate.OCTAVOS,
   });
-=======
-  async asignarDojosAutomatico(
-    torneoId: string,
-    fase?: string,
-  ): Promise<CombateDocument[]> {
-    if (!Types.ObjectId.isValid(torneoId)) {
-      throw new BadRequestException('El ID del torneo no es válido.');
-    }
->>>>>>> 1b4467be2725f954b60af2cba44cdea1b2ca5975
 
   await this.combateModel.insertMany(
     cruces.map((cruce) => ({
@@ -745,37 +735,6 @@ async generarRondaEliminatoria(
     return this.combateModel.findById(id).populate(POPULATE).exec() as Promise<CombateDocument>;
   }
 
-  async asignarDojo(id: string, dto: AsignarDojoDto): Promise<CombateDocument> {
-    const dojo = await this.dojoModel.findById(dto.dojo).exec();
-    if (!dojo) throw new NotFoundException('Dojo no encontrado');
-
-    const combate = await this.combateModel.findById(id).exec();
-    if (!combate) throw new NotFoundException('Combate no encontrado');
-
-    const ocupados = await this.combateModel
-      .countDocuments({
-        torneo: combate.torneo,
-        dojo: dojo._id,
-        estado: { $ne: EstadoCombate.FINALIZADO },
-        _id: { $ne: combate._id },
-      })
-      .exec();
-
-    if (ocupados >= dojo.capacidad) {
-      throw new BadRequestException(
-        `El dojo "${dojo.nombre}" ya alcanzó su capacidad máxima (${dojo.capacidad} combates).`,
-      );
-    }
-
-    combate.dojo = dojo._id as unknown as Types.ObjectId;
-    await combate.save();
-
-    return this.combateModel
-      .findById(id)
-      .populate(POPULATE)
-      .exec() as Promise<CombateDocument>;
-  }
-
   async quitarDojo(id: string): Promise<CombateDocument> {
     const combate = await this.combateModel
       .findByIdAndUpdate(id, {
@@ -792,7 +751,6 @@ async generarRondaEliminatoria(
     return combate;
   }
 
-<<<<<<< HEAD
   /** Reparte automáticamente los combates pendientes sin dojo entre los dojos disponibles, respetando su capacidad. */
   async asignarDojosAutomatico(
   torneoId: string,
@@ -979,8 +937,6 @@ const filtro: {
     .exec();
 }
 
-=======
->>>>>>> 1b4467be2725f954b60af2cba44cdea1b2ca5975
   async iniciar(id: string): Promise<CombateDocument> {
     const combate = await this.combateModel.findById(id).exec();
     if (!combate) throw new NotFoundException('Combate no encontrado');
@@ -1011,20 +967,11 @@ const filtro: {
     }
 
     combate.resultado = dto.resultado;
-    if (
-      !dto.metodoVictoria ||
-      (dto.metodoVictoria === MetodoVictoria.OTRO &&
-        !dto.otroMetodoVictoria?.trim())
-    ) {
-      throw new BadRequestException(
-        'Debes indicar el método de victoria. Si eliges Otro, especifícalo.',
-      );
+    if (!dto.metodoVictoria || (dto.metodoVictoria === MetodoVictoria.OTRO && !dto.otroMetodoVictoria?.trim())) {
+      throw new BadRequestException('Debes indicar el método de victoria. Si eliges Otro, especifícalo.');
     }
     combate.metodoVictoria = dto.metodoVictoria;
-    combate.otroMetodoVictoria =
-      dto.metodoVictoria === MetodoVictoria.OTRO
-        ? dto.otroMetodoVictoria!.trim()
-        : null;
+    combate.otroMetodoVictoria = dto.metodoVictoria === MetodoVictoria.OTRO ? dto.otroMetodoVictoria!.trim() : null;
     combate.duracionSegundos = dto.duracionSegundos ?? null;
     combate.jueces = dto.jueces ?? [];
     combate.observaciones = dto.observaciones ?? '';
