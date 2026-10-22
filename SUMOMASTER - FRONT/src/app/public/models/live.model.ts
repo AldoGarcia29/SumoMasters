@@ -18,6 +18,10 @@ export interface CombateLive {
   empate: boolean;
   combatesAntes: number | null;
   horaEstimada: string | null;
+  // Nuevos: los usa la vista "Programa". Opcionales hasta que el backend los exponga en /live.
+  ronda?: number | null;
+  turno?: number | null;
+  horarioProgramado?: string | null;
 }
 
 export interface LiveData {

@@ -7,6 +7,7 @@ import { EMPTY, Subscription, catchError, switchMap, timer } from 'rxjs';
 import { LiveUserMenuComponent } from '../live-user-menu/live-user-menu.component';
 import { CombateLive, LiveData } from '../models/live.model';
 import { PublicApiService } from '../services/public-api.service';
+import { ProgramaTorneoComponent } from '../programa-torneo/programa-torneo.component';
 
 const POLL_MS = 10_000;
 const ESTADO_FINAL = 'Finalizado'; // mismo valor que EstadoCombate.FINALIZADO del backend
@@ -26,7 +27,13 @@ interface GrupoFase {
 @Component({
   selector: 'app-live-combates',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, LiveUserMenuComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    LiveUserMenuComponent,
+    ProgramaTorneoComponent,
+  ],
   templateUrl: './live-combates.component.html',
   styleUrls: ['./live-combates.component.css'],
 })
@@ -36,6 +43,8 @@ export class LiveCombatesComponent implements OnInit, OnDestroy {
   error: string | null = null;
   busca = '';
   soloPendientes = false;
+  /** 'lista' = vista actual; 'programa' = formato tipo Excel (grupos, rondas, finales). */
+  vista: 'lista' | 'programa' = 'lista';
 
   private subs = new Subscription();
 
