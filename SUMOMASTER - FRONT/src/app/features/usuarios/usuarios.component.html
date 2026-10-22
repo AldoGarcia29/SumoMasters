@@ -118,15 +118,15 @@
 
     <div class="modal__body">
       <label class="checkbox" *ngFor="let role of roles">
-        <input type="checkbox" [checked]="isRoleChecked(role)" (change)="toggleRole(role, $any($event.target).checked)" />
+        <input type="radio" name="user-role" [checked]="rolSeleccionado() === role" (change)="seleccionarRol(role)" />
         {{ role }}
       </label>
-      <p class="field__hint" *ngIf="rolesSeleccionados().length === 0">Selecciona al menos un rol.</p>
+      <p class="field__hint" *ngIf="!rolSeleccionado()">Selecciona un rol.</p>
     </div>
 
     <div class="modal__footer">
       <button type="button" class="btn btn--ghost" (click)="closeRolesModal()">Cancelar</button>
-      <button type="button" class="btn btn--primary" [disabled]="savingRoles() || rolesSeleccionados().length === 0" (click)="guardarRoles()">
+      <button type="button" class="btn btn--primary" [disabled]="savingRoles() || !rolSeleccionado()" (click)="guardarRoles()">
         {{ savingRoles() ? 'Guardando…' : 'Guardar roles' }}
       </button>
     </div>

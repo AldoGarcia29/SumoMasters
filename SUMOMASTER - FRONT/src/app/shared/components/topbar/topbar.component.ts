@@ -36,6 +36,7 @@ export class TopbarComponent implements OnInit {
   @Output() menuToggle = new EventEmitter<void>();
 
   readonly currentUser = this.authService.currentUser;
+  readonly isAdmin = this.authService.isAdmin;
   readonly isProfileMenuOpen = signal(false);
   readonly isNotificationsOpen = signal(false);
 

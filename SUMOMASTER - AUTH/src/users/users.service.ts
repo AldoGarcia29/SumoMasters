@@ -100,18 +100,16 @@ export class UsersService {
       .exec();
   }
 
-  async updateRoles(
+  async updateRole(
     id: string,
     updateRoleDto: UpdateRoleDto,
   ): Promise<UserDocument> {
-    const uniqueRoles = [...new Set(updateRoleDto.roles)];
-
     const user = await this.userModel
       .findByIdAndUpdate(
         id,
         {
           $set: {
-            roles: uniqueRoles,
+            roles: [updateRoleDto.role],
           },
         },
         {

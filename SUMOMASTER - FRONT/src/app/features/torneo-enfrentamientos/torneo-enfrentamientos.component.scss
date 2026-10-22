@@ -272,3 +272,164 @@
   font-size: 0.8rem;
   line-height: 1.6;
 }
+
+
+.programa-table {
+  min-width: 600px;
+}
+
+.ronda-horario {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  padding: 1rem 1.25rem;
+  background: #faf8ff;
+  border-bottom: 1px solid #eee8f7;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+
+    > span {
+      color: var(--color-text);
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+  }
+
+  input {
+    box-sizing: border-box;
+    min-height: 42px;
+    padding: 0.6rem 0.8rem;
+    color: var(--color-text);
+    background: #fff;
+    border: 1px solid #dfd3f2;
+    border-radius: 0.55rem;
+    font: inherit;
+    font-size: 0.82rem;
+
+    &:focus-visible {
+      outline: 2px solid #b99ae9;
+      outline-offset: 2px;
+    }
+  }
+
+  small {
+    align-self: center;
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+  }
+}
+
+.ronda-aviso {
+  margin: 0;
+  padding: 0.8rem 1.25rem;
+  color: #8a641e;
+  background: #fff8e8;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+  .ronda-horario {
+    align-items: stretch;
+    flex-direction: column;
+
+    input,
+    .btn {
+      width: 100%;
+    }
+
+    small {
+      align-self: flex-start;
+    }
+  }
+}
+
+.configuracion-horarios {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1.25rem;
+
+  .field {
+    margin: 0;
+    max-width: 15rem;
+  }
+
+  input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.75rem;
+    border: 1px solid #e5dcf7;
+    border-radius: 0.75rem;
+    background: #fff;
+    color: var(--color-text);
+    font: inherit;
+  }
+
+  p {
+    flex: 1 1 16rem;
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+  }
+}
+
+.ronda-horarios {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr));
+  gap: 1rem;
+  padding: 1.25rem;
+  background: #faf8ff;
+}
+
+.ronda-horarios .ronda-horario {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid #e8dff8;
+  border-radius: 0.85rem;
+  background: #fff;
+
+  label {
+    display: flex;
+    flex: 1 1 15rem;
+    flex-direction: column;
+    gap: 0.55rem;
+    min-width: 0;
+
+    span {
+      color: var(--color-text);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+  }
+
+  input {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 0.8rem;
+    border: 1px solid #e5dcf7;
+    border-radius: 0.75rem;
+    background: #fff;
+    color: var(--color-text);
+    font: inherit;
+  }
+
+  small,
+  .ronda-aviso {
+    flex-basis: 100%;
+  }
+
+  small {
+    color: var(--color-text-muted);
+  }
+}

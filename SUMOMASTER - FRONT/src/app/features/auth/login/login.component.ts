@@ -6,7 +6,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { AuthBrandingPanelComponent } from '../../../shared/components/auth-branding-panel/auth-branding-panel.component';
-import { ApiErrorResponse, Role } from '../../../core/models/auth.model';
+import { ApiErrorResponse } from '../../../core/models/auth.model';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
@@ -67,23 +67,15 @@ export class LoginComponent {
         next: () => {
           const roles = this.authService.currentUser()?.roles ?? [];
 
-          // ADMIN entra a su página principal.
-          if (roles.includes(Role.ADMIN)) {
-            this.router.navigateByUrl('/dashboard');
+          if (roles.length === 0) {
+            this.authService.logout();
+            this.errorMessage.set(
+              'Tu cuenta aún no tiene permisos asignados. Contacta al administrador.',
+            );
             return;
           }
 
-          // STAFF entra directamente a su pantalla de resultados.
-if (roles.includes(Role.STAFF)) {
-  this.router.navigateByUrl('/staff/resultados');
-  return;
-}
-
-          // Cuenta sin rol asignado: no se le manda a una ruta que no puede abrir.
-          this.authService.logout();
-          this.errorMessage.set(
-            'Tu cuenta aún no tiene permisos asignados. Contacta al administrador.',
-          );
+          this.router.navigateByUrl(this.authService.homeRoute());
         },
 
         error: (err: HttpErrorResponse) => {
