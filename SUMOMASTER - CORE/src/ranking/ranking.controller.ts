@@ -67,7 +67,7 @@ generarCuadroManual(
    *
    * POST /torneos/:torneoId/ranking/fase-eliminatoria/generar
    */
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN)
   @Post('fase-eliminatoria/generar')
   generarFaseEliminatoria(
     @Param('torneoId') torneoId: string,
@@ -88,7 +88,7 @@ generarCuadroManual(
    *   "faseActual": "Octavos de final"
    * }
    */
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN)
   @Post('siguiente-ronda/generar')
   generarSiguienteRonda(
     @Param('torneoId') torneoId: string,

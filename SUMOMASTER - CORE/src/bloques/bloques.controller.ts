@@ -76,7 +76,7 @@ export class BloquesController {
     };
   }
 
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN)
   @Post('generar')
   generar(@Param('torneoId') torneoId: string, @Body() dto: GenerarBloquesDto) {
     return this.bloquesService.generar(torneoId, dto);

@@ -44,7 +44,7 @@ export class AuthService {
   /** Página de inicio según el rol (evita bucles de redirección en los guards). */
   homeRoute(): string {
     if (this.hasAnyRole([Role.ADMIN])) return '/dashboard';
-    if (this.hasAnyRole([Role.STAFF])) return '/torneos';
+    if (this.hasAnyRole([Role.STAFF])) return '/staff/resultados';
     return '/live';
   }
 

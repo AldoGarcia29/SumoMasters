@@ -151,12 +151,24 @@ export const routes: Routes = [
   },
 
   // =========================
+  // SELECCION DE TORNEO PARA STAFF
+  // =========================
+  {
+    path: 'staff/resultados',
+    canActivate: [authGuard, ADMIN_Y_STAFF],
+    loadComponent: () =>
+      import('./features/staff-resultados/staff-resultados.component').then(
+        (m) => m.StaffResultadosComponent,
+      ),
+  },
+
+  // =========================
   // ADMIN Y STAFF
   // =========================
 
   {
     path: 'torneos',
-    canActivate: [authGuard, TODOS_LOS_ROLES],
+    canActivate: [authGuard, SOLO_ADMIN],
     loadComponent: () =>
       import('./features/torneos/torneos.component').then(
         (m) => m.TorneosComponent,
@@ -165,7 +177,7 @@ export const routes: Routes = [
 
   {
     path: 'combates',
-    canActivate: [authGuard, ADMIN_Y_STAFF],
+    canActivate: [authGuard, SOLO_ADMIN],
     loadComponent: () =>
       import('./features/combates-selector/combates-selector.component').then(
         (m) => m.CombatesSelectorComponent,
@@ -174,7 +186,7 @@ export const routes: Routes = [
 
   {
     path: 'torneos/:id/bloques',
-    canActivate: [authGuard, ADMIN_Y_STAFF],
+    canActivate: [authGuard, SOLO_ADMIN],
     loadComponent: () =>
       import('./features/torneo-bloques/torneo-bloques.component').then(
         (m) => m.TorneoBloquesComponent,
@@ -183,7 +195,7 @@ export const routes: Routes = [
 
   {
     path: 'torneos/:id/enfrentamientos',
-    canActivate: [authGuard, ADMIN_Y_STAFF],
+    canActivate: [authGuard, SOLO_ADMIN],
     loadComponent: () =>
       import('./features/torneo-enfrentamientos/torneo-enfrentamientos.component').then(
         (m) => m.TorneoEnfrentamientosComponent,
@@ -192,7 +204,7 @@ export const routes: Routes = [
 
   {
     path: 'torneos/:id/dojos',
-    canActivate: [authGuard, ADMIN_Y_STAFF],
+    canActivate: [authGuard, SOLO_ADMIN],
     loadComponent: () =>
       import('./features/torneo-dojos/torneo-dojos.component').then(
         (m) => m.TorneoDojosComponent,
@@ -210,7 +222,7 @@ export const routes: Routes = [
 
   {
     path: 'torneos/:id/ranking',
-    canActivate: [authGuard, ADMIN_Y_STAFF],
+    canActivate: [authGuard, SOLO_ADMIN],
     loadComponent: () =>
       import('./features/torneo-ranking/torneo-ranking.component').then(
         (m) => m.TorneoRankingComponent,
@@ -219,7 +231,7 @@ export const routes: Routes = [
 
   {
     path: 'torneos/:id/historial',
-    canActivate: [authGuard, ADMIN_Y_STAFF],
+    canActivate: [authGuard, SOLO_ADMIN],
     loadComponent: () =>
       import('./features/torneo-historial/torneo-historial.component').then(
         (m) => m.TorneoHistorialComponent,
@@ -228,7 +240,7 @@ export const routes: Routes = [
 
   {
     path: 'torneos/:id/control-versus',
-    canActivate: [authGuard, ADMIN_Y_STAFF],
+    canActivate: [authGuard, SOLO_ADMIN],
     loadComponent: () =>
       import('./features/control-versus/control-versus.component').then(
         (m) => m.ControlVersusComponent,
@@ -237,13 +249,13 @@ export const routes: Routes = [
 
   {
     path: 'torneos/:id/clasificados',
-    canActivate: [authGuard, ADMIN_Y_STAFF],
+    canActivate: [authGuard, SOLO_ADMIN],
     component: TorneoClasificadosComponent,
   },
 
   {
     path: 'torneos/:id/podio',
-    canActivate: [authGuard, ADMIN_Y_STAFF],
+    canActivate: [authGuard, SOLO_ADMIN],
     loadComponent: () =>
       import('./features/torneo-podio/torneo-podio.component').then(
         (m) => m.TorneoPodioComponent,

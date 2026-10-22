@@ -1,153 +1,209 @@
-<div class="app-shell">
-  <app-sidebar [isOpen]="sidebarOpen()" (closeRequested)="closeSidebar()" />
-  <div class="app-shell__backdrop" *ngIf="sidebarOpen()" (click)="closeSidebar()"></div>
+  <div class="app-shell">
+    <app-sidebar [isOpen]="sidebarOpen()" (closeRequested)="closeSidebar()" />
+    <div class="app-shell__backdrop" *ngIf="sidebarOpen()" (click)="closeSidebar()"></div>
 
-  <div class="app-shell__main">
-    <app-topbar
-      title="Generación automática de enfrentamientos"
-      [subtitle]="'Dashboard › Torneos › ' + (torneo()?.nombre ?? '') + ' › Generación de enfrentamientos'"
-      [notificationCount]="3"
-      (menuToggle)="toggleSidebar()"
-    />
+    <div class="app-shell__main">
+      <app-topbar
+        title="Generación automática de enfrentamientos"
+        [subtitle]="'Dashboard › Torneos › ' + (torneo()?.nombre ?? '') + ' › Generación de enfrentamientos'"
+        [notificationCount]="3"
+        (menuToggle)="toggleSidebar()"
+      />
 
-    <main class="enfrentamientos-page">
-      <section class="panel panel--header">
-        <div class="panel--header__info">
-          <span class="panel--header__icon">
-            <svg viewBox="0 0 24 24" width="18" height="18">
-              <path d="m4 20 7-7M20 4 9.5 14.5M14.5 9.5 20 4M4 20l3-1 1-3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-              <path d="M13 4l7 7-2 2-7-7Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+      <main class="enfrentamientos-page">
+        <section class="panel panel--header">
+          <div class="panel--header__info">
+            <span class="panel--header__icon">
+              <svg viewBox="0 0 24 24" width="18" height="18">
+                <path d="m4 20 7-7M20 4 9.5 14.5M14.5 9.5 20 4M4 20l3-1 1-3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M13 4l7 7-2 2-7-7Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+              </svg>
+            </span>
+            <div>
+              <h2>{{ torneo()?.nombre ?? 'Torneo' }}</h2>
+              <p>Bloques: {{ bloques().length }} · Robots inscritos: {{ torneo()?.robotsInscritos?.length ?? 0 }} · Fase: {{ activeFase() }}</p>
+            </div>
+          </div>
+
+          <button
+            *ngIf="activeFase() === FaseCombate.FASE_GRUPOS"
+            type="button"
+            class="btn btn--primary"
+            [disabled]="generating() || bloques().length === 0"
+            [attr.title]="bloques().length === 0 ? 'Primero genera los bloques de este torneo' : null"
+            (click)="generar()"
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16">
+              <path d="M4 12a8 8 0 0 1 14-5.2M20 12a8 8 0 0 1-14 5.2M4 4v5h5M20 20v-5h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
-          </span>
-          <div>
-            <h2>{{ torneo()?.nombre ?? 'Torneo' }}</h2>
-            <p>Bloques: {{ bloques().length }} · Robots inscritos: {{ torneo()?.robotsInscritos?.length ?? 0 }} · Fase: {{ activeFase() }}</p>
-          </div>
-        </div>
+            {{ generating() ? 'Generando…' : 'Generar enfrentamientos' }}
+          </button>
+        </section>
 
-        <button
-          type="button"
-          class="btn btn--primary"
-          [disabled]="generating() || bloques().length === 0"
-          [attr.title]="bloques().length === 0 ? 'Primero genera los bloques de este torneo' : null"
-          (click)="generar()"
-        >
-          <svg viewBox="0 0 24 24" width="16" height="16">
-            <path d="M4 12a8 8 0 0 1 14-5.2M20 12a8 8 0 0 1-14 5.2M4 4v5h5M20 20v-5h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-          {{ generating() ? 'Generando…' : 'Generar enfrentamientos' }}
-        </button>
-      </section>
+        <section class="panel panel--tabs">
+          <button
+            type="button"
+            *ngFor="let fase of fases"
+            [class.tab--active]="activeFase() === fase"
+            (click)="setFase(fase)"
+          >
+            {{ fase }}
+          </button>
+        </section>
 
-      <section class="panel panel--tabs">
-        <button
-          type="button"
-          *ngFor="let fase of fases"
-          [class.tab--active]="activeFase() === fase"
-          (click)="setFase(fase)"
-        >
-          {{ fase }}
-        </button>
-      </section>
+        <p class="panel__error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+        <p class="panel__success" *ngIf="successMessage()">{{ successMessage() }}</p>
 
-      <p class="panel__error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
-      <p class="panel__success" *ngIf="successMessage()">{{ successMessage() }}</p>
+        <section class="panel programa-resumen">
+  <div>
+    <h3>Programa de combates</h3>
+    <p>
+      {{ activeFase() }} · Todos los bloques
+    </p>
+  </div>
 
-      <div class="enfrentamientos-layout">
-        <aside class="panel enfrentamientos-side">
-          <label class="field">
-            <span>Seleccionar bloque</span>
-            <select [value]="selectedBloqueId()" (change)="onBloqueChange($any($event.target).value)">
-              <option *ngFor="let bloque of bloques()" [value]="bloque._id">
-                {{ bloque.nombre }} ({{ bloque.robots.length }} robots)
-              </option>
-            </select>
-          </label>
+  <span class="badge badge--info">
+    {{ combates().length }} combates
+  </span>
+</section>
 
-          <div class="info-box" *ngIf="bloques().length === 0">
-            No hay bloques generados para este torneo todavía.
-            <a class="link" [routerLink]="['/torneos', torneoId, 'bloques']">Ve primero a "Generación de bloques" →</a>
-            <button type="button" class="link link--button" [disabled]="loadingBloques()" (click)="loadBloques()">
-              {{ loadingBloques() ? 'Actualizando…' : '↻ Ya generé los bloques, actualizar' }}
-            </button>
-          </div>
+<p class="table__loading" *ngIf="loading()">
+  Cargando enfrentamientos…
+</p>
 
-          <div class="info-box info-box--warning" *ngIf="bloques().length === 0 && (torneo()?.robotsInscritos?.length ?? 0) === 0">
-            Este torneo todavía no tiene robots inscritos. Sin robots inscritos no se pueden generar bloques.
-            <a class="link" [routerLink]="['/torneos']">Edita el torneo e inscribe robots →</a>
-          </div>
+<section
+  class="panel empty-hint"
+  *ngIf="!loading() && combates().length === 0"
+>
+  No hay enfrentamientos registrados en esta fase.
 
-          <div class="info-box" *ngIf="bloques().length > 0">
-            Cada robot se enfrentará contra todos los demás de su bloque una sola vez.
-          </div>
-        </aside>
+  <a
+    *ngIf="bloques().length === 0"
+    class="link"
+    [routerLink]="['/torneos', torneoId, 'bloques']"
+  >
+    Ir a generación de bloques →
+  </a>
+</section>
 
-        <section class="panel enfrentamientos-main">
-          <div class="panel__title-row">
-            <h4>Enfrentamientos generados — {{ bloqueNombre(selectedBloqueId()) }}</h4>
-            <span class="badge badge--info">{{ combates().length }} combates</span>
-          </div>
+<div class="programa-rondas" *ngIf="!loading()">
+  <section
+    class="panel ronda-panel"
+    *ngFor="let ronda of rondas()"
+  >
+    <header class="ronda-header">
+      <h3>{{ ronda.titulo }}</h3>
 
-          <p class="table__loading" *ngIf="loading()">Cargando enfrentamientos…</p>
-          <p class="empty-hint" *ngIf="!loading() && combates().length === 0">
-            Todavía no hay enfrentamientos generados para este bloque y fase.
-          </p>
+      <span>
+        {{ ronda.combates.length }} combates
+      </span>
+    </header>
 
-          <div class="table-wrapper" *ngIf="!loading() && combates().length > 0">
-            <table class="table">
-              <thead>
+    <p class="horario-nota">
+  Horarios del evento en Querétaro, hora del centro de México.
+  Varios combates pueden compartir horario si se disputan
+  simultáneamente.
+</p>
+
+    <div class="table-wrapper">
+      <table class="table programa-table">
+        <thead>
   <tr>
+    <th>Horario</th>
+    <th>Bloque</th>
     <th>Combate</th>
-    <th>Ronda</th>
     <th>Robot 1</th>
     <th></th>
     <th>Robot 2</th>
-    <th>Dojo asignado</th>
+    <th>Dojo</th>
+    <th>Arena</th>
   </tr>
 </thead>
 
-<tbody>
-  <tr *ngFor="let combate of combates()">
-    <td>{{ combate.numero }}</td>
+        <tbody>
+          <tr *ngFor="let combate of ronda.combates">
+            <td class="horario-col">
+  <div class="horario-editor">
+    <input
+      type="datetime-local"
+      step="60"
+      [value]="valorHorario(combate)"
+      [disabled]="guardandoHorarios()[combate._id]"
+      [attr.aria-label]="
+        'Horario del combate ' + combate.numero +
+        ' de ' + nombreBloqueCombate(combate)
+      "
+      (input)="editarHorario(
+        combate._id,
+        $any($event.target).value
+      )"
+    />
 
-    <td>
-      <span class="badge badge--info" *ngIf="combate.ronda; else sinRonda">
-        Ronda {{ combate.ronda }}
-      </span>
-      <ng-template #sinRonda>—</ng-template>
-    </td>
-
-    <td>
-      <app-robot-chip [robot]="combate.robot1" />
-    </td>
-
-    <td class="table__vs">VS</td>
-
-    <td>
-      <app-robot-chip [robot]="combate.robot2" />
-    </td>
-
-    <td>
-      <span
-        class="badge"
-        [class]="combate.dojo ? 'badge--success' : 'badge--neutral'"
-      >
-        {{ combate.dojo?.nombre ?? 'Sin asignar' }}
-      </span>
-    </td>
-  </tr>
-</tbody>
-            </table>
-          </div>
-        </section>
-      </div>
-
-      <div class="panel--footer-actions">
-        <a class="btn btn--ghost" [routerLink]="['/torneos', torneoId, 'bloques']">← Volver</a>
-        <button type="button" class="btn btn--primary" [disabled]="combates().length === 0" (click)="continuar()">
-          Continuar a asignación de dojos →
-        </button>
-      </div>
-    </main>
+    <button
+      type="button"
+      class="horario-guardar"
+      [disabled]="
+        guardandoHorarios()[combate._id] ||
+        !horarioModificado(combate._id)
+      "
+      (click)="guardarHorario(combate)"
+    >
+      {{
+        guardandoHorarios()[combate._id]
+          ? 'Guardando…'
+          : 'Guardar'
+      }}
+    </button>
   </div>
+</td>
+            <td>
+              <span class="bloque-etiqueta">
+                {{ nombreBloqueCombate(combate) }}
+              </span>
+            </td>
+
+            <td>#{{ combate.numero }}</td>
+
+            <td>
+              <app-robot-chip
+                [robot]="combate.robot1"
+                [showEquipo]="false"
+              />
+            </td>
+
+            <td class="table__vs">VS</td>
+
+            <td>
+              <app-robot-chip
+                [robot]="combate.robot2"
+                [showEquipo]="false"
+              />
+            </td>
+
+            <td>
+              <span
+                class="badge"
+                [class.badge--success]="!!combate.dojo"
+                [class.badge--neutral]="!combate.dojo"
+              >
+                {{ combate.dojo?.nombre ?? 'Sin asignar' }}
+              </span>
+            </td>
+
+            <td>{{ combate.arena ?? '—' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
 </div>
+
+        <div class="panel--footer-actions">
+          <a class="btn btn--ghost" [routerLink]="['/torneos', torneoId, 'bloques']">← Volver</a>
+          <button type="button" class="btn btn--primary" [disabled]="combates().length === 0" (click)="continuar()">
+            Continuar a asignación de dojos →
+          </button>
+        </div>
+      </main>
+    </div>
+  </div>

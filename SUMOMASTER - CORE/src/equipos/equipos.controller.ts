@@ -18,7 +18,7 @@ import { EquiposService } from './equipos.service';
 export class EquiposController {
   constructor(private readonly equiposService: EquiposService) {}
 
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN)
   @Post()
   create(@Body() dto: CreateEquipoDto) {
     return this.equiposService.create(dto);
@@ -37,7 +37,7 @@ export class EquiposController {
     return this.equiposService.findOne(id);
   }
 
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN)
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateEquipoDto) {
     return this.equiposService.update(id, dto);
