@@ -32,7 +32,7 @@ export class UsuariosComponent implements OnInit {
   readonly searchTerm = signal('');
 
   readonly rolesModalUser = signal<AuthUser | null>(null);
-  readonly rolesSeleccionados = signal<Role[]>([]);
+  readonly rolSeleccionado = signal<Role | null>(null);
   readonly savingRoles = signal(false);
 
   readonly currentUserId = computed(() => this.authService.currentUser()?.id ?? '');
@@ -85,34 +85,31 @@ export class UsuariosComponent implements OnInit {
 
   openRolesModal(usuario: AuthUser): void {
     this.rolesModalUser.set(usuario);
-    this.rolesSeleccionados.set([...usuario.roles]);
+    this.rolSeleccionado.set(usuario.roles[0] ?? null);
   }
 
   closeRolesModal(): void {
     this.rolesModalUser.set(null);
   }
 
-  toggleRole(role: Role, checked: boolean): void {
-    const current = this.rolesSeleccionados();
-    this.rolesSeleccionados.set(
-      checked ? [...current, role] : current.filter((r) => r !== role),
-    );
-  }
-
-  isRoleChecked(role: Role): boolean {
-    return this.rolesSeleccionados().includes(role);
+  seleccionarRol(role: Role): void {
+    this.rolSeleccionado.set(role);
   }
 
   guardarRoles(): void {
     const usuario = this.rolesModalUser();
-    if (!usuario || this.rolesSeleccionados().length === 0) return;
+    const role = this.rolSeleccionado();
+    if (!usuario || !role) return;
 
     this.savingRoles.set(true);
-    this.userManagementService.updateRoles(usuario.id, this.rolesSeleccionados()).subscribe({
+    this.userManagementService.updateRole(usuario.id, role).subscribe({
       next: (actualizado) => {
         this.savingRoles.set(false);
         this.replaceUsuario(actualizado);
         this.closeRolesModal();
+        if (actualizado.id === this.currentUserId()) {
+          this.authService.logout();
+        }
       },
       error: () => {
         this.savingRoles.set(false);

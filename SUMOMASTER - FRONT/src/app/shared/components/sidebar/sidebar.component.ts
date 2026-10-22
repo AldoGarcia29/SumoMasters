@@ -20,7 +20,7 @@ interface NavItem {
   route?: string;
   hasChevron?: boolean;
   /** Si se define, el ítem solo se muestra a usuarios con alguno de estos roles. */
-  roles?: Role[];
+  roles?: readonly Role[];
 }
 
 @Component({
@@ -40,74 +40,74 @@ export class SidebarComponent {
   @Output() closeRequested = new EventEmitter<void>();
 
   /** Los módulos sin `route` todavía no están implementados: se muestran deshabilitados. */
- readonly navItems: NavItem[] = [
-  {
-    icon: 'home',
-    label: 'Dashboard',
-    route: '/dashboard',
-    roles: [Role.ADMIN],
-  },
-  {
-    icon: 'trophy',
-    label: 'Torneos',
-    route: '/torneos',
-    roles: [Role.ADMIN],
-  },
-  {
-    icon: 'users',
-    label: 'Equipos',
-    route: '/equipos',
-    roles: [Role.ADMIN],
-  },
-  {
-    icon: 'robot',
-    label: 'Robots',
-    route: '/robots',
-    roles: [Role.ADMIN],
-  },
-  {
-    icon: 'grid',
-    label: 'Categorías',
-    route: '/categorias',
-    roles: [Role.ADMIN],
-  },
-  {
-    icon: 'swords',
-    label: 'Combates',
-    route: '/combates',
-    roles: [Role.ADMIN],
-  },
-  {
-    icon: 'trophy',
-    label: 'Registrar resultados',
-    route: '/staff/resultados',
-    roles: [Role.STAFF],
-  },
-  {
-    icon: 'building',
-    label: 'Dojos',
-    route: '/dojos',
-    roles: [Role.ADMIN],
-  },
-  {
-    icon: 'file',
-    label: 'Reportes',
-    route: '/reportes',
-    roles: [Role.ADMIN],
-  },
-  {
-    icon: 'user',
-    label: 'Usuarios',
-    route: '/usuarios',
-    roles: [Role.ADMIN],
-  },
-  {
-    icon: 'settings',
-    label: 'Configuración',
-    route: '/configuracion',
-    roles: [Role.ADMIN],
-  },
-];
+  readonly navItems: NavItem[] = [
+    {
+      icon: 'home',
+      label: 'Dashboard',
+      route: '/dashboard',
+      roles: [Role.ADMIN],
+    },
+    {
+      icon: 'trophy',
+      label: 'Torneos',
+      route: '/torneos',
+      roles: [Role.ADMIN],
+    },
+    {
+      icon: 'users',
+      label: 'Equipos',
+      route: '/equipos',
+      roles: [Role.ADMIN],
+    },
+    {
+      icon: 'robot',
+      label: 'Robots',
+      route: '/robots',
+      roles: [Role.ADMIN],
+    },
+    {
+      icon: 'grid',
+      label: 'Categorías',
+      route: '/categorias',
+      roles: [Role.ADMIN],
+    },
+    {
+      icon: 'swords',
+      label: 'Combates',
+      route: '/combates',
+      roles: [Role.ADMIN],
+    },
+    {
+      icon: 'trophy',
+      label: 'Registrar resultados',
+      route: '/staff/resultados',
+      roles: [Role.STAFF],
+    },
+    {
+      icon: 'building',
+      label: 'Dojos',
+      route: '/dojos',
+      roles: [Role.ADMIN],
+    },
+    {
+      icon: 'file',
+      label: 'Reportes',
+      route: '/reportes',
+      roles: [Role.ADMIN],
+    },
+    {
+      icon: 'user',
+      label: 'Usuarios',
+      route: '/usuarios',
+      roles: [Role.ADMIN],
+    },
+    {
+      icon: 'settings',
+      label: 'Configuración',
+      route: '/configuracion',
+      roles: [Role.ADMIN],
+    },
+  ];
 
   readonly currentUser = this.authService.currentUser;
 

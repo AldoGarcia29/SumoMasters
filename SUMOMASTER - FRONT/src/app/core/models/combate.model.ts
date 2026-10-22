@@ -45,6 +45,8 @@ export interface Combate {
   fase: FaseCombate;
   numero: number;
   ronda: number | null;
+  /** Fecha y hora programada; los combates antiguos pueden no tenerla. */
+horarioProgramado?: string | null;
   robot1: Robot;
   robot2: Robot;
   dojo: Dojo | null;

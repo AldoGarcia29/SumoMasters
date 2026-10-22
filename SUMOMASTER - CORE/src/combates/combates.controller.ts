@@ -17,9 +17,26 @@ import {
   FaseCombate,
 } from './enums/combate.enums';
 
+import { ActualizarHorarioCombateDto } from './dto/actualizar-horario-combate.dto';
+
 @Controller()
 export class CombatesController {
   constructor(private readonly combatesService: CombatesService) {}
+
+
+  @Roles(Role.ADMIN, Role.STAFF)
+@Patch('torneos/:torneoId/combates/:id/horario')
+actualizarHorario(
+  @Param('torneoId') torneoId: string,
+  @Param('id') id: string,
+  @Body() dto: ActualizarHorarioCombateDto,
+) {
+  return this.combatesService.actualizarHorario(
+    torneoId,
+    id,
+    dto,
+  );
+}
 
   @Get('torneos/:torneoId/combates')
   findByTorneo(
