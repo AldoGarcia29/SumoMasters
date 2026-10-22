@@ -29,6 +29,7 @@ export enum MetodoVictoria {
   KO = 'Fuera de combate (KO)',
   DESCALIFICACION = 'Descalificación',
   ABANDONO = 'Abandono',
+  OTRO = 'Otro',
 }
 
 export interface HistorialEvento {
@@ -57,6 +58,7 @@ horarioProgramado?: string | null;
   estado: EstadoCombate;
   resultado: ResultadoCombate | null;
   metodoVictoria: MetodoVictoria | null;
+  otroMetodoVictoria?: string | null;
   duracionSegundos: number | null;
   jueces: string[];
   observaciones: string;
@@ -67,7 +69,8 @@ horarioProgramado?: string | null;
 
 export interface RegistrarResultadoPayload {
   resultado: ResultadoCombate;
-  metodoVictoria?: MetodoVictoria;
+  metodoVictoria: MetodoVictoria;
+  otroMetodoVictoria?: string;
   duracionSegundos?: number;
   jueces?: string[];
   observaciones?: string;

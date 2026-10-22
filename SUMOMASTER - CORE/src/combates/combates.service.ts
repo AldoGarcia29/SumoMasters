@@ -967,7 +967,11 @@ const filtro: {
     }
 
     combate.resultado = dto.resultado;
-    combate.metodoVictoria = dto.metodoVictoria ?? null;
+    if (!dto.metodoVictoria || (dto.metodoVictoria === MetodoVictoria.OTRO && !dto.otroMetodoVictoria?.trim())) {
+      throw new BadRequestException('Debes indicar el método de victoria. Si eliges Otro, especifícalo.');
+    }
+    combate.metodoVictoria = dto.metodoVictoria;
+    combate.otroMetodoVictoria = dto.metodoVictoria === MetodoVictoria.OTRO ? dto.otroMetodoVictoria!.trim() : null;
     combate.duracionSegundos = dto.duracionSegundos ?? null;
     combate.jueces = dto.jueces ?? [];
     combate.observaciones = dto.observaciones ?? '';
