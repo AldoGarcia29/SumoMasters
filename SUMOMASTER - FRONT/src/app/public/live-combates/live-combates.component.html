@@ -1,160 +1,293 @@
-<main class="combates-page">
-  <header class="barra">
-    <a class="marca" routerLink="/live" aria-label="Volver a MECAMEX Live">
-      <span class="marca-icono">M</span>
-      <span>MECAMEX <b>LIVE</b></span>
-    </a>
+<main class="programa" [class.programa--proyeccion]="modoProyeccion">
+  <div class="controles" *ngIf="!modoProyeccion">
     <app-live-user-menu />
-  </header>
 
-  <p class="alerta" *ngIf="error">{{ error }}</p>
-  <p class="cargando" *ngIf="!data && !error">Cargando torneo…</p>
-
-  <ng-container *ngIf="data as live">
-    <section class="hero">
-      <div>
-        <a class="volver" [routerLink]="['/live', id]">← Vista pública del torneo</a>
-        <p class="eyebrow">SEGUIMIENTO PERSONAL</p>
-        <h1>{{ live.torneo.nombre }}</h1>
-        <p class="hero-subtitle">
-          <span *ngIf="live.torneo.fecha">{{ live.torneo.fecha | date: "longDate" }}</span>
-          <span>Hora local {{ horaActual | date: "shortTime" }}</span>
-        </p>
-      </div>
-      <div class="actualizacion">
-        <span class="indicador"></span>
-        <span>Actualizado hace {{ segundosDesdeActualizacion }}s</span>
-        <small>Refresco automático cada 5 segundos</small>
-      </div>
-    </section>
-
-    <nav class="nav-paginas">
-      <a [routerLink]="['/live', id]">Resumen</a>
-      <a class="activo">Mis combates</a>
+    <nav class="navegacion">
+      <a routerLink="/live">← Torneos</a>
+      <a *ngIf="id" [routerLink]="['/live', id]">Resumen del torneo</a>
     </nav>
 
-    <section class="seccion seguimiento">
-      <div class="titulo">
-        <div><p class="eyebrow">PERSONALIZA TU VISTA</p><h2>Mis robots</h2></div>
-        <span class="contador">{{ robotsSeguidos.length }} siguiendo</span>
-      </div>
-      <p class="ayuda">Busca por número de participante o nombre y agrégalo a tu seguimiento. Se guarda en este navegador para este torneo.</p>
-
-      <label class="campo-busqueda">
-        <span aria-hidden="true">⌕</span>
-        <input type="search" [(ngModel)]="busca" placeholder="Ej. #012 o nombre del robot"
-          aria-label="Buscar robot por número o nombre" />
+    <section class="filtros">
+      <label>
+        <span>Torneo</span>
+        <select [ngModel]="id" (ngModelChange)="cambiarTorneo($event)">
+          <option value="" disabled>Selecciona un torneo</option>
+          <option *ngFor="let torneo of torneos" [value]="torneo.id">
+            {{ torneo.nombre }}
+          </option>
+        </select>
       </label>
 
-      <div class="coincidencias" *ngIf="busca.trim()">
-        <p *ngIf="robotsCoincidentes.length === 0">No se encontraron robots con ese número o nombre.</p>
-        <button type="button" class="coincidencia" *ngFor="let robot of robotsCoincidentes"
-          [disabled]="esSeguido(robot.id)" (click)="seguirRobot(robot)">
-          <span class="numero">#{{ numeroLabel(robot.numero) }}</span>
-          <span class="coincidencia-info"><b>{{ robot.nombre }}</b><small>{{ robot.equipo }} · {{ robot.institucion }}</small></span>
-          <span class="accion">{{ esSeguido(robot.id) ? "Siguiendo" : "+ Seguir" }}</span>
-        </button>
-      </div>
+      <label>
+        <span>Fase</span>
+        <select
+          [ngModel]="faseSeleccionada"
+          (ngModelChange)="cambiarFase($event)"
+          [disabled]="!fases.length"
+        >
+          <option *ngFor="let fase of fases" [value]="fase">{{ fase }}</option>
+        </select>
+      </label>
 
-      <p class="alerta-storage" *ngIf="seguimientoError">{{ seguimientoError }}</p>
-      <p class="vacio" *ngIf="robotsSeguidos.length === 0 && !busca.trim()">
-        Aún no sigues robots. Busca por número o nombre para añadirlos.
-      </p>
+      <label *ngIf="esGrupos">
+        <span>Ronda</span>
+        <select [(ngModel)]="rondaSeleccionada" (ngModelChange)="reiniciarPagina()">
+          <option value="">Todas las rondas</option>
+          <option *ngFor="let numero of rondas" [value]="numero">
+            {{ numero > 0 ? "Ronda " + numero : "Sin ronda registrada" }}
+          </option>
+        </select>
+      </label>
 
-      <div class="seguidos" *ngIf="robotsSeguidos.length">
-        <article class="robot-seguido" *ngFor="let robot of robotsSeguidos; trackBy: trackRobot">
-          <div class="robot-seguido-top">
-            <span class="numero">#{{ numeroLabel(robot.numero) }}</span>
-            <button type="button" class="quitar" (click)="dejarDeSeguir(robot.id)"
-              [attr.aria-label]="'Dejar de seguir ' + robot.nombre">×</button>
-          </div>
-          <h3>{{ robot.nombre }}</h3>
-          <p class="record">Récord del torneo <b>G {{ record(robot).victorias }}</b><span>·</span><b>P {{ record(robot).derrotas }}</b></p>
-        </article>
-      </div>
+      <label>
+        <span>Buscar por robot o número</span>
+        <input
+          type="search"
+          placeholder="Nombre o #012"
+          [(ngModel)]="busca"
+          (ngModelChange)="reiniciarPagina()"
+        />
+      </label>
     </section>
 
-    <section class="proximo-panel" *ngIf="proximoCombate as proximo">
-      <div class="proximo-cabecera">
-        <div><p class="eyebrow">TU PRÓXIMO COMBATE</p><h2>Combate #{{ proximo.numero }}</h2></div>
-        <span class="estado-proximo"
-          [class.en-curso]="estadoProximo(proximo) === 'En curso'"
-          [class.urgente]="estadoProximo(proximo) === 'Prepárate' || estadoProximo(proximo).startsWith('Dirígete')">
-          {{ estadoProximo(proximo) }}
-        </span>
+    <div class="opciones">
+      <label class="checkbox">
+        <input type="checkbox" [(ngModel)]="soloPendientes" (ngModelChange)="reiniciarPagina()" />
+        Ocultar finalizados
+      </label>
+      <label class="checkbox">
+        <input type="checkbox" [(ngModel)]="rotacionAutomatica" />
+        Cambiar de página cada 15 segundos
+      </label>
+      <button type="button" class="boton boton--principal" [disabled]="!data" (click)="activarProyeccion()">
+        Proyectar pantalla ⛶
+      </button>
+    </div>
+  </div>
+
+  <p class="aviso aviso--error" role="status" *ngIf="error">{{ error }}</p>
+  <p class="aviso" role="status" *ngIf="aviso && !modoProyeccion">{{ aviso }}</p>
+  <p class="aviso aviso--error" role="alert" *ngIf="seguimientoError && !modoProyeccion">
+    {{ seguimientoError }}
+  </p>
+
+  <header class="cabecera">
+    <div class="marca">SUMO <strong>MASTERS</strong></div>
+    <div class="cabecera__torneo">
+      <span class="subtitulo">PROGRAMA DE COMBATES</span>
+      <h1>{{ data?.torneo?.nombre || "Cargando torneo…" }}</h1>
+      <p>
+        {{ faseSeleccionada }}
+        <ng-container *ngIf="tituloRonda"> · {{ tituloRonda }}</ng-container>
+      </p>
+    </div>
+    <div class="cabecera__fecha">
+      {{ fechaEvento() }}
+      <small>Hora del centro de México · {{ horaActual | date: "shortTime" }}</small>
+    </div>
+  </header>
+
+  <section class="seguimiento" *ngIf="!modoProyeccion && data">
+    <div class="seccion-titulo">
+      <div>
+        <span class="subtitulo">SEGUIMIENTO PERSONAL</span>
+        <h2>Mis robots</h2>
       </div>
-      <div class="proximo-versus" *ngIf="proximo.robotsDetalle.length >= 2; else rivalNoDefinido">
-        <ng-container *ngFor="let robot of proximo.robotsDetalle; let last = last">
-          <button *ngIf="robot.id; else rivalPendiente" type="button" class="robot-link"
+      <span class="contador">{{ robotsSeguidos.length }} siguiendo</span>
+    </div>
+    <p class="ayuda">
+      Busca por número de participante o nombre. Tu lista se guarda en este navegador para este torneo.
+    </p>
+    <label class="busqueda-seguimiento">
+      <span aria-hidden="true">⌕</span>
+      <input
+        type="search"
+        [(ngModel)]="buscaSeguimiento"
+        placeholder="Ej. #012 o nombre del robot"
+        aria-label="Buscar robot por número o nombre para seguir"
+      />
+    </label>
+    <div class="coincidencias" *ngIf="buscaSeguimiento.trim()">
+      <p *ngIf="robotsCoincidentes.length === 0">No se encontraron robots con ese número o nombre.</p>
+      <button
+        type="button"
+        class="coincidencia"
+        *ngFor="let robot of robotsCoincidentes"
+        [disabled]="esSeguido(robot.id)"
+        (click)="seguirRobot(robot)"
+      >
+        <span class="numero">#{{ numeroLabel(robot.numero) }}</span>
+        <span class="coincidencia-info">
+          <b>{{ robot.nombre }}</b>
+          <small>{{ robot.equipo }} · {{ robot.institucion }}</small>
+        </span>
+        <span class="accion">{{ esSeguido(robot.id) ? "Siguiendo" : "+ Seguir" }}</span>
+      </button>
+    </div>
+    <p class="vacio-personal" *ngIf="robotsSeguidos.length === 0 && !buscaSeguimiento.trim()">
+      Aún no sigues robots. Busca por número o nombre para agregarlos.
+    </p>
+    <div class="seguidos" *ngIf="robotsSeguidos.length">
+      <article class="robot-seguido" *ngFor="let robot of robotsSeguidos; trackBy: trackRobot">
+        <div class="robot-seguido__top">
+          <span class="numero">#{{ numeroLabel(robot.numero) }}</span>
+          <button type="button" class="quitar" (click)="dejarDeSeguir(robot.id)"
+            [attr.aria-label]="'Dejar de seguir ' + robot.nombre">×</button>
+        </div>
+        <h3>{{ robot.nombre }}</h3>
+        <p>Récord del torneo <b>{{ record(robot).victorias }} G</b> · <b>{{ record(robot).derrotas }} P</b></p>
+      </article>
+    </div>
+
+    <article class="mi-proximo" *ngIf="proximoCombate as proximo">
+      <div class="mi-proximo__titulo">
+        <div><span class="subtitulo">MI PRÓXIMO COMBATE</span><h3>Combate #{{ proximo.numero }}</h3></div>
+        <b class="estado-proximo" [class.urgente]="estadoProximo(proximo) === 'Prepárate' || estadoProximo(proximo).startsWith('Dirígete')"
+          [class.en-curso]="estadoProximo(proximo) === 'En curso'">{{ estadoProximo(proximo) }}</b>
+      </div>
+      <div class="mi-proximo__versus" *ngIf="proximo.robotsDetalle.length >= 2; else combateSinRival">
+        <ng-container *ngFor="let robot of proximo.robotsDetalle; let ultimo = last">
+          <button *ngIf="robot.id; else rivalPorDefinir" type="button" class="robot-seguido-link"
             (click)="abrirFicha(robot)">
             <b>#{{ numeroLabel(robot.numero) }}</b>{{ robot.nombre }}
           </button>
-          <ng-template #rivalPendiente><span class="placeholder">{{ robot.nombre }}</span></ng-template>
-          <span *ngIf="!last" class="vs">VS</span>
+          <ng-template #rivalPorDefinir><span>{{ robot.nombre }}</span></ng-template>
+          <strong *ngIf="!ultimo" class="vs">VS</strong>
         </ng-container>
       </div>
-      <ng-template #rivalNoDefinido>
-        <div class="proximo-versus">
-          <span class="placeholder">Tu robot vs Ganador GC1</span>
-        </div>
+      <ng-template #combateSinRival>
+        <div class="mi-proximo__versus"><span>Tu robot vs Ganador GC1</span></div>
       </ng-template>
-      <div class="proximo-detalles">
+      <div class="mi-proximo__datos">
         <span>{{ proximo.fase }}</span>
         <span *ngIf="proximo.dojo">Dojo {{ proximo.dojo }}</span>
-        <span *ngIf="proximo.horaEstimada">{{ cuentaRegresiva(proximo.horaEstimada) }} · {{ proximo.horaEstimada | date: "shortTime" }}</span>
-        <span *ngIf="proximo.combatesAntes !== null && proximo.combatesAntes > 0">{{ proximo.combatesAntes }} combate(s) antes</span>
+        <span *ngIf="proximo.horaEstimada">{{ cuentaRegresiva(proximo.horaEstimada) }}</span>
+        <span *ngIf="proximo.combatesAntes !== null && proximo.combatesAntes > 0">
+          {{ proximo.combatesAntes }} combate(s) antes
+        </span>
       </div>
-    </section>
-    <p class="vacio" *ngIf="robotsSeguidos.length && misCombates.length && !proximoCombate">
+    </article>
+    <p class="vacio-personal" *ngIf="robotsSeguidos.length && misCombates.length && !proximoCombate">
       Tus combates ya terminaron.
     </p>
+  </section>
 
-    <section class="seccion">
-      <div class="titulo">
-        <div><p class="eyebrow">AGENDA DEL TORNEO</p><h2>Línea de tiempo</h2></div>
-      </div>
-      <p class="vacio" *ngIf="live.combates.length === 0">Aún no hay combates generados para este torneo.</p>
-      <div class="dia" *ngFor="let grupo of gruposDia; trackBy: trackGrupo">
-        <h3>{{ fechaDeGrupo(grupo.fecha) ? (fechaDeGrupo(grupo.fecha) | date: "EEEE d 'de' MMMM") : grupo.fecha }}</h3>
-        <article class="timeline-card" *ngFor="let combate of grupo.combates; trackBy: trackCombate"
-          [class.seguido]="misCombates.includes(combate)"
-          [class.timeline-en-curso]="estadoTimeline(combate) === 'En curso'"
-          [class.timeline-proximo]="estadoTimeline(combate) === 'Próximo'"
-          [class.timeline-finalizado]="estadoTimeline(combate) === 'Finalizado'">
-          <div class="timeline-estado">
-            <i></i>{{ estadoTimeline(combate) }}
-          </div>
-          <div class="timeline-top">
-            <b>Combate #{{ combate.numero }}</b>
-            <span>{{ combate.fase }}<ng-container *ngIf="combate.bloque"> · {{ combate.bloque }}</ng-container></span>
-            <span *ngIf="combate.dojo">Dojo {{ combate.dojo }}</span>
-            <time *ngIf="combate.horarioProgramado">{{ combate.horarioProgramado | date: "shortTime" }}</time>
-            <time *ngIf="!combate.horarioProgramado && combate.horaEstimada">{{ combate.horaEstimada | date: "shortTime" }}</time>
-          </div>
-          <div class="combate-versus">
-            <ng-container *ngFor="let robot of combate.robotsDetalle; let last = last">
-              <button *ngIf="robot.id; else robotPlaceholder" type="button" class="robot-link"
-                [class.ganador]="robot.numero !== null && robot.numero === combate.ganadorNumero"
-                (click)="abrirFicha(robot)">
-                <b>#{{ numeroLabel(robot.numero) }}</b>{{ robot.nombre }}
-              </button>
-              <ng-template #robotPlaceholder><span class="placeholder">{{ robot.nombre }}</span></ng-template>
-              <span *ngIf="!last" class="vs">vs</span>
-            </ng-container>
-          </div>
-          <div class="resultado" *ngIf="terminado(combate)">
-            <span *ngIf="combate.empate">Empate</span>
-            <span *ngIf="!combate.empate && combate.ganador">
-              Ganó <b *ngIf="combate.ganadorNumero">#{{ numeroLabel(combate.ganadorNumero) }}</b> {{ combate.ganador }}
+  <section class="vacio" *ngIf="cargando && !data">Cargando programa de combates…</section>
+  <section class="vacio" *ngIf="!cargando && data && !filtrados.length">
+    No hay combates para esta selección.
+  </section>
+
+  <div class="tabla-contenedor" *ngIf="data && filtrados.length">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th scope="col">Horario</th>
+          <th scope="col">Grupo / combate</th>
+          <th scope="col">Robot azul</th>
+          <th scope="col" class="col-vs">VS</th>
+          <th scope="col">Robot rojo</th>
+          <th scope="col">Dojo</th>
+          <th scope="col">Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let c of visibles; trackBy: trackCombate"
+          [class.en-curso]="c.estado === 'En curso'"
+          [class.finalizado]="terminado(c)"
+          [class.combate-seguido]="misCombates.includes(c)"
+        >
+          <td class="hora">
+            {{ horario(c) }}
+            <small *ngIf="c.horarioProgramado">{{ c.horarioProgramado | date: "shortDate" }}</small>
+          </td>
+          <td class="grupo">
+            <strong>{{ grupo(c) }}</strong>
+            <small>Combate #{{ c.numero }}</small>
+            <small *ngIf="esGrupos && c.ronda">Ronda {{ c.ronda }}</small>
+          </td>
+          <td>
+            <button *ngIf="detalleRobot(c, 1) as detalle; else robotAzulTexto"
+              type="button" class="robot robot--azul robot-boton"
+              [class.ganador]="ganador(c, 1)" (click)="abrirFicha(detalle)">
+              <span class="foto">
+                <img *ngIf="fotoRobot(c, 1) as foto; else sinFotoAzul" [src]="foto"
+                  [alt]="nombreRobot(c, 1)" (error)="marcarFotoFallida(foto)" />
+                <ng-template #sinFotoAzul><span class="foto-vacia" aria-label="Sin fotografía">🤖</span></ng-template>
+              </span>
+              <span class="robot__nombre">
+                <small class="numero">#{{ numeroLabel(numeroRobot(c, 1)) }}</small>
+                <strong>{{ nombreRobot(c, 1) }}</strong>
+                <small *ngIf="ganador(c, 1)">🏆 Ganador</small>
+              </span>
+            </button>
+            <ng-template #robotAzulTexto>
+              <span class="robot robot--azul">
+                <span class="foto"><span class="foto-vacia">🤖</span></span>
+                <span class="robot__nombre">
+                  <small class="placeholder-numero">Participante por definir</small>
+                  <strong>{{ nombreRobot(c, 1) }}</strong>
+                </span>
+              </span>
+            </ng-template>
+          </td>
+          <td class="col-vs"><span class="vs">VS</span></td>
+          <td>
+            <button *ngIf="detalleRobot(c, 2) as detalle; else robotRojoTexto"
+              type="button" class="robot robot--rojo robot-boton"
+              [class.ganador]="ganador(c, 2)" (click)="abrirFicha(detalle)">
+              <span class="foto">
+                <img *ngIf="fotoRobot(c, 2) as foto; else sinFotoRojo" [src]="foto"
+                  [alt]="nombreRobot(c, 2)" (error)="marcarFotoFallida(foto)" />
+                <ng-template #sinFotoRojo><span class="foto-vacia" aria-label="Sin fotografía">🤖</span></ng-template>
+              </span>
+              <span class="robot__nombre">
+                <small class="numero">#{{ numeroLabel(numeroRobot(c, 2)) }}</small>
+                <strong>{{ nombreRobot(c, 2) }}</strong>
+                <small *ngIf="ganador(c, 2)">🏆 Ganador</small>
+              </span>
+            </button>
+            <ng-template #robotRojoTexto>
+              <span class="robot robot--rojo">
+                <span class="foto"><span class="foto-vacia">🤖</span></span>
+                <span class="robot__nombre">
+                  <small class="placeholder-numero">Participante por definir</small>
+                  <strong>{{ nombreRobot(c, 2) }}</strong>
+                </span>
+              </span>
+            </ng-template>
+          </td>
+          <td><span class="dojo">{{ c.dojo || "Por asignar" }}</span></td>
+          <td>
+            <span class="estado" [class.estado--curso]="c.estado === 'En curso'"
+              [class.estado--final]="terminado(c)">
+              {{ c.estado === "En curso" ? "● En curso" : c.estado }}
             </span>
-            <span *ngIf="combate.metodoVictoria">· {{ combate.metodoVictoria }}</span>
-          </div>
-          <div class="cola" *ngIf="!terminado(combate) && combate.horaEstimada">
-            <span *ngIf="combate.combatesAntes !== null">{{ combate.combatesAntes === 0 ? "Siguiente en su Dojo" : combate.combatesAntes + " combate(s) antes" }}</span>
-            <span>{{ cuentaRegresiva(combate.horaEstimada) }}</span>
-          </div>
-        </article>
-      </div>
-    </section>
-  </ng-container>
+            <small class="empate" *ngIf="c.empate">Empate</small>
+            <small class="metodo" *ngIf="terminado(c) && c.metodoVictoria">{{ c.metodoVictoria }}</small>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer class="pie" *ngIf="data">
+    <div>
+      <strong>{{ filtrados.length }} combates · {{ cantidadEnCurso }} en curso</strong>
+      <small>Actualizado hace {{ segundosDesdeActualizacion }}s · {{ ultimaActualizacionLabel() }}</small>
+    </div>
+    <div class="paginacion">
+      <button type="button" class="boton" aria-label="Página anterior" [disabled]="pagina === 0" (click)="anterior()">←</button>
+      <span>Página {{ pagina + 1 }} de {{ totalPaginas }}</span>
+      <button type="button" class="boton" aria-label="Página siguiente"
+        [disabled]="pagina >= totalPaginas - 1" (click)="siguiente()">→</button>
+    </div>
+    <span class="actualizacion">
+      {{ rotacionAutomatica ? "PÁGINAS AUTOMÁTICAS · 15 S" : "ACTUALIZACIÓN AUTOMÁTICA · 5 S" }}
+    </span>
+  </footer>
+
+  <button *ngIf="modoProyeccion" type="button" class="salir-proyeccion" (click)="salirProyeccion()">
+    Salir de proyección
+  </button>
 </main>

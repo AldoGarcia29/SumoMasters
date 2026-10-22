@@ -23,8 +23,8 @@ export class AsignacionesStaffService {
     if (!usuario || !usuario.active || !usuario.roles.includes('STAFF' as any))
       throw new BadRequestException('El usuario debe ser STAFF activo');
     const dojo = await this.dojos.findById(dto.dojoId);
-    if (!dojo)
-      throw new BadRequestException('Selecciona un dojo válido del 1 al 5');
+    if (!dojo || !/^\s*(?:dojo\s*)?[1-5]\s*$/i.test(dojo.nombre))
+      throw new BadRequestException('Selecciona un dojo del 1 al 5');
     if (Number.isNaN(Date.parse(dto.fecha + 'T12:00:00Z')) || new Date(dto.fecha + 'T12:00:00Z').toISOString().slice(0,10) !== dto.fecha)
       throw new BadRequestException('Fecha inválida');
     try {

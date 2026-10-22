@@ -21,8 +21,11 @@ export interface TorneoLiveDto extends TorneoResumenDto {
 }
 
 export interface CombateLiveDto {
+  id: string;
   numero: number;
   fase: string | null;
+  ronda: number | null;
+  horarioProgramado: string | null;
   dojo: string;
   bloque: string | null;
   robots: string[];
@@ -31,14 +34,20 @@ export interface CombateLiveDto {
     numero: number | null;
     nombre: string;
   }[];
+  robot1: RobotFotoLiveDto | null;
+  robot2: RobotFotoLiveDto | null;
   estado: string;
   ganador: string | null;
   ganadorNumero: number | null;
   metodoVictoria: string | null;
-  horarioProgramado: string | null;
   empate: boolean;
   combatesAntes: number | null;
   horaEstimada: string | null;
+}
+
+export interface RobotFotoLiveDto {
+  nombre: string;
+  imagenUrl: string | null;
 }
 
 export interface RobotLiveDto {

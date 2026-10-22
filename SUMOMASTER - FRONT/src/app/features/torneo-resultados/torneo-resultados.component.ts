@@ -429,6 +429,10 @@ export class TorneoResultadosComponent
   // =========================
 
   ngOnInit(): void {
+    if (this.isStaffOnly) {
+      const dojoUrl = this.route.snapshot.queryParamMap.get('dojo');
+      if (dojoUrl) this.dojoFiltro.set(dojoUrl);
+    }
     const faseUrl =
       this.route.snapshot
         .queryParamMap
@@ -503,6 +507,21 @@ export class TorneoResultadosComponent
           this.combates.set(
             data,
           );
+          if (this.isStaffOnly) {
+            const resumen = new Map<string, DojoResumen>();
+            for (const combate of data) {
+              if (!combate.dojo) continue;
+              const dojo = combate.dojo;
+              const previo = resumen.get(dojo._id);
+              if (previo) previo.combatesAsignados++;
+              else resumen.set(dojo._id, { dojo, combatesAsignados: 1 });
+            }
+            this.dojosResumen.set([...resumen.values()]);
+            const disponibles = [...resumen.keys()];
+            if (!disponibles.includes(this.dojoFiltro())) {
+              this.dojoFiltro.set(disponibles.length ? disponibles[0] : '');
+            }
+          }
 
           const seleccionadoExiste =
             data.some(
@@ -823,6 +842,8 @@ export class TorneoResultadosComponent
   // =========================
 
   loadDojos(): void {
+    // STAFF obtiene los dojos exclusivamente de sus combates autorizados.
+    if (this.isStaffOnly) return;
     this.combateService
       .resumenDojos(
         this.torneoId,

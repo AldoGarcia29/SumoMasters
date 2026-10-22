@@ -12,22 +12,33 @@ export interface TorneoResumen {
   campeon: string | null;
 }
 
+export interface RobotLive {
+  nombre: string;
+  imagenUrl: string | null;
+}
+
+export interface RobotDetalleLive {
+  id: string | null;
+  numero: number | null;
+  nombre: string;
+}
+
 export interface CombateLive {
+  id: string;
   numero: number;
   fase: string | null;
+  ronda: number | null;
+  horarioProgramado: string | null;
   dojo: string;
   bloque: string | null;
   robots: string[];
-  robotsDetalle: {
-    id: string | null;
-    numero: number | null;
-    nombre: string;
-  }[];
+  robotsDetalle: RobotDetalleLive[];
+  robot1: RobotLive | null;
+  robot2: RobotLive | null;
   estado: string;
   ganador: string | null;
-  ganadorNumero?: number | null;
-  metodoVictoria?: string | null;
-  horarioProgramado?: string | null;
+  ganadorNumero: number | null;
+  metodoVictoria: string | null;
   empate: boolean;
   combatesAntes: number | null;
   horaEstimada: string | null;

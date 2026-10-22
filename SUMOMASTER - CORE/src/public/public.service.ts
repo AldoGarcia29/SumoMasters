@@ -17,6 +17,7 @@ import {
   GrupoLiveDto,
   LiveDto,
   PodioLugarLiveDto,
+  RobotFotoLiveDto,
   RobotLiveDto,
   TorneoResumenDto,
 } from './dto/live.dto';
@@ -24,7 +25,7 @@ import { RankingService } from '../ranking/ranking.service';
 import { Robot, RobotDocument } from '../robots/schemas/robot.schema';
 import { Bloque, BloqueDocument } from '../bloques/schemas/bloque.schema';
 
-// Ranking público (fase de grupos): sin ids internos ni imágenes base64.
+// Ranking público (fase de grupos): expone solo nombres, métricas e identificador público del robot.
 export interface FilaRankingPublicaDto {
   robotId: string;
   numero: number | null;
@@ -76,6 +77,23 @@ function porOrden(a: any, b: any): number {
     nombreDe(a.bloque).localeCompare(nombreDe(b.bloque)) ||
     a.numero - b.numero
   );
+}
+
+function robotPublico(
+  robot: any,
+): RobotFotoLiveDto | null {
+  if (!robot || typeof robot.nombre !== 'string') {
+    return null;
+  }
+
+  const valorImagen =
+    typeof robot.imagenUrl === 'string' ? robot.imagenUrl.trim() : '';
+  const imagen = /^https?:\/\//i.test(valorImagen) ? valorImagen : '';
+
+  return {
+    nombre: robot.nombre,
+    imagenUrl: imagen || null,
+  };
 }
 
 @Injectable()
@@ -163,15 +181,14 @@ export class PublicService {
       .lean();
     if (!t) return null;
 
-    // Campos reales del schema Combate: robot1, robot2, resultado (no existen "robots" ni "ganador").
-    // Solo se publican nombres: nunca imágenes, jueces ni observaciones.
+    // La respuesta pública incluye solo campos explícitos; no incluye base64 ni datos internos.
     const combates: any[] = await this.combateModel
       .find({ torneo: new Types.ObjectId(torneoId) })
       .select(
-        'numero fase bloque dojo turno arena estado resultado metodoVictoria otroMetodoVictoria horarioProgramado robot1 robot2 placeholder1 placeholder2',
+        'numero fase ronda bloque dojo turno arena horarioProgramado estado resultado metodoVictoria otroMetodoVictoria robot1 robot2 placeholder1 placeholder2',
       )
-      .populate('robot1', 'nombre')
-      .populate('robot2', 'nombre')
+      .populate('robot1', 'nombre imagenUrl')
+      .populate('robot2', 'nombre imagenUrl')
       .populate('dojo', 'nombre')
       .populate('bloque', 'nombre')
       .lean();
@@ -222,8 +239,10 @@ export class PublicService {
       const estado = String(c.estado);
       const terminado = estado === EstadoCombate.FINALIZADO;
       const dojo = c.dojo ? nombreDe(c.dojo) : '';
-      const robot1 = nombreDe(c.robot1);
-      const robot2 = nombreDe(c.robot2);
+      const nombreRobot1 = nombreDe(c.robot1);
+      const nombreRobot2 = nombreDe(c.robot2);
+      const robot1 = nombreRobot1 || String(c.placeholder1 ?? '');
+      const robot2 = nombreRobot2 || String(c.placeholder2 ?? '');
 
       let combatesAntes: number | null = null;
       let horaEstimada: string | null = null;
@@ -255,14 +274,14 @@ export class PublicService {
             : null;
 
       return {
+        id: String(c._id),
         numero: c.numero,
         fase: c.fase ? nombreDe(c.fase) : null,
+        ronda: c.ronda ?? null,
+        horarioProgramado: aISO(c.horarioProgramado),
         dojo,
         bloque: c.bloque ? nombreDe(c.bloque) : null,
-        robots: [
-          robot1 || String(c.placeholder1 ?? ''),
-          robot2 || String(c.placeholder2 ?? ''),
-        ].filter(Boolean),
+        robots: [robot1, robot2].filter(Boolean),
         robotsDetalle: [
           {
             id: c.robot1?._id ? String(c.robot1._id) : null,
@@ -279,6 +298,8 @@ export class PublicService {
             nombre: robot2 || String(c.placeholder2 ?? ''),
           },
         ].filter((robot) => robot.nombre),
+        robot1: robotPublico(c.robot1),
+        robot2: robotPublico(c.robot2),
         estado,
         ganador,
         ganadorNumero: robotGanador?._id
@@ -288,7 +309,6 @@ export class PublicService {
           c.metodoVictoria === 'Otro' && c.otroMetodoVictoria
             ? c.otroMetodoVictoria
             : c.metodoVictoria ?? null,
-        horarioProgramado: aISO(c.horarioProgramado),
         empate: c.resultado === ResultadoCombate.EMPATE,
         combatesAntes,
         horaEstimada,

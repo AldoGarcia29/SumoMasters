@@ -19,6 +19,10 @@ import {
   CategoriaSchema,
 } from '../categorias/schemas/categoria.schema';
 import { Dojo, DojoSchema } from '../dojos/schemas/dojo.schema';
+import {
+  Proyeccion,
+  ProyeccionSchema,
+} from './schemas/proyeccion.schema';
 
 @Module({
   imports: [
@@ -30,6 +34,7 @@ import { Dojo, DojoSchema } from '../dojos/schemas/dojo.schema';
       { name: Equipo.name, schema: EquipoSchema },
       { name: Categoria.name, schema: CategoriaSchema },
       { name: Dojo.name, schema: DojoSchema },
+      { name: Proyeccion.name, schema: ProyeccionSchema },
     ]),
     RankingModule, // reutiliza RankingService.calcular() para el ranking público
     // 120 peticiones por minuto por IP (en un venue muchos comparten wifi; sube si hace falta)
