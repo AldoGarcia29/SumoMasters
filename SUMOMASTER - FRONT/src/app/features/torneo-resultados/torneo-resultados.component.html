@@ -241,14 +241,25 @@
                   Selecciona tu dojo
                 </option>
 
-                <option
-                  *ngFor="
-                    let item of (isStaffOnly ? dojosAsignados() : dojosResumen())
-                  "
-                  [value]="isStaffOnly ? $any(item)._id : $any(item).dojo._id"
-                >
-                  {{ isStaffOnly ? $any(item).nombre : $any(item).dojo.nombre }}
-                </option>
+                <!-- Dojos asignados al STAFF -->
+<ng-container *ngIf="isStaffOnly">
+  <option
+    *ngFor="let dojo of dojosAsignados()"
+    [value]="dojo._id"
+  >
+    {{ dojo.nombre }}
+  </option>
+</ng-container>
+
+<!-- Dojos disponibles para ADMIN -->
+<ng-container *ngIf="!isStaffOnly">
+  <option
+    *ngFor="let resumen of dojosResumen()"
+    [value]="resumen.dojo._id"
+  >
+    {{ resumen.dojo.nombre }}
+  </option>
+</ng-container>
 
               </select>
             </label>

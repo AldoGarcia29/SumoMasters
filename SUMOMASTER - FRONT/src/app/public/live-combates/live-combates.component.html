@@ -67,9 +67,7 @@
 
   <p class="aviso aviso--error" role="status" *ngIf="error">{{ error }}</p>
   <p class="aviso" role="status" *ngIf="aviso && !modoProyeccion">{{ aviso }}</p>
-  <p class="aviso aviso--error" role="alert" *ngIf="seguimientoError && !modoProyeccion">
-    {{ seguimientoError }}
-  </p>
+
 
   <header class="cabecera">
     <div class="marca">SUMO <strong>MASTERS</strong></div>
@@ -86,91 +84,6 @@
       <small>Hora del centro de México · {{ horaActual | date: "shortTime" }}</small>
     </div>
   </header>
-
-  <section class="seguimiento" *ngIf="!modoProyeccion && data">
-    <div class="seccion-titulo">
-      <div>
-        <span class="subtitulo">SEGUIMIENTO PERSONAL</span>
-        <h2>Mis robots</h2>
-      </div>
-      <span class="contador">{{ robotsSeguidos.length }} siguiendo</span>
-    </div>
-    <p class="ayuda">
-      Busca por número de participante o nombre. Tu lista se guarda en este navegador para este torneo.
-    </p>
-    <label class="busqueda-seguimiento">
-      <span aria-hidden="true">⌕</span>
-      <input
-        type="search"
-        [(ngModel)]="buscaSeguimiento"
-        placeholder="Ej. #012 o nombre del robot"
-        aria-label="Buscar robot por número o nombre para seguir"
-      />
-    </label>
-    <div class="coincidencias" *ngIf="buscaSeguimiento.trim()">
-      <p *ngIf="robotsCoincidentes.length === 0">No se encontraron robots con ese número o nombre.</p>
-      <button
-        type="button"
-        class="coincidencia"
-        *ngFor="let robot of robotsCoincidentes"
-        [disabled]="esSeguido(robot.id)"
-        (click)="seguirRobot(robot)"
-      >
-        <span class="numero">#{{ numeroLabel(robot.numero) }}</span>
-        <span class="coincidencia-info">
-          <b>{{ robot.nombre }}</b>
-          <small>{{ robot.equipo }} · {{ robot.institucion }}</small>
-        </span>
-        <span class="accion">{{ esSeguido(robot.id) ? "Siguiendo" : "+ Seguir" }}</span>
-      </button>
-    </div>
-    <p class="vacio-personal" *ngIf="robotsSeguidos.length === 0 && !buscaSeguimiento.trim()">
-      Aún no sigues robots. Busca por número o nombre para agregarlos.
-    </p>
-    <div class="seguidos" *ngIf="robotsSeguidos.length">
-      <article class="robot-seguido" *ngFor="let robot of robotsSeguidos; trackBy: trackRobot">
-        <div class="robot-seguido__top">
-          <span class="numero">#{{ numeroLabel(robot.numero) }}</span>
-          <button type="button" class="quitar" (click)="dejarDeSeguir(robot.id)"
-            [attr.aria-label]="'Dejar de seguir ' + robot.nombre">×</button>
-        </div>
-        <h3>{{ robot.nombre }}</h3>
-        <p>Récord del torneo <b>{{ record(robot).victorias }} G</b> · <b>{{ record(robot).derrotas }} P</b></p>
-      </article>
-    </div>
-
-    <article class="mi-proximo" *ngIf="proximoCombate as proximo">
-      <div class="mi-proximo__titulo">
-        <div><span class="subtitulo">MI PRÓXIMO COMBATE</span><h3>Combate #{{ proximo.numero }}</h3></div>
-        <b class="estado-proximo" [class.urgente]="estadoProximo(proximo) === 'Prepárate' || estadoProximo(proximo).startsWith('Dirígete')"
-          [class.en-curso]="estadoProximo(proximo) === 'En curso'">{{ estadoProximo(proximo) }}</b>
-      </div>
-      <div class="mi-proximo__versus" *ngIf="proximo.robotsDetalle.length >= 2; else combateSinRival">
-        <ng-container *ngFor="let robot of proximo.robotsDetalle; let ultimo = last">
-          <button *ngIf="robot.id; else rivalPorDefinir" type="button" class="robot-seguido-link"
-            (click)="abrirFicha(robot)">
-            <b>#{{ numeroLabel(robot.numero) }}</b>{{ robot.nombre }}
-          </button>
-          <ng-template #rivalPorDefinir><span>{{ robot.nombre }}</span></ng-template>
-          <strong *ngIf="!ultimo" class="vs">VS</strong>
-        </ng-container>
-      </div>
-      <ng-template #combateSinRival>
-        <div class="mi-proximo__versus"><span>Tu robot vs Ganador GC1</span></div>
-      </ng-template>
-      <div class="mi-proximo__datos">
-        <span>{{ proximo.fase }}</span>
-        <span *ngIf="proximo.dojo">Dojo {{ proximo.dojo }}</span>
-        <span *ngIf="proximo.horaEstimada">{{ cuentaRegresiva(proximo.horaEstimada) }}</span>
-        <span *ngIf="proximo.combatesAntes !== null && proximo.combatesAntes > 0">
-          {{ proximo.combatesAntes }} combate(s) antes
-        </span>
-      </div>
-    </article>
-    <p class="vacio-personal" *ngIf="robotsSeguidos.length && misCombates.length && !proximoCombate">
-      Tus combates ya terminaron.
-    </p>
-  </section>
 
   <section class="vacio" *ngIf="cargando && !data">Cargando programa de combates…</section>
   <section class="vacio" *ngIf="!cargando && data && !filtrados.length">
@@ -195,7 +108,6 @@
           *ngFor="let c of visibles; trackBy: trackCombate"
           [class.en-curso]="c.estado === 'En curso'"
           [class.finalizado]="terminado(c)"
-          [class.combate-seguido]="misCombates.includes(c)"
         >
           <td class="hora">
             {{ horario(c) }}
