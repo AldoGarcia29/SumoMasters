@@ -36,11 +36,25 @@ export class AsignacionesStaffService {
       );
     } catch (e) { throw new BadRequestException('No se pudo guardar la asignación'); }
   }
-  listar(torneoId?: string, usuarioId?: string) {
+  async listar(torneoId?: string, usuarioId?: string) {
     const filtro: Record<string, unknown> = {};
-    if (torneoId) filtro['torneo'] = new Types.ObjectId(torneoId);
-    if (usuarioId) filtro['usuario'] = new Types.ObjectId(usuarioId);
-    return this.asignaciones.find(filtro).sort({ fecha: 1 }).lean().exec();
+    if (torneoId) {
+      if (!Types.ObjectId.isValid(torneoId)) throw new BadRequestException('Torneo inválido');
+      filtro['torneo'] = new Types.ObjectId(torneoId);
+    }
+    if (usuarioId) {
+      if (!Types.ObjectId.isValid(usuarioId)) throw new BadRequestException('Usuario inválido');
+      filtro['usuario'] = new Types.ObjectId(usuarioId);
+    }
+    const resultados = await this.asignaciones.find(filtro).sort({ fecha: 1 }).lean().exec();
+    if (usuarioId && resultados.length === 0) {
+      const total = await this.asignaciones.countDocuments();
+      console.warn('[STAFF ASIGNACIONES] Sin coincidencias para usuario autenticado', {
+        totalAsignaciones: total,
+        consultaConUsuario: true,
+      });
+    }
+    return resultados;
   }
   async eliminar(id: string) {
     if (!Types.ObjectId.isValid(id)) throw new BadRequestException('Asignación inválida');
