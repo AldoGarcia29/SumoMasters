@@ -62,6 +62,9 @@ export class TorneoDojosComponent
     '';
 
   readonly FaseCombate = FaseCombate;
+    readonly dojosAutomaticosIds = signal<string[]>([]);
+
+      readonly EstadoDojo = EstadoDojo;
 
   readonly faseActual =
     signal<FaseCombate>(
@@ -264,6 +267,104 @@ export class TorneoDojosComponent
     this.load();
   }
 
+    readonly rondasPorAsignar = computed(() => {
+    const grupos = new Map<number, Combate[]>();
+
+    const ordenados = [
+      ...this.combatesPendientesSinDojo(),
+    ].sort((a, b) => this.compararOrdenPrograma(a, b));
+
+    for (const combate of ordenados) {
+      const numero =
+        this.faseActual() === FaseCombate.FASE_GRUPOS
+          ? combate.ronda ?? 0
+          : 0;
+
+      const lista = grupos.get(numero) ?? [];
+      lista.push(combate);
+      grupos.set(numero, lista);
+    }
+
+    return [...grupos.entries()].map(
+      ([numero, combates]) => ({
+        numero,
+        titulo:
+          this.faseActual() !== FaseCombate.FASE_GRUPOS
+            ? this.faseActual()
+            : numero > 0
+              ? `Ronda ${numero}`
+              : 'Sin ronda registrada',
+        combates,
+      }),
+    );
+  });
+
+  private compararOrdenPrograma(
+    a: Combate,
+    b: Combate,
+  ): number {
+    if (this.faseActual() === FaseCombate.FASE_GRUPOS) {
+      const porRonda =
+        (a.ronda ?? 0) - (b.ronda ?? 0);
+
+      if (porRonda) return porRonda;
+
+      const grupoA = a.bloque?.nombre ?? '';
+      const grupoB = b.bloque?.nombre ?? '';
+
+      const porGrupo =
+        grupoA.length - grupoB.length ||
+        grupoA.localeCompare(grupoB, 'es', {
+          numeric: true,
+        });
+
+      if (porGrupo) return porGrupo;
+    }
+
+    return (
+      a.numero - b.numero ||
+      a._id.localeCompare(b._id)
+    );
+  }
+
+  nombreGrupo(combate: Combate): string {
+    return combate.bloque?.nombre
+      ?.replace(/^Bloque\b/i, 'Grupo') ?? 'Sin grupo';
+  }
+
+  horarioCombate(combate: Combate): string {
+    if (!combate.horarioProgramado) {
+      return 'Horario por definir';
+    }
+
+    const fecha = new Date(combate.horarioProgramado);
+
+    if (!Number.isFinite(fecha.getTime())) {
+      return 'Horario por definir';
+    }
+
+    return new Intl.DateTimeFormat('es-MX', {
+      timeZone: 'America/Mexico_City',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    }).format(fecha);
+  }
+
+  identificarRonda(
+    _index: number,
+    ronda: { numero: number },
+  ): number {
+    return ronda.numero;
+  }
+
+  identificarCombate(
+    _index: number,
+    combate: Combate,
+  ): string {
+    return combate._id;
+  }
+
   private leerFaseDesdeUrl(): void {
     const faseUrl =
       this.route.snapshot.queryParamMap.get(
@@ -338,6 +439,24 @@ export class TorneoDojosComponent
         );
       },
     });
+  }
+
+
+    dojoAutomaticoSeleccionado(id: string): boolean {
+    return this.dojosAutomaticosIds().includes(id);
+  }
+
+  cambiarDojoAutomatico(
+    id: string,
+    seleccionado: boolean,
+  ): void {
+    if (this.assigning()) return;
+
+    this.dojosAutomaticosIds.update((ids) =>
+      seleccionado
+        ? [...new Set([...ids, id])]
+        : ids.filter((actual) => actual !== id),
+    );
   }
 
   loadResumenDojos(): void {
@@ -461,7 +580,33 @@ export class TorneoDojosComponent
       });
   }
 
-  asignarAutomaticamente(): void {
+    asignarAutomaticamente(): void {
+    if (this.assigning() || this.loading()) return;
+
+    const dojoIds = this.dojosAutomaticosIds();
+
+    if (dojoIds.length === 0) {
+      this.errorMessage.set(
+        'Selecciona los dojos que utilizará este torneo.',
+      );
+      return;
+    }
+
+    const seleccionados = new Set(dojoIds);
+
+    const dojosValidos = this.dojosResumen().filter(
+      (item) =>
+        seleccionados.has(item.dojo._id) &&
+        item.dojo.estado !== EstadoDojo.MANTENIMIENTO,
+    );
+
+    if (dojosValidos.length !== dojoIds.length) {
+      this.errorMessage.set(
+        'Revisa los dojos seleccionados. Alguno ya no está disponible o está en mantenimiento.',
+      );
+      return;
+    }
+
     this.assigning.set(true);
     this.errorMessage.set(null);
     this.successMessage.set(null);
@@ -470,23 +615,16 @@ export class TorneoDojosComponent
       .asignarDojosAutomatico(
         this.torneoId,
         this.faseActual(),
+        dojoIds,
       )
       .subscribe({
         next: (actualizados) => {
           this.assigning.set(false);
-
-          /*
-           * El backend debe devolver solamente
-           * los combates de la fase solicitada.
-           */
-          this.combates.set(
-            actualizados ?? [],
-          );
-
+          this.combates.set(actualizados ?? []);
           this.selectedCombateId.set('');
 
           this.successMessage.set(
-            `${actualizados?.length ?? 0} combates de "${this.faseActual()}" fueron organizados automáticamente.`,
+            `${actualizados.length} combates organizados por ronda entre ${dojoIds.length} dojos. Se conservaron los horarios guardados.`,
           );
 
           this.loadResumenDojos();

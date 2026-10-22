@@ -101,13 +101,18 @@ actualizarHorario(
     return this.combatesService.statsGlobal();
   }
 
-  @Roles(Role.ADMIN)
+    @Roles(Role.ADMIN)
   @Post('torneos/:torneoId/combates/asignar-dojos-auto')
   asignarDojosAutomatico(
     @Param('torneoId') torneoId: string,
-    @Query('fase') fase?: string,
+    @Query('fase') fase: string | undefined,
+    @Body('dojoIds') dojoIds: string[] | undefined,
   ) {
-    return this.combatesService.asignarDojosAutomatico(torneoId, fase);
+    return this.combatesService.asignarDojosAutomatico(
+      torneoId,
+      fase,
+      dojoIds,
+    );
   }
 
   @Roles(Role.ADMIN, Role.STAFF)

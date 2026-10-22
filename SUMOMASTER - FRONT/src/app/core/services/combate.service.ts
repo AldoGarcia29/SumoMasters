@@ -124,22 +124,20 @@ export class CombateService {
     );
   }
 
-  asignarDojosAutomatico(
+    asignarDojosAutomatico(
     torneoId: string,
     fase?: FaseCombate | string,
+    dojoIds?: string[],
   ): Observable<Combate[]> {
     let params = new HttpParams();
 
     if (fase) {
-      params = params.set(
-        'fase',
-        fase,
-      );
+      params = params.set('fase', fase);
     }
 
     return this.http.post<Combate[]>(
       `${this.baseUrl}/torneos/${torneoId}/combates/asignar-dojos-auto`,
-      {},
+      { dojoIds },
       { params },
     );
   }

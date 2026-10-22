@@ -50,7 +50,12 @@
         <button
           type="button"
           class="btn btn--primary"
-          [disabled]="assigning()"
+          [disabled]="
+  assigning() ||
+  loading() ||
+  combates().length === 0 ||
+  dojosAutomaticosIds().length === 0
+"
           (click)="asignarAutomaticamente()"
         >
           <svg viewBox="0 0 24 24" width="16" height="16">
@@ -71,6 +76,51 @@
           }}
         </button>
       </section>
+
+      <section class="panel configuracion-dojos-auto">
+  <div>
+    <h3>Dojos para asignación automática</h3>
+
+    <p>
+      Selecciona los dojos que utilizará este torneo.
+      Cada ronda comienza en el primer dojo seleccionado,
+      ordenados por nombre.
+    </p>
+  </div>
+
+  <div class="dojos-auto-opciones">
+    <label
+      class="dojo-auto-opcion"
+      *ngFor="let item of dojosResumen()"
+      [class.dojo-auto-opcion--seleccionada]="
+        dojoAutomaticoSeleccionado(item.dojo._id)
+      "
+    >
+      <input
+        type="checkbox"
+        [checked]="
+          dojoAutomaticoSeleccionado(item.dojo._id)
+        "
+        [disabled]="
+  assigning() ||
+  loading() ||
+  item.dojo.estado === EstadoDojo.MANTENIMIENTO
+"
+        (change)="cambiarDojoAutomatico(
+          item.dojo._id,
+          $any($event.target).checked
+        )"
+      />
+
+      <span>{{ item.dojo.nombre }}</span>
+    </label>
+  </div>
+
+  <small>
+    {{ dojosAutomaticosIds().length }} dojos seleccionados.
+    Se asignará un combate por dojo en cada tanda.
+  </small>
+</section>
 
       <!-- Estadísticas -->
       <section class="stats-row">
@@ -174,43 +224,96 @@
             />
           </div>
 
-          <ul class="combate-list">
-            <li
-              *ngFor="let combate of combatesPendientesSinDojo()"
-              class="combate-list__item"
-              [class.combate-list__item--active]="
-                selectedCombateId() === combate._id
-              "
-              (click)="selectCombate(combate._id)"
-            >
-              <span class="combate-list__num">
-                {{ combate.numero }}
-              </span>
+          <div class="rondas-pendientes">
+  <section
+    class="ronda-asignacion"
+    *ngFor="
+      let ronda of rondasPorAsignar();
+      trackBy: identificarRonda
+    "
+  >
+    <header class="ronda-asignacion__header">
+      <strong>{{ ronda.titulo }}</strong>
 
-              <app-robot-chip
-                [robot]="combate.robot1"
-                [torneoId]="torneoId"
-                [participantes]="torneo()?.participantes"
-                [showEquipo]="false"
-              />
+      <span>
+        {{ ronda.combates.length }} por asignar
+      </span>
+    </header>
 
-              <span class="table__vs">vs</span>
+    <ul class="combate-list combate-list--ronda">
+      <li
+        *ngFor="
+          let combate of ronda.combates;
+          trackBy: identificarCombate
+        "
+        class="combate-list__item combate-programa"
+        [class.combate-list__item--active]="
+          selectedCombateId() === combate._id
+        "
+      >
+        <button
+          type="button"
+          class="combate-programa__seleccionar"
+          [disabled]="assigning()"
+          [attr.aria-pressed]="
+            selectedCombateId() === combate._id
+          "
+          (click)="selectCombate(combate._id)"
+        >
+          <span class="combate-programa__datos">
+            <strong>
+              {{ nombreGrupo(combate) }}
+              · Combate #{{ combate.numero }}
+            </strong>
 
-              <app-robot-chip
-                [robot]="combate.robot2"
-                [torneoId]="torneoId"
-                [participantes]="torneo()?.participantes"
-                [showEquipo]="false"
-              />
-            </li>
+            <span>{{ horarioCombate(combate) }}</span>
+          </span>
 
-            <li
-              class="table__empty"
-              *ngIf="combatesPendientesSinDojo().length === 0"
-            >
-              Todos los combates ya tienen dojo asignado.
-            </li>
-          </ul>
+          <span class="combate-programa__accion">
+            {{
+              selectedCombateId() === combate._id
+                ? 'Seleccionado'
+                : 'Seleccionar'
+            }}
+          </span>
+        </button>
+
+        <div class="combate-programa__robots">
+          <app-robot-chip
+            [robot]="combate.robot1"
+            [torneoId]="torneoId"
+            [participantes]="torneo()?.participantes"
+            [showEquipo]="false"
+          />
+
+          <span class="table__vs">VS</span>
+
+          <app-robot-chip
+            [robot]="combate.robot2"
+            [torneoId]="torneoId"
+            [participantes]="torneo()?.participantes"
+            [showEquipo]="false"
+          />
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <p
+    class="table__empty"
+    *ngIf="!loading() && rondasPorAsignar().length === 0"
+  >
+    {{
+      searchTerm().trim()
+        ? 'No hay combates que coincidan con la búsqueda.'
+        : 'Todos los combates ya tienen dojo asignado.'
+    }}
+  </p>
+
+  <p class="table__loading" *ngIf="loading()">
+    Cargando combates…
+  </p>
+</div>
         </section>
 
         <!-- 2. Dojos disponibles -->
