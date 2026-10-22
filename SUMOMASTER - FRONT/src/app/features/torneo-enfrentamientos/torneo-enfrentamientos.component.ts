@@ -810,4 +810,23 @@ this.flowCache.setCombates(this.torneoId, [
   closeSidebar(): void {
     this.sidebarOpen.set(false);
   }
+
+    identificarTanda(
+    _index: number,
+    tanda: { clave: string },
+  ): string {
+    return tanda.clave;
+  }
+
+  abrirCalendario(input: HTMLInputElement): void {
+    if (input.disabled) return;
+
+    input.focus();
+
+    try {
+      input.showPicker?.();
+    } catch {
+      // El campo permite escribir la fecha manualmente.
+    }
+  }
 }
