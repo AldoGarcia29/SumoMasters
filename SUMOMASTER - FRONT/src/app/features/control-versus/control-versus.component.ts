@@ -40,7 +40,7 @@ import { FaseCombate } from '../../core/models/combate.model';
         <a
           *ngIf="torneoId()"
           class="btn"
-          [routerLink]="['/versus', torneoId()]"
+          [routerLink]="['/versus', 'principal']"
           target="_blank"
           rel="noopener"
         >
@@ -710,12 +710,17 @@ export class ControlVersusComponent implements OnInit {
     this.mensaje.set('');
 
     forkJoin({
-      combates: this.api.combates(torneoId),
-      seleccion: this.api.seleccionActual(torneoId).pipe(
-        catchError(() => of(null)),
-      ),
-    }).subscribe({
-      next: ({ combates, seleccion }) => {
+  combates: this.api.combates(torneoId),
+
+  seleccion: this.api.seleccionActual(torneoId).pipe(
+    catchError(() => of(null)),
+  ),
+
+  principal: this.api.seleccionPrincipal().pipe(
+    catchError(() => of(null)),
+  ),
+}).subscribe({
+      next: ({ combates, seleccion, principal }) => {
         if (solicitud !== this.solicitud) return;
 
         this.combates.set(combates);
@@ -737,8 +742,19 @@ export class ControlVersusComponent implements OnInit {
         }
 
         if (seleccion) {
-          this.seleccionDisponible.set(true);
-          this.proyectadoId.set(seleccion.combateId);
+          this.seleccionDisponible.set(principal !== null);
+
+this.proyectadoId.set(
+  principal?.torneoId === torneoId
+    ? principal.combateId
+    : null,
+);
+
+if (principal === null) {
+  this.error.set(
+    'No se pudo consultar la pantalla principal. Actualiza la lista.',
+  );
+}
 
           if (!seleccion.publico) {
             this.aviso.set(
