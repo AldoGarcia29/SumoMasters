@@ -662,10 +662,6 @@ export class CombatesService {
       .exec();
   }
 
-  /**
-   * Reparte los combates entre los dojos disponibles en orden (round-robin).
-   * Con 4 dojos: Dojo 1 → 1, 5, 9 · Dojo 2 → 2, 6 · Dojo 3 → 3, 7 · Dojo 4 → 4, 8
-   */
   async asignarDojosAutomatico(
     torneoId: string,
     fase?: string,
@@ -768,6 +764,37 @@ export class CombatesService {
       .exec();
   }
 
+  async asignarDojo(id: string, dto: AsignarDojoDto): Promise<CombateDocument> {
+    const dojo = await this.dojoModel.findById(dto.dojo).exec();
+    if (!dojo) throw new NotFoundException('Dojo no encontrado');
+
+    const combate = await this.combateModel.findById(id).exec();
+    if (!combate) throw new NotFoundException('Combate no encontrado');
+
+    const ocupados = await this.combateModel
+      .countDocuments({
+        torneo: combate.torneo,
+        dojo: dojo._id,
+        estado: { $ne: EstadoCombate.FINALIZADO },
+        _id: { $ne: combate._id },
+      })
+      .exec();
+
+    if (ocupados >= dojo.capacidad) {
+      throw new BadRequestException(
+        `El dojo "${dojo.nombre}" ya alcanzó su capacidad máxima (${dojo.capacidad} combates).`,
+      );
+    }
+
+    combate.dojo = dojo._id as unknown as Types.ObjectId;
+    await combate.save();
+
+    return this.combateModel
+      .findById(id)
+      .populate(POPULATE)
+      .exec() as Promise<CombateDocument>;
+  }
+
   async quitarDojo(id: string): Promise<CombateDocument> {
     const combate = await this.combateModel
       .findByIdAndUpdate(
@@ -786,169 +813,6 @@ export class CombatesService {
 
     if (!combate) throw new NotFoundException('Combate no encontrado');
     return combate;
-  }
-
-  /** Reparte automáticamente los combates pendientes sin dojo entre los dojos disponibles, respetando su capacidad. */
-  async asignarDojosAutomatico(
-    torneoId: string,
-    fase?: string,
-  ): Promise<CombateDocument[]> {
-    if (!Types.ObjectId.isValid(torneoId)) {
-      throw new BadRequestException('El ID del torneo no es válido.');
-    }
-
-    const torneoObjectId = new Types.ObjectId(torneoId);
-    const faseSeleccionada = fase ?? FaseCombate.FASE_GRUPOS;
-
-    if (!Object.values(FaseCombate).includes(faseSeleccionada as FaseCombate)) {
-      throw new BadRequestException('La fase del torneo no es válida.');
-    }
-
-    const filtro: {
-      torneo: Types.ObjectId;
-      fase: FaseCombate;
-    } = {
-      torneo: torneoObjectId,
-      fase: faseSeleccionada as FaseCombate,
-    };
-
-    const combates = await this.combateModel
-      .find(filtro)
-      .sort({ ronda: 1, bloque: 1, numero: 1 })
-      .exec();
-
-    if (combates.length === 0) {
-      throw new BadRequestException(
-        'No hay combates para asignar en esta fase.',
-      );
-    }
-
-    if (
-      combates.some((combate) => combate.estado !== EstadoCombate.PENDIENTE)
-    ) {
-      throw new ConflictException(
-        'La fase ya comenzó. No se puede reorganizar automáticamente.',
-      );
-    }
-
-    const esGrupos = faseSeleccionada === FaseCombate.FASE_GRUPOS;
-
-    if (
-      esGrupos &&
-      combates.some(
-        (combate) =>
-          !Number.isInteger(combate.ronda) || (combate.ronda ?? 0) < 1,
-      )
-    ) {
-      throw new BadRequestException(
-        'Hay combates antiguos sin ronda. Regenera los enfrentamientos antes de asignar dojos.',
-      );
-    }
-
-    const dojos = await this.dojoModel
-      .find({
-        estado: { $ne: EstadoDojo.MANTENIMIENTO },
-      })
-      .sort({ nombre: 1 })
-      .exec();
-
-    // En tu implementación, capacidad representa arenas simultáneas.
-    const espacios = dojos.flatMap((dojo) => {
-      if (!Number.isInteger(dojo.capacidad) || dojo.capacidad < 1) {
-        return [];
-      }
-
-      return Array.from({ length: dojo.capacidad }, (_, indice) => ({
-        dojoId: dojo._id,
-        arena: indice + 1,
-      }));
-    });
-
-    if (espacios.length === 0) {
-      throw new BadRequestException('No hay arenas disponibles en los dojos.');
-    }
-
-    const porRonda = new Map<number, CombateDocument[]>();
-
-    for (const combate of combates) {
-      // En eliminatorias, todos pertenecen a la fase seleccionada.
-      const ronda = esGrupos ? combate.ronda! : 1;
-      const lista = porRonda.get(ronda) ?? [];
-
-      lista.push(combate);
-      porRonda.set(ronda, lista);
-    }
-
-    const operaciones: Parameters<typeof this.combateModel.bulkWrite>[0] = [];
-
-    let turno = 1;
-
-    const rondas = [...porRonda.keys()].sort((a, b) => a - b);
-
-    for (const ronda of rondas) {
-      const restantes = [...porRonda.get(ronda)!];
-
-      while (restantes.length > 0) {
-        const robotsOcupados = new Set<string>();
-        let asignados = 0;
-
-        for (const espacio of espacios) {
-          const indice = restantes.findIndex((combate) => {
-            const robot1 = String(combate.robot1);
-            const robot2 = String(combate.robot2);
-
-            return !robotsOcupados.has(robot1) && !robotsOcupados.has(robot2);
-          });
-
-          if (indice === -1) continue;
-
-          const [combate] = restantes.splice(indice, 1);
-
-          robotsOcupados.add(String(combate.robot1));
-          robotsOcupados.add(String(combate.robot2));
-
-          operaciones.push({
-            updateOne: {
-              filter: {
-                _id: combate._id,
-                torneo: torneoObjectId,
-                estado: EstadoCombate.PENDIENTE,
-              },
-              update: {
-                $set: {
-                  dojo: espacio.dojoId,
-                  arena: espacio.arena,
-                  turno,
-                },
-              },
-            },
-          });
-
-          asignados++;
-        }
-
-        if (asignados === 0) {
-          throw new BadRequestException(
-            'No fue posible programar los combates restantes.',
-          );
-        }
-
-        turno++;
-      }
-
-      // La siguiente ronda comienza en un nuevo turno,
-      // aunque el último de esta ronda tenga arenas libres.
-    }
-
-    await this.combateModel.bulkWrite(operaciones, {
-      ordered: true,
-    });
-
-    return this.combateModel
-      .find(filtro)
-      .populate(POPULATE)
-      .sort({ turno: 1, dojo: 1, arena: 1 })
-      .exec();
   }
 
   async iniciar(id: string): Promise<CombateDocument> {
@@ -987,11 +851,20 @@ export class CombatesService {
     }
 
     combate.resultado = dto.resultado;
-    if (!dto.metodoVictoria || (dto.metodoVictoria === MetodoVictoria.OTRO && !dto.otroMetodoVictoria?.trim())) {
-      throw new BadRequestException('Debes indicar el método de victoria. Si eliges Otro, especifícalo.');
+    if (
+      !dto.metodoVictoria ||
+      (dto.metodoVictoria === MetodoVictoria.OTRO &&
+        !dto.otroMetodoVictoria?.trim())
+    ) {
+      throw new BadRequestException(
+        'Debes indicar el método de victoria. Si eliges Otro, especifícalo.',
+      );
     }
     combate.metodoVictoria = dto.metodoVictoria;
-    combate.otroMetodoVictoria = dto.metodoVictoria === MetodoVictoria.OTRO ? dto.otroMetodoVictoria!.trim() : null;
+    combate.otroMetodoVictoria =
+      dto.metodoVictoria === MetodoVictoria.OTRO
+        ? dto.otroMetodoVictoria!.trim()
+        : null;
     combate.duracionSegundos = dto.duracionSegundos ?? null;
     combate.jueces = dto.jueces ?? [];
     combate.observaciones = dto.observaciones ?? '';
