@@ -73,19 +73,11 @@ export class LoginComponent {
             return;
           }
 
-          // STAFF entra directamente a la lista de torneos.
-<<<<<<< HEAD
-          if (
-            user?.roles.includes(Role.STAFF) &&
-            !user.roles.includes(Role.ADMIN)
-          ) {
-            this.router.navigateByUrl('/staff/resultados');
-=======
-          if (roles.includes(Role.STAFF)) {
-            this.router.navigateByUrl('/torneos');
->>>>>>> 14f40d629ef26eac8e884dba6bc09086f40c579d
-            return;
-          }
+          // STAFF entra directamente a su pantalla de resultados.
+if (roles.includes(Role.STAFF)) {
+  this.router.navigateByUrl('/staff/resultados');
+  return;
+}
 
           // Cuenta sin rol asignado: no se le manda a una ruta que no puede abrir.
           this.authService.logout();

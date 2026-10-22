@@ -4,16 +4,23 @@
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  min-width: 0;
   padding: 1.75rem 2rem 3rem;
+}
+
+.panel--header {
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .panel--header__info {
   display: flex;
   align-items: flex-start;
   gap: 0.8rem;
+  min-width: 0;
 
   h2 {
-    margin: 0 0 0.15rem;
+    margin: 0 0 0.25rem;
     font-family: var(--font-display);
     font-size: 1.05rem;
     color: var(--color-text);
@@ -21,8 +28,9 @@
 
   p {
     margin: 0;
-    font-size: 0.82rem;
     color: var(--color-text-muted);
+    font-size: 0.82rem;
+    line-height: 1.6;
   }
 }
 
@@ -38,33 +46,229 @@
   border-radius: 0.65rem;
 }
 
-.enfrentamientos-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 16rem) minmax(0, 1fr);
-  gap: 1.25rem;
-  align-items: start;
+.panel--tabs {
+  flex-wrap: wrap;
+  gap: 0.35rem;
 }
 
-.enfrentamientos-side {
+.programa-resumen {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1.1rem 1.25rem;
+
+  h3 {
+    margin: 0 0 0.3rem;
+    color: var(--color-text);
+    font-family: var(--font-display);
+    font-size: 1rem;
+  }
+
+  p {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.82rem;
+  }
+}
+
+.programa-rondas {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  padding: 1.25rem;
-}
-
-.enfrentamientos-main {
-  padding: 1.25rem;
+  gap: 1.25rem;
   min-width: 0;
 }
 
-@media (max-width: 900px) {
-  .enfrentamientos-layout {
-    grid-template-columns: 1fr;
+.ronda-panel {
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.ronda-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  color: #fff;
+  background: #25163f;
+
+  h3 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+
+  > span {
+    color: #e1d2f7;
+    font-size: 0.78rem;
+    white-space: nowrap;
   }
 }
 
-@media (max-width: 720px) {
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.programa-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+
+  thead th {
+    padding: 0.9rem 1.1rem;
+    color: var(--color-text-muted);
+    background: #faf8ff;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  tbody td {
+    padding: 0.9rem 1.1rem;
+    border-bottom: 1px solid #eee8f7;
+    vertical-align: middle;
+    font-size: 0.82rem;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  tbody tr:nth-child(even) {
+    background: #fdfcff;
+  }
+
+  tbody tr:hover {
+    background: #f7f3ff;
+  }
+
+  .table__vs {
+    width: 2rem;
+    color: var(--color-primary);
+    font-size: 0.74rem;
+    font-weight: 700;
+    text-align: center;
+  }
+}
+
+.bloque-etiqueta {
+  display: inline-flex;
+  padding: 0.3rem 0.6rem;
+  color: #7541b9;
+  background: #f1e9ff;
+  border-radius: 0.45rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.empty-hint {
+  padding: 1.5rem;
+  text-align: center;
+
+  .link {
+    display: block;
+    margin-top: 0.75rem;
+  }
+}
+
+@media (max-width: 900px) {
   .enfrentamientos-page {
     padding: 1.25rem;
   }
+}
+
+@media (max-width: 600px) {
+  .enfrentamientos-page {
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .panel--header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .panel--header > .btn {
+    width: 100%;
+  }
+
+  .ronda-header {
+    padding: 0.9rem 1rem;
+  }
+
+  .panel--footer-actions {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}
+
+
+.programa-table {
+  min-width: 1050px;
+}
+
+.horario-col {
+  width: 265px;
+  min-width: 265px;
+}
+
+.horario-editor {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  input {
+    box-sizing: border-box;
+    min-width: 0;
+    width: 195px;
+    padding: 0.6rem;
+    color: var(--color-text);
+    background: #faf8ff;
+    border: 1px solid #e5dcf5;
+    border-radius: 0.55rem;
+    font: inherit;
+    font-size: 0.76rem;
+
+    &:focus {
+      outline: 2px solid #c4b5fd;
+      outline-offset: 2px;
+    }
+  }
+}
+
+.horario-guardar {
+  padding: 0.6rem 0.7rem;
+  color: #fff;
+  background: var(--color-primary, #7c3aed);
+  border: 0;
+  border-radius: 0.5rem;
+  font: inherit;
+  font-size: 0.73rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #a78bfa;
+    outline-offset: 3px;
+  }
+}
+
+.horario-nota {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  line-height: 1.6;
 }
