@@ -10,14 +10,6 @@ import {
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { Public } from '../common/decorators/public.decorator';
 import { PublicService } from './public.service';
-import { PublicCacheService } from './public-cache.service';
-import {
-  LISTA_KEY,
-  LISTA_TTL_MS,
-  LIVE_TTL_MS,
-  liveKey,
-  rankingKey,
-} from './public.constants';
 
 /*
  * Rutas finales:
@@ -34,17 +26,12 @@ import {
 @Controller('public')
 @UseGuards(ThrottlerGuard)
 export class PublicController {
-  constructor(
-    private readonly service: PublicService,
-    private readonly cache: PublicCacheService,
-  ) {}
+  constructor(private readonly service: PublicService) {}
 
   @Get('torneos')
   @Header('Cache-Control', 'public, max-age=5')
   lista() {
-    return this.cache.wrap(LISTA_KEY, LISTA_TTL_MS, () =>
-      this.service.listarTorneosPublicos(),
-    );
+    return this.service.listarTorneosPublicos();
   }
 
   @Get('torneos/:id/live')
@@ -53,9 +40,7 @@ export class PublicController {
     if (!/^[a-f\d]{24}$/i.test(id))
       throw new BadRequestException('id inválido');
 
-    const data = await this.cache.wrap(liveKey(id), LIVE_TTL_MS, () =>
-      this.service.armarLive(id),
-    );
+    const data = await this.service.armarLive(id);
     if (!data) throw new NotFoundException('Torneo no encontrado');
     return data;
   }
@@ -66,19 +51,14 @@ export class PublicController {
     if (!/^[a-f\d]{24}$/i.test(id))
       throw new BadRequestException('id inválido');
 
-    const data = await this.cache.wrap(rankingKey(id), LIVE_TTL_MS, () =>
-      this.service.armarRanking(id),
-    );
+    const data = await this.service.armarRanking(id);
     if (!data) throw new NotFoundException('Torneo no encontrado');
     return data;
   }
 
   @Get('torneos/:id/robots/:robotId/ficha')
   @Header('Cache-Control', 'public, max-age=5')
-  async fichaRobot(
-    @Param('id') id: string,
-    @Param('robotId') robotId: string,
-  ) {
+  async fichaRobot(@Param('id') id: string, @Param('robotId') robotId: string) {
     if (!/^[a-f\d]{24}$/i.test(id) || !/^[a-f\d]{24}$/i.test(robotId)) {
       throw new BadRequestException('id inválido');
     }
