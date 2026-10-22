@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import {
   Component,
+  computed,
   inject,
   OnInit,
   signal,
@@ -29,6 +30,8 @@ import {
   FaseCombate,
 } from '../../core/models/combate.model';
 
+import { catchError, forkJoin, of } from 'rxjs';
+
 @Component({
   selector: 'app-torneo-enfrentamientos',
   standalone: true,
@@ -47,6 +50,229 @@ import {
 export class TorneoEnfrentamientosComponent
   implements OnInit
 {
+
+readonly combatesPorHorario = signal(4);
+
+cambiarCombatesPorHorario(valor: string): void {
+  const cantidad = Number(valor);
+
+  if (
+    !Number.isInteger(cantidad) ||
+    cantidad < 1 ||
+    Object.values(this.guardandoRondas()).some(Boolean)
+  ) {
+    return;
+  }
+
+  this.combatesPorHorario.set(cantidad);
+}
+
+tandasDeRonda(
+  numero: number,
+  combates: Combate[],
+): {
+  clave: string;
+  titulo: string;
+  desde: number;
+  hasta: number;
+  combates: Combate[];
+}[] {
+  const cantidad = this.combatesPorHorario();
+  const tandas = [];
+
+  for (let inicio = 0; inicio < combates.length; inicio += cantidad) {
+    const seleccionados = combates.slice(inicio, inicio + cantidad);
+
+    tandas.push({
+      clave: `${numero}:tanda:${inicio / cantidad + 1}`,
+      titulo: `Horario ${inicio / cantidad + 1}`,
+      desde: inicio + 1,
+      hasta: inicio + seleccionados.length,
+      combates: seleccionados,
+    });
+  }
+
+  return tandas;
+}
+
+
+readonly horariosRonda = signal<Record<string, string>>({});
+readonly guardandoRondas = signal<Record<string, boolean>>({});
+
+private claveRonda(numero: number | string): string {
+  return `${this.activeFase()}:${numero}`;
+}
+
+valorHorario(combate: Combate): string {
+  if (!combate.horarioProgramado) return '';
+
+  const fecha = new Date(combate.horarioProgramado);
+
+  if (!Number.isFinite(fecha.getTime())) return '';
+
+  const partes = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'America/Mexico_City',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(fecha);
+
+  const parte = (tipo: string): string =>
+    partes.find((item) => item.type === tipo)?.value ?? '';
+
+  return `${parte('year')}-${parte('month')}-${parte('day')}T${parte('hour')}:${parte('minute')}`;
+}
+
+valorHorarioRonda(
+  numero: number | string,
+  combates: Combate[],
+): string {
+  const clave = this.claveRonda(numero);
+  const editados = this.horariosRonda();
+
+  if (Object.prototype.hasOwnProperty.call(editados, clave)) {
+    return editados[clave];
+  }
+
+  const valores = combates.map(
+    (combate) => this.valorHorario(combate),
+  );
+
+  // No muestra como uniforme un horario que aún
+  // solo está guardado en algunos combates.
+  return valores.length > 0 &&
+    valores.every((valor) => valor === valores[0])
+      ? valores[0]
+      : '';
+}
+
+horariosDistintos(combates: Combate[]): boolean {
+  return new Set(
+    combates.map((combate) => this.valorHorario(combate)),
+  ).size > 1;
+}
+
+editarHorarioRonda(numero: number | string, valor: string): void {
+  const clave = this.claveRonda(numero);
+
+  this.horariosRonda.update((actuales) => ({
+    ...actuales,
+    [clave]: valor,
+  }));
+}
+
+guardandoRonda(numero: number | string): boolean {
+  return this.guardandoRondas()[this.claveRonda(numero)] ?? false;
+}
+
+rondaModificada(numero: number | string): boolean {
+  return Object.prototype.hasOwnProperty.call(
+    this.horariosRonda(),
+    this.claveRonda(numero),
+  );
+}
+
+guardarHorarioRonda(
+  numero: number | string,
+  combates: Combate[],
+): void {
+  if (
+    this.guardandoRonda(numero) ||
+    !this.rondaModificada(numero) ||
+    combates.length === 0
+  ) {
+    return;
+  }
+
+  const clave = this.claveRonda(numero);
+  const fase = this.activeFase();
+  const valor = this.valorHorarioRonda(numero, combates);
+  const horario = valor ? `${valor}:00-06:00` : null;
+
+  if (
+    horario !== null &&
+    !Number.isFinite(Date.parse(horario))
+  ) {
+    this.errorMessage.set('Selecciona una fecha y hora válidas.');
+    return;
+  }
+
+  this.guardandoRondas.update((actuales) => ({
+    ...actuales,
+    [clave]: true,
+  }));
+
+  this.errorMessage.set(null);
+  this.successMessage.set(null);
+
+  forkJoin(
+    combates.map((combate) =>
+      this.combateService
+        .actualizarHorario(
+          this.torneoId,
+          combate._id,
+          horario,
+        )
+        .pipe(
+          catchError(() => of(null)),
+        ),
+    ),
+  ).subscribe((respuestas) => {
+    const actualizados = respuestas.filter(
+      (item): item is Combate => item !== null,
+    );
+
+    const porId = new Map(
+      actualizados.map((item) => [item._id, item]),
+    );
+
+    this.combates.update((actuales) =>
+      actuales.map((item) => porId.get(item._id) ?? item),
+    );
+
+    const cacheados =
+      this.flowCache.getCombates(this.torneoId) ?? [];
+
+    this.flowCache.setCombates(
+      this.torneoId,
+      cacheados.map((item) => porId.get(item._id) ?? item),
+    );
+
+    this.guardandoRondas.update((actuales) => ({
+      ...actuales,
+      [clave]: false,
+    }));
+
+    if (actualizados.length !== combates.length) {
+      if (this.activeFase() === fase) {
+        this.errorMessage.set(
+          `Se guardaron ${actualizados.length} de ${combates.length} horarios. Pulsa Guardar ronda para reintentar los restantes.`,
+        );
+      }
+
+      return;
+    }
+
+    this.horariosRonda.update((actuales) => {
+      const copia = { ...actuales };
+      delete copia[clave];
+      return copia;
+    });
+
+    if (this.activeFase() === fase) {
+      this.successMessage.set(
+        horario
+          ? 'Hora de inicio de la ronda guardada.'
+          : 'Horario de la ronda eliminado.',
+      );
+    }
+  });
+}
+
+
   private readonly route =
     inject(ActivatedRoute);
 
@@ -87,6 +313,72 @@ export class TorneoEnfrentamientosComponent
     signal<FaseCombate>(
       FaseCombate.FASE_GRUPOS,
     );
+  
+  readonly rondas = computed(() => {
+  const grupos = new Map<number, Combate[]>();
+  const esGrupos =
+    this.activeFase() === FaseCombate.FASE_GRUPOS;
+
+  for (const combate of this.combates()) {
+    const numero = esGrupos ? (combate.ronda ?? 0) : 0;
+    const lista = grupos.get(numero) ?? [];
+
+    lista.push(combate);
+    grupos.set(numero, lista);
+  }
+
+  return [...grupos.entries()]
+    .sort(([a], [b]) => a - b)
+    .map(([numero, combates]) => ({
+      numero,
+      titulo: esGrupos
+        ? numero > 0
+          ? `Ronda ${numero}`
+          : 'Combates sin ronda registrada'
+        : this.activeFase(),
+      combates: [...combates].sort((a, b) => {
+        const nombreA = this.nombreBloqueCombate(a);
+        const nombreB = this.nombreBloqueCombate(b);
+
+        return (
+          nombreA.length - nombreB.length ||
+          nombreA.localeCompare(nombreB, 'es', {
+            numeric: true,
+          }) ||
+          a.numero - b.numero
+        );
+      }),
+    }));
+});
+
+nombreBloqueCombate(combate: Combate): string {
+  const bloqueId = this.obtenerBloqueId(combate);
+
+  const bloque = this.bloques().find(
+    (item) => item._id === bloqueId,
+  );
+
+  if (bloque) return bloque.nombre;
+
+  // Si la referencia del combate está incompleta,
+  // identifica el bloque por sus participantes.
+  const porRobots = this.bloques().find((item) => {
+    const ids = new Set(
+      item.robots.map((robot) => String(robot._id)),
+    );
+
+    return (
+      ids.has(String(combate.robot1._id)) &&
+      ids.has(String(combate.robot2._id))
+    );
+  });
+
+  return (
+    porRobots?.nombre ??
+    combate.bloque?.nombre ??
+    'Sin bloque'
+  );
+}
 
   readonly sidebarOpen = signal(false);
   readonly loading = signal(false);
@@ -270,67 +562,48 @@ export class TorneoEnfrentamientosComponent
   }
 
   loadCombates(): void {
-    const fase = this.activeFase();
+  const fase = this.activeFase();
 
-    const esFaseDeGrupos =
-      fase ===
-      FaseCombate.FASE_GRUPOS;
+  // Carga todos los bloques de la fase.
+  this.cargarDesdeCache(fase);
+  this.loading.set(true);
+  this.errorMessage.set(null);
 
-    /*
-     * En fase de grupos sí filtramos por bloque.
-     * En eliminatorias cargamos toda la ronda,
-     * porque los combates preliminares pueden
-     * involucrar robots de diferentes bloques.
-     */
-    const bloqueId = esFaseDeGrupos
-      ? this.selectedBloqueId()
-      : undefined;
+  this.combateService
+    .findByTorneo(this.torneoId, { fase })
+    .subscribe({
+      next: (data) => {
+        // Ignora respuestas de una pestaña anterior.
+        if (this.activeFase() !== fase) return;
 
-    if (
-      esFaseDeGrupos &&
-      !bloqueId
-    ) {
-      return;
-    }
+        this.combates.set(data);
 
-    this.cargarDesdeCache(
-      fase,
-      bloqueId,
-    );
+        // Sustituye la fase consultada para no conservar
+        // documentos antiguos después de regenerar.
+        const otrasFases = (
+          this.flowCache.getCombates(this.torneoId) ?? []
+        ).filter((combate) => combate.fase !== fase);
 
-    this.loading.set(true);
-    this.errorMessage.set(null);
+        this.flowCache.setCombates(this.torneoId, [
+          ...otrasFases,
+          ...data,
+        ]);
 
-    this.combateService
-      .findByTorneo(this.torneoId, {
-        fase,
-        bloque: bloqueId,
-      })
-      .subscribe({
-        next: (data) => {
-          this.loading.set(false);
-          this.combates.set(data);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        if (this.activeFase() !== fase) return;
 
-          this.guardarEnCache(data);
-        },
-
-        error: (err) => {
-          this.loading.set(false);
-
-          console.error(
-            '[Combates] Error al cargar:',
+        this.loading.set(false);
+        this.errorMessage.set(
+          extractErrorMessage(
             err,
-          );
-
-          this.errorMessage.set(
-            extractErrorMessage(
-              err,
-              'No se pudieron cargar los enfrentamientos.',
-            ),
-          );
-        },
-      });
-  }
+            'No se pudieron cargar los enfrentamientos.',
+          ),
+        );
+      },
+    });
+}
 
   private cargarDesdeCache(
     fase: FaseCombate,
@@ -484,17 +757,9 @@ this.flowCache.setCombates(this.torneoId, [
   ...combatesGenerados,
 ]);
 
-          const bloqueActual =
-            this.selectedBloqueId();
-
-          this.combates.set(
-            combatesGenerados.filter(
-              (combate) =>
-                this.obtenerBloqueId(
-                  combate,
-                ) === bloqueActual,
-            ),
-          );
+          if (this.activeFase() === FaseCombate.FASE_GRUPOS) {
+  this.combates.set(combatesGenerados);
+}
         },
 
         error: (err) => {

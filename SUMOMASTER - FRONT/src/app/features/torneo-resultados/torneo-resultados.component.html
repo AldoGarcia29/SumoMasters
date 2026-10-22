@@ -890,13 +890,11 @@
               <label class="field">
 
                 <span>
-                  Método de victoria
+                  Método de victoria *
                 </span>
 
                 <select
-                  formControlName="
-                    metodoVictoria
-                  "
+                  formControlName="metodoVictoria"
                 >
 
                   <option [ngValue]="null">
@@ -917,6 +915,17 @@
 
               </label>
 
+              <label class="field" *ngIf="form.controls.metodoVictoria.value === 'Otro'">
+                <span>Otro método de victoria *</span>
+                <input type="text" formControlName="otroMetodoVictoria" maxlength="150"
+                  placeholder="Escribe el método de victoria" />
+                <small style="color: #dc2626; font-weight: 600;" *ngIf="form.controls.otroMetodoVictoria.touched && !form.controls.otroMetodoVictoria.value.trim()">
+                  Es obligatorio especificar el método.
+                </small>
+              </label>
+              <small style="color: #dc2626; font-weight: 600;" *ngIf="form.controls.metodoVictoria.touched && form.controls.metodoVictoria.invalid">
+                Selecciona un método de victoria.
+              </small>
               <!-- TIEMPO Y JUECES -->
 
               <div class="field-row">
@@ -961,13 +970,9 @@
                 </span>
 
                 <textarea
-                  formControlName="
-                    observaciones
-                  "
+                  formControlName="observaciones"
                   rows="3"
-                  placeholder="
-                    Escribe alguna observación sobre el combate…
-                  "
+                  placeholder="Escribe alguna observación sobre el combate…"
                 ></textarea>
 
               </label>

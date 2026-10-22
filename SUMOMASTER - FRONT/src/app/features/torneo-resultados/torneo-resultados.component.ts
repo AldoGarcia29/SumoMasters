@@ -393,7 +393,9 @@ export class TorneoResultadosComponent
       metodoVictoria:
         this.fb.control<
           MetodoVictoria | null
-        >(null),
+        >(null, Validators.required),
+
+      otroMetodoVictoria: [''],
 
       tiempo: [''],
 
@@ -723,6 +725,8 @@ export class TorneoResultadosComponent
       metodoVictoria:
         combate.metodoVictoria,
 
+      otroMetodoVictoria: combate.otroMetodoVictoria ?? '',
+
       tiempo:
         this.formatSegundos(
           combate.duracionSegundos,
@@ -894,6 +898,12 @@ export class TorneoResultadosComponent
     const raw =
       this.form.getRawValue();
 
+    if (raw.metodoVictoria === MetodoVictoria.OTRO && !raw.otroMetodoVictoria.trim()) {
+      this.formError.set('Escribe el método de victoria en el campo Otro.');
+      this.form.controls.otroMetodoVictoria.markAsTouched();
+      return;
+    }
+
     // =========================
     // NOMBRE DEL GANADOR
     // =========================
@@ -958,9 +968,9 @@ export class TorneoResultadosComponent
           resultado:
             raw.resultado as ResultadoCombate,
 
-          metodoVictoria:
-            raw.metodoVictoria ??
-            undefined,
+          metodoVictoria: raw.metodoVictoria as MetodoVictoria,
+          otroMetodoVictoria: raw.metodoVictoria === MetodoVictoria.OTRO
+            ? raw.otroMetodoVictoria.trim() : undefined,
 
           duracionSegundos:
             duracionSegundos ??
@@ -1012,6 +1022,7 @@ export class TorneoResultadosComponent
           this.form.reset({
             resultado: null,
             metodoVictoria: null,
+            otroMetodoVictoria: '',
             tiempo: '',
             jueces: '',
             observaciones: '',

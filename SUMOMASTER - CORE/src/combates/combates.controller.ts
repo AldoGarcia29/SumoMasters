@@ -6,10 +6,15 @@ import {
   Patch,
   Post,
   Query,
+  Delete,
 } from '@nestjs/common';
 import { Role } from '../common/enums/role.enum';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CombatesService } from './combates.service';
+import { AsignacionesStaffService } from './asignaciones-staff.service';
+import { CrearAsignacionStaffDto } from './dto/crear-asignacion-staff.dto';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { AuthenticatedUser } from '../common/interfaces/jwt-payload.interface';
 import { AsignarDojoDto } from './dto/asignar-dojo.dto';
 import { GenerarCombatesDto } from './dto/generar-combates.dto';
 import { RegistrarResultadoDto } from './dto/registrar-resultado.dto';
@@ -17,10 +22,55 @@ import {
   FaseCombate,
 } from './enums/combate.enums';
 
+import { ActualizarHorarioCombateDto } from './dto/actualizar-horario-combate.dto';
+
 @Controller()
 export class CombatesController {
-  constructor(private readonly combatesService: CombatesService) {}
+  constructor(
+  private readonly combatesService: CombatesService,
+  private readonly asignaciones: AsignacionesStaffService,
+) {}
 
+  @Roles(Role.ADMIN)
+  @Post('asignaciones-staff')
+  crearAsignacion(@Body() dto: CrearAsignacionStaffDto) {
+    return this.asignaciones.crear(dto);
+  }
+
+  @Roles(Role.ADMIN)
+  @Get('asignaciones-staff')
+  listarAsignaciones(@Query('torneoId') torneoId?: string) {
+    return this.asignaciones.listar(torneoId);
+  }
+
+  @Roles(Role.ADMIN)
+  @Delete('asignaciones-staff/:id')
+  eliminarAsignacion(@Param('id') id: string) {
+    return this.asignaciones.eliminar(id);
+  }
+
+  @Roles(Role.ADMIN, Role.STAFF)
+  @Get('mis-asignaciones')
+  misAsignaciones(@CurrentUser() user: AuthenticatedUser) {
+    return this.asignaciones.listar(undefined, user.id);
+  }
+
+
+  @Roles(Role.ADMIN)
+@Patch('torneos/:torneoId/combates/:id/horario')
+actualizarHorario(
+  @Param('torneoId') torneoId: string,
+  @Param('id') id: string,
+  @Body() dto: ActualizarHorarioCombateDto,
+) {
+  return this.combatesService.actualizarHorario(
+    torneoId,
+    id,
+    dto,
+  );
+}
+
+  @Roles(Role.ADMIN, Role.STAFF)
   @Get('torneos/:torneoId/combates')
   findByTorneo(
     @Param('torneoId') torneoId: string,
@@ -28,8 +78,9 @@ export class CombatesController {
     @Query('dojo') dojo?: string,
     @Query('estado') estado?: string,
     @Query('fase') fase?: string,
+    @CurrentUser() user?: AuthenticatedUser,
   ) {
-    return this.combatesService.findByTorneo(torneoId, { bloque, dojo, estado, fase });
+    return this.combatesService.findByTorneo(torneoId, { bloque, dojo, estado, fase }, user);
   }
 
   @Roles(Role.ADMIN)
@@ -38,11 +89,13 @@ export class CombatesController {
     return this.combatesService.generar(torneoId, dto);
   }
 
+  @Roles(Role.ADMIN)
   @Get('torneos/:torneoId/dojos-resumen')
   resumenDojos(@Param('torneoId') torneoId: string) {
     return this.combatesService.resumenDojos(torneoId);
   }
 
+  @Roles(Role.ADMIN)
   @Get('combates-stats')
   statsGlobal() {
     return this.combatesService.statsGlobal();
@@ -57,9 +110,10 @@ export class CombatesController {
     return this.combatesService.asignarDojosAutomatico(torneoId, fase);
   }
 
+  @Roles(Role.ADMIN, Role.STAFF)
   @Get('combates/:id')
-  findOne(@Param('id') id: string) {
-    return this.combatesService.findOne(id);
+  findOne(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.combatesService.findOne(id, user);
   }
 
   @Roles(Role.ADMIN)
@@ -76,14 +130,15 @@ export class CombatesController {
 
   @Roles(Role.ADMIN, Role.STAFF)
   @Patch('combates/:id/iniciar')
-  iniciar(@Param('id') id: string) {
-    return this.combatesService.iniciar(id);
+  iniciar(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.combatesService.iniciar(id, user);
   }
 
   @Roles(Role.ADMIN, Role.STAFF)
   @Patch('combates/:id/resultado')
-  registrarResultado(@Param('id') id: string, @Body() dto: RegistrarResultadoDto) {
-    return this.combatesService.registrarResultado(id, dto);
+  registrarResultado(@Param('id') id: string, @Body() dto: RegistrarResultadoDto,
+    @CurrentUser() user: AuthenticatedUser) {
+    return this.combatesService.registrarResultado(id, dto, user);
   }
 
   @Roles(Role.ADMIN)

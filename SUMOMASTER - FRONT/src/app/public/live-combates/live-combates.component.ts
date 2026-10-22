@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { EMPTY, Subscription, catchError, switchMap, timer } from 'rxjs';
 
+import { LiveUserMenuComponent } from '../live-user-menu/live-user-menu.component';
 import { CombateLive, LiveData } from '../models/live.model';
 import { PublicApiService } from '../services/public-api.service';
 
@@ -25,7 +26,7 @@ interface GrupoFase {
 @Component({
   selector: 'app-live-combates',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, LiveUserMenuComponent],
   templateUrl: './live-combates.component.html',
   styleUrls: ['./live-combates.component.css'],
 })

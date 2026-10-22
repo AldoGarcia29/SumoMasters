@@ -60,6 +60,9 @@
                   </span>
                 </td>
                 <td class="table__actions">
+                  <button type="button" *ngIf="usuario.roles.includes(Role.STAFF)" (click)="abrirAsignaciones(usuario)"
+                    title="Asignar dojos por torneo y fecha" aria-label="Asignar dojos"
+                    style="color:#5b21b6;font-weight:700;width:auto;padding:0 10px">Dojos</button>
                   <button type="button" aria-label="Editar roles" title="Editar roles" (click)="openRolesModal(usuario)">
                     <svg viewBox="0 0 24 24" width="16" height="16">
                       <path d="M4 20h4L18 10l-4-4L4 16v4Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
@@ -118,17 +121,53 @@
 
     <div class="modal__body">
       <label class="checkbox" *ngFor="let role of roles">
-        <input type="checkbox" [checked]="isRoleChecked(role)" (change)="toggleRole(role, $any($event.target).checked)" />
+        <input type="radio" name="user-role" [checked]="rolSeleccionado() === role" (change)="seleccionarRol(role)" />
         {{ role }}
       </label>
-      <p class="field__hint" *ngIf="rolesSeleccionados().length === 0">Selecciona al menos un rol.</p>
+      <p class="field__hint" *ngIf="!rolSeleccionado()">Selecciona un rol.</p>
     </div>
 
     <div class="modal__footer">
       <button type="button" class="btn btn--ghost" (click)="closeRolesModal()">Cancelar</button>
-      <button type="button" class="btn btn--primary" [disabled]="savingRoles() || rolesSeleccionados().length === 0" (click)="guardarRoles()">
+      <button type="button" class="btn btn--primary" [disabled]="savingRoles() || !rolSeleccionado()" (click)="guardarRoles()">
         {{ savingRoles() ? 'Guardando…' : 'Guardar roles' }}
       </button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" *ngIf="asignacionUsuario() as juez" (click)="cerrarAsignaciones()">
+  <div class="modal" (click)="$event.stopPropagation()" style="max-width:540px;width:calc(100vw - 32px)">
+    <div class="modal__header">
+      <h3>Asignar dojos a {{ juez.name }}</h3>
+      <button type="button" class="modal__close" (click)="cerrarAsignaciones()" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal__body" style="display:grid;gap:14px">
+      <label>Torneo
+        <select style="width:100%;padding:10px" [value]="torneoElegido()" (change)="torneoElegido.set($any($event.target).value)">
+          <option value="">Selecciona un torneo</option>
+          <option *ngFor="let t of torneos()" [value]="t._id">{{ t.nombre }}</option>
+        </select>
+      </label>
+      <label>Dojo
+        <select style="width:100%;padding:10px" [value]="dojoElegido()" (change)="dojoElegido.set($any($event.target).value)">
+          <option value="">Selecciona un dojo</option>
+          <option *ngFor="let d of dojos()" [value]="d._id">{{ d.nombre }}</option>
+        </select>
+      </label>
+      <label>Fecha
+        <input type="date" style="width:100%;padding:10px" [value]="fechaElegida()" (change)="fechaElegida.set($any($event.target).value)" />
+      </label>
+      <p class="panel__error" *ngIf="asignacionError()">{{ asignacionError() }}</p>
+      <button type="button" class="btn btn--primary" [disabled]="guardandoAsignacion()" (click)="guardarAsignacion()">
+        {{ guardandoAsignacion() ? 'Guardando…' : 'Guardar asignación' }}
+      </button>
+      <h4>Asignaciones existentes</h4>
+      <p *ngIf="asignacionesDeUsuario(juez.id).length === 0">Este STAFF todavía no tiene asignaciones.</p>
+      <div *ngFor="let a of asignacionesDeUsuario(juez.id)" style="display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid #ddd;padding:8px 0">
+        <span>{{ nombreTorneo(a.torneo) }} — {{ nombreDojo(a.dojo) }} — {{ a.fecha }}</span>
+        <button type="button" class="btn btn--ghost" (click)="eliminarAsignacion(a._id)">Quitar</button>
+      </div>
     </div>
   </div>
 </div>

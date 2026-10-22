@@ -5,6 +5,11 @@ import { TopbarComponent } from '../../shared/components/topbar/topbar.component
 import { UserManagementService } from '../../core/services/user-management.service';
 import { AuthService } from '../../core/services/auth.service';
 import { AuthUser, Role } from '../../core/models/auth.model';
+import { AsignacionesStaffService, AsignacionStaff } from '../../core/services/asignaciones-staff.service';
+import { TorneoService } from '../../core/services/torneo.service';
+import { DojoService } from '../../core/services/dojo.service';
+import { Torneo } from '../../core/models/torneo.model';
+import { Dojo } from '../../core/models/dojo.model';
 
 @Component({
   selector: 'app-usuarios',
@@ -16,6 +21,52 @@ import { AuthUser, Role } from '../../core/models/auth.model';
 export class UsuariosComponent implements OnInit {
   private readonly userManagementService = inject(UserManagementService);
   private readonly authService = inject(AuthService);
+  private readonly asignacionesService = inject(AsignacionesStaffService);
+  private readonly torneoService = inject(TorneoService);
+  private readonly dojoService = inject(DojoService);
+  readonly torneos = signal<Torneo[]>([]);
+  readonly dojos = signal<Dojo[]>([]);
+  readonly asignaciones = signal<AsignacionStaff[]>([]);
+  readonly asignacionUsuario = signal<AuthUser | null>(null);
+  readonly torneoElegido = signal('');
+  readonly dojoElegido = signal('');
+  readonly fechaElegida = signal('');
+  readonly guardandoAsignacion = signal(false);
+  readonly asignacionError = signal('');
+  abrirAsignaciones(u: AuthUser): void {
+    this.asignacionUsuario.set(u);
+    this.asignacionError.set('');
+    this.refrescarAsignaciones();
+  }
+  cerrarAsignaciones(): void { this.asignacionUsuario.set(null); }
+  refrescarAsignaciones(): void {
+    this.asignacionesService.todas().subscribe({
+      next: data => this.asignaciones.set(data),
+      error: () => this.asignacionError.set('No se pudieron consultar las asignaciones'),
+    });
+  }
+  asignacionesDeUsuario(id: string): AsignacionStaff[] {
+    return this.asignaciones().filter(a => a.usuario === id);
+  }
+  nombreTorneo(id: string): string { return this.torneos().find(t => t._id === id)?.nombre ?? id; }
+  nombreDojo(id: string): string { return this.dojos().find(d => d._id === id)?.nombre ?? id; }
+  guardarAsignacion(): void {
+    const u = this.asignacionUsuario();
+    if (!u || !this.torneoElegido() || !this.dojoElegido() || !this.fechaElegida()) {
+      this.asignacionError.set('Selecciona torneo, dojo y fecha'); return;
+    }
+    this.guardandoAsignacion.set(true);
+    this.asignacionesService.crear(u.id, this.torneoElegido(), this.dojoElegido(), this.fechaElegida()).subscribe({
+      next: () => { this.guardandoAsignacion.set(false); this.asignacionError.set(''); this.refrescarAsignaciones(); },
+      error: (e) => { this.guardandoAsignacion.set(false); this.asignacionError.set(e.error?.message ?? 'No se pudo asignar el dojo'); },
+    });
+  }
+  eliminarAsignacion(id: string): void {
+    this.asignacionesService.eliminar(id).subscribe({
+      next: () => this.refrescarAsignaciones(),
+      error: () => this.asignacionError.set('No se pudo eliminar la asignación'),
+    });
+  }
 
   readonly sidebarOpen = signal(false);
   toggleSidebar(): void {
@@ -25,6 +76,7 @@ export class UsuariosComponent implements OnInit {
     this.sidebarOpen.set(false);
   }
 
+  readonly Role = Role;
   readonly roles = Object.values(Role);
   readonly usuarios = signal<AuthUser[]>([]);
   readonly loading = signal(false);
@@ -32,7 +84,7 @@ export class UsuariosComponent implements OnInit {
   readonly searchTerm = signal('');
 
   readonly rolesModalUser = signal<AuthUser | null>(null);
-  readonly rolesSeleccionados = signal<Role[]>([]);
+  readonly rolSeleccionado = signal<Role | null>(null);
   readonly savingRoles = signal(false);
 
   readonly currentUserId = computed(() => this.authService.currentUser()?.id ?? '');
@@ -49,6 +101,8 @@ export class UsuariosComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.torneoService.findAll().subscribe({ next: data => this.torneos.set(data) });
+    this.dojoService.findAll().subscribe({ next: data => this.dojos.set(data) });
     this.load();
   }
 
@@ -85,34 +139,31 @@ export class UsuariosComponent implements OnInit {
 
   openRolesModal(usuario: AuthUser): void {
     this.rolesModalUser.set(usuario);
-    this.rolesSeleccionados.set([...usuario.roles]);
+    this.rolSeleccionado.set(usuario.roles[0] ?? null);
   }
 
   closeRolesModal(): void {
     this.rolesModalUser.set(null);
   }
 
-  toggleRole(role: Role, checked: boolean): void {
-    const current = this.rolesSeleccionados();
-    this.rolesSeleccionados.set(
-      checked ? [...current, role] : current.filter((r) => r !== role),
-    );
-  }
-
-  isRoleChecked(role: Role): boolean {
-    return this.rolesSeleccionados().includes(role);
+  seleccionarRol(role: Role): void {
+    this.rolSeleccionado.set(role);
   }
 
   guardarRoles(): void {
     const usuario = this.rolesModalUser();
-    if (!usuario || this.rolesSeleccionados().length === 0) return;
+    const role = this.rolSeleccionado();
+    if (!usuario || !role) return;
 
     this.savingRoles.set(true);
-    this.userManagementService.updateRoles(usuario.id, this.rolesSeleccionados()).subscribe({
+    this.userManagementService.updateRole(usuario.id, role).subscribe({
       next: (actualizado) => {
         this.savingRoles.set(false);
         this.replaceUsuario(actualizado);
         this.closeRolesModal();
+        if (actualizado.id === this.currentUserId()) {
+          this.authService.logout();
+        }
       },
       error: () => {
         this.savingRoles.set(false);

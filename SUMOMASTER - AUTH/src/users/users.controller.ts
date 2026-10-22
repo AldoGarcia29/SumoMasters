@@ -27,7 +27,7 @@ export class UsersController {
     @Param('id', ParseObjectIdPipe) id: string,
     @Body() updateRoleDto: UpdateRoleDto,
   ) {
-    return this.usersService.updateRoles(id, updateRoleDto);
+    return this.usersService.updateRole(id, updateRoleDto);
   }
 
   @Roles(Role.ADMIN)

@@ -33,9 +33,11 @@ import { TopbarComponent } from '../../shared/components/topbar/topbar.component
     </div>
   `,
   styles: [`
-    :host { display:block; min-height:100vh; background:#f5f3fb; }
-    .staff-content { margin-left:260px; min-height:100vh; }
-    .staff-main { padding:32px; max-width:1100px; margin:auto; }
+    :host { display:block; min-height:100dvh; background:#f5f3fb; }
+    :host, .staff-content { position:relative; }
+    .staff-content { margin-left:260px; min-height:100dvh; display:flex; flex-direction:column; justify-content:flex-start; }
+    .staff-content app-topbar { display:block; flex:none; }
+    .staff-main { width:100%; box-sizing:border-box; padding:24px 32px; max-width:1100px; margin:0 auto; flex:1 0 auto; }
     .staff-panel { background:white; border:1px solid #ded7f5; border-radius:20px; padding:30px; }
     h1 { color:#201636; margin:0 0 10px; } p { color:#696477; }
     .staff-list { display:grid; gap:12px; margin-top:25px; }
@@ -43,7 +45,14 @@ import { TopbarComponent } from '../../shared/components/topbar/topbar.component
     .staff-torneo:hover { background:#f6f1ff; }
     .staff-torneo strong { display:block; color:#24183e; }
     .staff-torneo small { display:block; color:#756e82; margin-top:5px; }
+    .staff-torneo span { min-width:0; overflow-wrap:anywhere; }
     @media(max-width:900px) { .staff-content { margin-left:0; } .staff-main { padding:16px; } .staff-panel { padding:20px; } }
+    @media(max-width:600px) {
+      .staff-main { padding:12px; } .staff-panel { padding:18px 14px; border-radius:14px; }
+      .staff-panel h1 { font-size:1.35rem; }
+      .staff-torneo { flex-direction:column; align-items:stretch; gap:10px; padding:15px; }
+      .staff-torneo span:last-child { font-weight:600; }
+    }
   `],
 })
 export class StaffResultadosComponent implements OnInit {

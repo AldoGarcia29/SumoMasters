@@ -50,6 +50,10 @@ export class Combate {
 @Prop({ type: Number, default: null, min: 1 })
 ronda: number | null;
 
+/** Fecha y hora programada del combate. */
+@Prop({ type: Date, default: null })
+horarioProgramado!: Date | null;
+
   @Prop({ type: Types.ObjectId, ref: 'Robot', required: true })
   robot1: Types.ObjectId;
 
@@ -77,6 +81,9 @@ arena: number | null;
 
   @Prop({ type: String, enum: MetodoVictoria, default: null })
   metodoVictoria: MetodoVictoria | null;
+
+  @Prop({ type: String, default: null })
+  otroMetodoVictoria: string | null;
 
   /** Duración del combate en segundos. */
   @Prop({ type: Number, default: null })

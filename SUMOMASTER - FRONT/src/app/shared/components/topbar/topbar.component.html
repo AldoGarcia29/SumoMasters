@@ -104,7 +104,7 @@
           <p class="topbar__dropdown-email" *ngIf="email()">{{ email() }}</p>
         </div>
 
-        <a routerLink="/configuracion" (click)="closeProfileMenu()" class="topbar__dropdown-item">
+        <a *ngIf="isAdmin()" routerLink="/configuracion" (click)="closeProfileMenu()" class="topbar__dropdown-item">
           <svg viewBox="0 0 24 24" width="16" height="16">
             <circle cx="12" cy="8" r="3.4" fill="none" stroke="currentColor" stroke-width="1.6" />
             <path d="M5 20c0-3.6 3.1-6.4 7-6.4s7 2.8 7 6.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />

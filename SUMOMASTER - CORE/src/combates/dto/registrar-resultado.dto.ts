@@ -3,6 +3,9 @@ import {
   IsEnum,
   IsInt,
   IsOptional,
+  IsNotEmpty,
+  MaxLength,
+  ValidateIf,
   IsString,
   Min,
 } from 'class-validator';
@@ -12,9 +15,14 @@ export class RegistrarResultadoDto {
   @IsEnum(ResultadoCombate, { message: 'Resultado no válido' })
   resultado: ResultadoCombate;
 
-  @IsOptional()
-  @IsEnum(MetodoVictoria, { message: 'Método de victoria no válido' })
-  metodoVictoria?: MetodoVictoria;
+  @IsEnum(MetodoVictoria, { message: 'Selecciona un método de victoria válido' })
+  metodoVictoria: MetodoVictoria;
+
+  @ValidateIf((dto) => dto.metodoVictoria === MetodoVictoria.OTRO)
+  @IsString()
+  @IsNotEmpty({ message: 'Especifica el otro método de victoria' })
+  @MaxLength(150)
+  otroMetodoVictoria?: string;
 
   @IsOptional()
   @IsInt()
