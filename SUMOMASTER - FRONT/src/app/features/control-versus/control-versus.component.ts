@@ -100,9 +100,9 @@ import {
             </small>
             <h3>
               #{{ c.numero }}
-              {{ c.robot1?.nombre || 'Por definir' }}
+              {{ c.robot1?.nombre || c.placeholder1 || 'Por definir' }}
               <span>VS</span>
-              {{ c.robot2?.nombre || 'Por definir' }}
+              {{ c.robot2?.nombre || c.placeholder2 || 'Por definir' }}
             </h3>
             <small>
               {{ c.estado }}

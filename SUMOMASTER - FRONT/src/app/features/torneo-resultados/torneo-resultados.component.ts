@@ -904,6 +904,11 @@ export class TorneoResultadosComponent
       return;
     }
 
+    if (!combate.robot1 || !combate.robot2) {
+      this.formError.set('No se puede registrar un resultado hasta que se definan ambos robots.');
+      return;
+    }
+
     // =========================
     // NOMBRE DEL GANADOR
     // =========================
@@ -916,7 +921,7 @@ export class TorneoResultadosComponent
       ResultadoCombate.GANA_ROBOT_1
     ) {
       ganador =
-        combate.robot1.nombre;
+        combate.robot1?.nombre ?? combate.placeholder1 ?? 'Por definir';
     }
 
     if (
@@ -924,7 +929,7 @@ export class TorneoResultadosComponent
       ResultadoCombate.GANA_ROBOT_2
     ) {
       ganador =
-        combate.robot2.nombre;
+        combate.robot2?.nombre ?? combate.placeholder2 ?? 'Por definir';
     }
 
     // =========================

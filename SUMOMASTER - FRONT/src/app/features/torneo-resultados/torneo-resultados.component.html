@@ -614,15 +614,15 @@
 
                 <img
                   *ngIf="
-                    combate.robot1.imagenUrl;
+                    combate.robot1?.imagenUrl;
                     else placeholder1
                   "
                   class="versus-box__photo"
                   [src]="
-                    combate.robot1.imagenUrl
+                    combate.robot1?.imagenUrl
                   "
                   [alt]="
-                    combate.robot1.nombre
+                    combate.robot1?.nombre || combate.placeholder1 || 'Por definir'
                   "
                 />
 
@@ -680,7 +680,7 @@
                   class="versus-box__name"
                 >
                   {{
-                    combate.robot1.nombre
+                    combate.robot1?.nombre || combate.placeholder1 || 'Por definir'
                   }}
                 </span>
 
@@ -720,15 +720,15 @@
 
                 <img
                   *ngIf="
-                    combate.robot2.imagenUrl;
+                    combate.robot2?.imagenUrl;
                     else placeholder2
                   "
                   class="versus-box__photo"
                   [src]="
-                    combate.robot2.imagenUrl
+                    combate.robot2?.imagenUrl
                   "
                   [alt]="
-                    combate.robot2.nombre
+                    combate.robot2?.nombre || combate.placeholder2 || 'Por definir'
                   "
                 />
 
@@ -786,7 +786,7 @@
                   class="versus-box__name"
                 >
                   {{
-                    combate.robot2.nombre
+                    combate.robot2?.nombre || combate.placeholder2 || 'Por definir'
                   }}
                 </span>
 
@@ -819,7 +819,9 @@
               *ngIf="
                 combate.estado !==
                   'Finalizado' &&
-                canManage();
+                canManage() &&
+                combate.robot1 &&
+                combate.robot2;
                 else soloLectura
               "
             >
@@ -847,7 +849,7 @@
 
                     Gana
                     {{
-                      combate.robot1.nombre
+                      combate.robot1.nombre || combate.placeholder1 || 'Por definir'
                     }}
                   </label>
 
@@ -878,7 +880,7 @@
 
                     Gana
                     {{
-                      combate.robot2.nombre
+                      combate.robot2.nombre || combate.placeholder2 || 'Por definir'
                     }}
                   </label>
 

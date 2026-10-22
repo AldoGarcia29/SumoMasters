@@ -5,7 +5,7 @@ import { environment } from '../../../environments/environment';
 export interface RobotVersus {
   _id: string;
   nombre: string;
-  imagenUrl?: string;
+  imagenUrl?: string | null;
   equipo?: { _id: string; nombre: string } | string | null;
 }
 
@@ -21,6 +21,8 @@ export interface CombateVersus {
   resultado: string | null;
   robot1: RobotVersus | null;
   robot2: RobotVersus | null;
+  placeholder1?: string | null;
+  placeholder2?: string | null;
 }
 
 export interface ProyeccionVersus {

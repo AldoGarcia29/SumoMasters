@@ -106,7 +106,7 @@ export class PublicService {
     const combates: any[] = await this.combateModel
       .find({ torneo: torneoId })
       .select(
-        'numero fase bloque dojo turno arena estado resultado robot1 robot2',
+        'numero fase bloque dojo turno arena estado resultado robot1 robot2 placeholder1 placeholder2',
       )
       .populate('robot1', 'nombre')
       .populate('robot2', 'nombre')
@@ -158,7 +158,10 @@ export class PublicService {
         fase: c.fase ? nombreDe(c.fase) : null,
         dojo,
         bloque: c.bloque ? nombreDe(c.bloque) : null,
-        robots: [robot1, robot2].filter(Boolean),
+        robots: [
+          robot1 || String(c.placeholder1 ?? ''),
+          robot2 || String(c.placeholder2 ?? ''),
+        ].filter(Boolean),
         estado,
         ganador,
         empate: c.resultado === ResultadoCombate.EMPATE,
