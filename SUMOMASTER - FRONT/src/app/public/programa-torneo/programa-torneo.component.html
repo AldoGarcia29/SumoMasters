@@ -1,0 +1,86 @@
+<ng-container *ngIf="hayDatos; else vacio">
+  <!-- GRUPOS -->
+  <div class="grupos">
+    <table class="t grupo" *ngFor="let g of vista.grupos">
+      <thead>
+        <tr><th colspan="2">{{ g.etiqueta }}</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of g.robots" [class.resalta]="resalta(r.nombre)">
+          <td class="seed">{{ r.seed }}</td>
+          <td>
+            {{ r.nombre }}
+            <small *ngIf="r.v || r.e || r.d">{{ r.v }}V · {{ r.d }}D</small>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- RONDAS -->
+  <div class="rondas">
+    <table class="t ronda" *ngFor="let r of vista.rondas">
+      <thead>
+        <tr><th colspan="3" class="titulo">RONDA {{ r.numero }}</th></tr>
+        <tr><th>Hora</th><th>Dojo</th><th>Competidores</th></tr>
+      </thead>
+      <tbody>
+        <ng-container *ngFor="let s of r.slots; let i = index">
+          <tr *ngFor="let f of s.filas; let j = index" [class.alt]="i % 2 === 1">
+            <td class="hora" *ngIf="j === 0" [attr.rowspan]="s.filas.length">
+              <ng-container *ngIf="s.hora; else sinHora">{{ s.hora | date: 'HH:mm' }}</ng-container>
+              <ng-template #sinHora>{{ s.turno ? 'Turno ' + s.turno : '—' }}</ng-template>
+            </td>
+            <td class="dojo">{{ f.dojo }}</td>
+            <td>
+              <div class="duelo" [class.vivo]="f.enVivo">
+                <span class="r" [class.gana]="f.ganador === 1" [class.pierde]="f.ganador === 2" [class.resalta]="resalta(f.robot1)">{{ f.robot1 }}</span>
+                <span class="vs">vs</span>
+                <span class="r" [class.gana]="f.ganador === 2" [class.pierde]="f.ganador === 1" [class.resalta]="resalta(f.robot2)">{{ f.robot2 }}</span>
+                <small *ngIf="f.empate">Empate</small>
+              </div>
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- FINALES -->
+  <ng-container *ngIf="vista.etapas.length">
+    <h2 class="finales">FINALES</h2>
+    <div class="llaves-scroll">
+      <div class="llaves" [style.grid-template-columns]="'repeat(' + (vista.etapas.length + 1) + ', minmax(150px, 1fr))'">
+        <div class="etapa" *ngFor="let e of vista.etapas">
+          <h3>{{ e.titulo }}</h3>
+          <div class="etapa-col">
+            <div class="llave" *ngFor="let l of e.llaves" [class.vivo]="l.enVivo">
+              <span class="hora-llave" *ngIf="l.hora">{{ l.hora | date: 'HH:mm' }}</span>
+              <span class="r" [class.gana]="l.ganador === 1" [class.pierde]="l.ganador === 2" [class.tbd]="!l.robot1" [class.resalta]="resalta(l.robot1)">{{ l.robot1 || 'Por definir' }}</span>
+              <span class="r" [class.gana]="l.ganador === 2" [class.pierde]="l.ganador === 1" [class.tbd]="!l.robot2" [class.resalta]="resalta(l.robot2)">{{ l.robot2 || 'Por definir' }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="etapa">
+          <h3>Campeón</h3>
+          <div class="etapa-col">
+            <div class="campeon" [class.listo]="vista.campeon">{{ vista.campeon ? '🏆 ' + vista.campeon : '—' }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tercero" *ngIf="vista.tercerLugar as t">
+      <h3>Tercer lugar <small *ngIf="t.hora">{{ t.hora | date: 'HH:mm' }}</small></h3>
+      <div class="duelo" [class.vivo]="t.enVivo">
+        <span class="r" [class.gana]="t.ganador === 1" [class.pierde]="t.ganador === 2">{{ t.robot1 }}</span>
+        <span class="vs">vs</span>
+        <span class="r" [class.gana]="t.ganador === 2" [class.pierde]="t.ganador === 1">{{ t.robot2 }}</span>
+      </div>
+    </div>
+  </ng-container>
+</ng-container>
+
+<ng-template #vacio>
+  <p>Aún no hay enfrentamientos generados para este torneo.</p>
+</ng-template>

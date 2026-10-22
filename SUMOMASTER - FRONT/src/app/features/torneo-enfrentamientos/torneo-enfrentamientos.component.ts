@@ -808,4 +808,26 @@ this.flowCache.setCombates(this.torneoId, [
   closeSidebar(): void {
     this.sidebarOpen.set(false);
   }
+<<<<<<< HEAD
+=======
+
+  identificarTanda(
+    _index: number,
+    tanda: { clave: string },
+  ): string {
+    return tanda.clave;
+  }
+
+  abrirCalendario(input: HTMLInputElement): void {
+  if (input.disabled) return;
+
+  input.focus();
+
+  try {
+    input.showPicker();
+  } catch {
+    // Si el selector no está disponible, permite escribir manualmente.
+  }
+}
+>>>>>>> 1b4467be2725f954b60af2cba44cdea1b2ca5975
 }
