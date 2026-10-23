@@ -16,6 +16,11 @@ export class CloudinaryService {
         { folder: 'sumomaster_robots' },
         (error, result) => {
           if (error) return reject(error);
+
+          // Agregamos esta línea para asegurar que result no sea undefined
+          if (!result)
+            return reject(new Error('Cloudinary no devolvió un resultado'));
+
           resolve(result);
         },
       );
