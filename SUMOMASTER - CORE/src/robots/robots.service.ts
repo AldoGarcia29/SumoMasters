@@ -68,10 +68,11 @@ export class RobotsService {
 
     // Traemos los robots en formato plano
     const robots = await this.robotModel
-      .find(query)
-      .sort({ createdAt: -1 })
-      .lean()
-      .exec();
+  .find(query)
+  .select('-imagenUrl')
+  .sort({ createdAt: -1 })
+  .lean()
+  .exec();
 
     if (!robots.length) return [];
 
