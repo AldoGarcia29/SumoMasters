@@ -6,6 +6,7 @@ import { Robot, RobotSchema } from './schemas/robot.schema';
 import { RobotsController } from './robots.controller';
 import { RobotsService } from './robots.service';
 import { Equipo, EquipoSchema } from '../equipos/schemas/equipo.schema';
+import { CloudinaryModule } from '../cloudinary/cloudinary.module'; // Ajusta la ruta según donde lo creaste
 import {
   Categoria,
   CategoriaSchema,
@@ -20,6 +21,7 @@ import {
       { name: Categoria.name, schema: CategoriaSchema },
     ]),
     EquiposModule,
+    CloudinaryModule,
   ],
   controllers: [RobotsController],
   providers: [RobotsService],

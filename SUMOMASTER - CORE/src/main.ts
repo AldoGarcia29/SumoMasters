@@ -1,7 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
-import { json } from 'express';
+import { json, urlencoded } from 'express';
 import { AppModule } from './app.module';
 
 async function bootstrap(): Promise<void> {
@@ -15,7 +15,7 @@ async function bootstrap(): Promise<void> {
   // Se permite un payload más grande porque los logos/fotos de equipos y
   // robots se envían como imágenes en base64 (data URL) desde el formulario.
   app.use(json({ limit: '20mb' }));
-
+  app.use(urlencoded({ extended: true, limit: '20mb' }));
   app.enableCors({
     origin: ['http://localhost:4200', 'https://sumomasters-front.onrender.com'],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],

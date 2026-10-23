@@ -6,6 +6,7 @@ import { Torneo, TorneoDocument } from '../torneos/schemas/torneo.schema';
 import { Robot, RobotDocument } from './schemas/robot.schema';
 import { CreateRobotDto } from './dto/create-robot.dto';
 import { UpdateRobotDto } from './dto/update-robot.dto';
+import { CloudinaryService } from '../cloudinary/cloudinary.service'; // <-- Importación de Cloudinary
 
 // Importamos las clases para poder inyectar sus modelos
 import { Equipo } from '../equipos/schemas/equipo.schema';
@@ -20,13 +21,24 @@ export class RobotsService {
     @InjectModel(Equipo.name) private readonly equipoModel: Model<any>,
     @InjectModel(Categoria.name) private readonly categoriaModel: Model<any>,
     private readonly equiposService: EquiposService,
+    private readonly cloudinaryService: CloudinaryService, // <-- Inyección del servicio
   ) {}
 
   async create(dto: CreateRobotDto): Promise<any> {
+    let urlImagenFinal = dto.imagenUrl;
+
+    // Interceptamos si la imagen viene en formato Base64 desde Angular
+    if (urlImagenFinal && urlImagenFinal.startsWith('data:image')) {
+      const uploadResult =
+        await this.cloudinaryService.uploadBase64(urlImagenFinal);
+      urlImagenFinal = uploadResult.secure_url;
+    }
+
     const robot = new this.robotModel({
       ...dto,
       nombre: dto.nombre.trim(),
       pesoKg: dto.pesoKg ?? null,
+      imagenUrl: urlImagenFinal, // <-- Guardamos la URL limpia
     });
 
     await robot.save();
@@ -68,11 +80,11 @@ export class RobotsService {
 
     // Traemos los robots en formato plano
     const robots = await this.robotModel
-  .find(query)
-  .select('-imagenUrl')
-  .sort({ createdAt: -1 })
-  .lean()
-  .exec();
+      .find(query)
+      .select('-imagenUrl')
+      .sort({ createdAt: -1 })
+      .lean()
+      .exec();
 
     if (!robots.length) return [];
 
@@ -134,6 +146,15 @@ export class RobotsService {
     if (!existing) throw new NotFoundException('Robot no encontrado');
 
     const previousEquipo = existing.equipo.toString();
+
+    // Interceptamos si la imagen viene en formato Base64 durante una actualización
+    let urlImagenFinal = dto.imagenUrl;
+    if (urlImagenFinal && urlImagenFinal.startsWith('data:image')) {
+      const uploadResult =
+        await this.cloudinaryService.uploadBase64(urlImagenFinal);
+      urlImagenFinal = uploadResult.secure_url;
+      dto.imagenUrl = urlImagenFinal; // Sobrescribimos el valor en el DTO antes de actualizar
+    }
 
     const robot = await this.robotModel
       .findByIdAndUpdate(id, { $set: dto }, { new: true, runValidators: true })
