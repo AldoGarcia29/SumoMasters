@@ -171,13 +171,16 @@ export class RobotsComponent implements OnInit {
 
     const raw = this.form.getRawValue();
     const payload = {
-      nombre: raw.nombre.trim(),
-      equipo: raw.equipo,
-      categoria: raw.categoria,
-      pesoKg: raw.sinPeso ? null : raw.pesoKg,
-      estado: raw.estado,
-      imagenUrl: raw.imagenUrl || '',
-    };
+  nombre: raw.nombre.trim(),
+  equipo: raw.equipo,
+  categoria: raw.categoria,
+  pesoKg: raw.sinPeso ? null : raw.pesoKg,
+  estado: raw.estado,
+  ...(this.modalMode() === 'create' ||
+  this.form.controls.imagenUrl.dirty
+    ? { imagenUrl: raw.imagenUrl || '' }
+    : {}),
+};
 
     this.saving.set(true);
     this.formError.set(null);
@@ -247,8 +250,10 @@ export class RobotsComponent implements OnInit {
   }
 
   onImagenChange(value: string): void {
-    this.form.controls.imagenUrl.setValue(value);
-  }
+  const control = this.form.controls.imagenUrl;
+  control.setValue(value);
+  control.markAsDirty();
+}
 
   estadoBadgeClass(estado: EstadoRobot): string {
     switch (estado) {
