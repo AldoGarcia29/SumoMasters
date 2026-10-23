@@ -337,6 +337,9 @@ guardarHorarioRonda(
           : 'Combates sin ronda registrada'
         : this.activeFase(),
       combates: [...combates].sort((a, b) => {
+        if (!esGrupos) {
+  return a.numero - b.numero;
+}
         const nombreA = this.nombreBloqueCombate(a);
         const nombreB = this.nombreBloqueCombate(b);
 
@@ -352,34 +355,53 @@ guardarHorarioRonda(
 });
 
 nombreBloqueCombate(combate: Combate): string {
+  const bloques = this.bloques();
+
+  const buscarBloqueRobot = (
+    robotId: string | undefined,
+  ): Bloque | undefined => {
+    if (!robotId) return undefined;
+
+    return bloques.find((bloque) =>
+      bloque.robots.some(
+        (robot) => String(robot._id) === String(robotId),
+      ),
+    );
+  };
+
+  // En eliminatorias muestra el bloque de origen de cada robot.
+  if (this.activeFase() !== FaseCombate.FASE_GRUPOS) {
+    const bloque1 = buscarBloqueRobot(combate.robot1?._id);
+    const bloque2 = buscarBloqueRobot(combate.robot2?._id);
+
+    if (bloque1 && bloque2) {
+      return bloque1._id === bloque2._id
+        ? bloque1.nombre
+        : `${bloque1.nombre} vs. ${bloque2.nombre}`;
+    }
+
+    return `${bloque1?.nombre ?? 'Origen pendiente'} vs. ${
+      bloque2?.nombre ?? 'Origen pendiente'
+    }`;
+  }
+
+  // En fase de grupos utiliza el bloque del combate.
   const bloqueId = this.obtenerBloqueId(combate);
 
-  const bloque = this.bloques().find(
+  const bloque = bloques.find(
     (item) => item._id === bloqueId,
   );
 
   if (bloque) return bloque.nombre;
 
-  // Si la referencia del combate está incompleta,
-  // identifica el bloque por sus participantes.
-  const porRobots = this.bloques().find((item) => {
-    const ids = new Set(
-      item.robots.map((robot) => String(robot._id)),
-    );
+  const bloque1 = buscarBloqueRobot(combate.robot1?._id);
+  const bloque2 = buscarBloqueRobot(combate.robot2?._id);
 
-    return (
-      !!combate.robot1 &&
-      !!combate.robot2 &&
-      ids.has(String(combate.robot1._id)) &&
-      ids.has(String(combate.robot2._id))
-    );
-  });
+  if (bloque1 && bloque2 && bloque1._id === bloque2._id) {
+    return bloque1.nombre;
+  }
 
-  return (
-    porRobots?.nombre ??
-    combate.bloque?.nombre ??
-    'Sin bloque'
-  );
+  return combate.bloque?.nombre ?? 'Sin bloque';
 }
 
   readonly sidebarOpen = signal(false);
