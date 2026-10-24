@@ -111,17 +111,10 @@ export class TorneoResultadosComponent implements OnInit {
     placeholder: string | null | undefined,
   ): string {
     if (!robot) return placeholder || 'Por definir';
-    const participante = this.torneo()?.participantes?.find((item) =>
-      typeof item.robot === 'string'
-        ? item.robot === robot._id
-        : item.robot._id === robot._id,
-    );
-    const numero = participante?.numero;
-    const prefijo =
-      numero === undefined ? '' : `#${String(numero).padStart(3, '0')} `;
-    return `${prefijo}${robot.nombre}`;
-  }
 
+    // Devuelve únicamente el nombre del robot, omitiendo el número de participante
+    return robot.nombre;
+  }
   // =========================
   // COMBATES
   // =========================
