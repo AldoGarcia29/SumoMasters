@@ -111,10 +111,9 @@ export class TorneoResultadosComponent implements OnInit {
     placeholder: string | null | undefined,
   ): string {
     if (!robot) return placeholder || 'Por definir';
-
-    // Devuelve únicamente el nombre del robot, omitiendo el número de participante
     return robot.nombre;
   }
+
   // =========================
   // COMBATES
   // =========================
@@ -161,12 +160,7 @@ export class TorneoResultadosComponent implements OnInit {
 
     const capacidad = dojo?.dojo.capacidad ?? 0;
 
-    return Array.from(
-      {
-        length: capacidad,
-      },
-      (_, index) => index + 1,
-    );
+    return Array.from({ length: capacidad }, (_, index) => index + 1);
   });
 
   // =========================
@@ -177,12 +171,6 @@ export class TorneoResultadosComponent implements OnInit {
     const dojoId = this.dojoFiltro();
     const arena = this.arenaFiltro();
 
-    /*
-     * El STAFF/Juez debe
-     * seleccionar un dojo
-     * antes de visualizar
-     * los combates.
-     */
     if (!dojoId) {
       return [];
     }
@@ -190,7 +178,6 @@ export class TorneoResultadosComponent implements OnInit {
     return this.combates().filter((combate) => {
       const coincideDojo = combate.dojo?._id === dojoId;
       const coincideArena = arena === null || combate.arena === arena;
-
       return coincideDojo && coincideArena;
     });
   });
@@ -207,17 +194,13 @@ export class TorneoResultadosComponent implements OnInit {
           (a.turno ?? Number.MAX_SAFE_INTEGER) -
           (b.turno ?? Number.MAX_SAFE_INTEGER);
 
-        if (diferenciaTurno !== 0) {
-          return diferenciaTurno;
-        }
+        if (diferenciaTurno !== 0) return diferenciaTurno;
 
         const diferenciaArena =
           (a.arena ?? Number.MAX_SAFE_INTEGER) -
           (b.arena ?? Number.MAX_SAFE_INTEGER);
 
-        if (diferenciaArena !== 0) {
-          return diferenciaArena;
-        }
+        if (diferenciaArena !== 0) return diferenciaArena;
 
         return a.numero - b.numero;
       }),
@@ -229,19 +212,13 @@ export class TorneoResultadosComponent implements OnInit {
 
   readonly countByEstado = computed(() => {
     const combates = this.combatesDelPuesto();
-
     return {
-      Pendiente: combates.filter(
-        (combate) => combate.estado === EstadoCombate.PENDIENTE,
-      ).length,
-
-      'En curso': combates.filter(
-        (combate) => combate.estado === EstadoCombate.EN_CURSO,
-      ).length,
-
-      Finalizado: combates.filter(
-        (combate) => combate.estado === EstadoCombate.FINALIZADO,
-      ).length,
+      Pendiente: combates.filter((c) => c.estado === EstadoCombate.PENDIENTE)
+        .length,
+      'En curso': combates.filter((c) => c.estado === EstadoCombate.EN_CURSO)
+        .length,
+      Finalizado: combates.filter((c) => c.estado === EstadoCombate.FINALIZADO)
+        .length,
     };
   });
 
@@ -251,9 +228,7 @@ export class TorneoResultadosComponent implements OnInit {
 
   readonly selectedCombate = computed(
     () =>
-      this.combates().find(
-        (combate) => combate._id === this.selectedCombateId(),
-      ) ?? null,
+      this.combates().find((c) => c._id === this.selectedCombateId()) ?? null,
   );
 
   // =========================
@@ -265,17 +240,20 @@ export class TorneoResultadosComponent implements OnInit {
       null,
       Validators.required,
     ),
-
     metodoVictoria: this.fb.control<MetodoVictoria | null>(
       null,
       Validators.required,
     ),
-
     otroMetodoVictoria: [''],
-    tiempo: [''],
-    jueces: [''],
     observaciones: [''],
   });
+
+  seleccionarGanador(resultado: ResultadoCombate): void {
+    const combate = this.selectedCombate();
+    if (combate && combate.estado !== 'Finalizado' && this.canManage()) {
+      this.form.controls.resultado.setValue(resultado);
+    }
+  }
 
   readonly generatingRandomResults = signal(false);
 
@@ -302,7 +280,6 @@ export class TorneoResultadosComponent implements OnInit {
       next: (torneo) => {
         this.torneo.set(torneo);
       },
-
       error: (err) => {
         this.errorMessage.set(
           extractErrorMessage(err, 'No se pudo cargar el torneo.'),
@@ -314,14 +291,6 @@ export class TorneoResultadosComponent implements OnInit {
     this.load();
   }
 
-  // =========================
-  // DOJO ASIGNADO (STAFF)
-  // =========================
-
-  /**
-   * El STAFF no elige dojo: se toma de sus asignaciones de hoy
-   * para este torneo y solo ve los combates de ese dojo.
-   */
   private cargarDojosAsignados(): void {
     const hoy = new Intl.DateTimeFormat('en-CA', {
       timeZone: 'America/Mexico_City',
@@ -329,6 +298,7 @@ export class TorneoResultadosComponent implements OnInit {
       month: '2-digit',
       day: '2-digit',
     }).format(new Date());
+
     forkJoin({
       asignaciones: this.asignacionesService.mias(),
       dojos: this.dojoService.findAll(),
@@ -353,27 +323,17 @@ export class TorneoResultadosComponent implements OnInit {
     });
   }
 
-  // =========================
-  // CARGAR COMBATES
-  // =========================
-
   load(): void {
     this.loading.set(true);
     this.formError.set(null);
 
     this.combateService
-      .findByTorneo(this.torneoId, {
-        fase: this.faseActual(),
-      })
+      .findByTorneo(this.torneoId, { fase: this.faseActual() })
       .subscribe({
         next: (data) => {
           this.loading.set(false);
-
-          /*
-           * Sustituimos siempre
-           * la lista completa.
-           */
           this.combates.set(data);
+
           if (this.isStaffOnly) {
             const resumen = new Map<string, DojoResumen>();
             for (const combate of data) {
@@ -387,18 +347,15 @@ export class TorneoResultadosComponent implements OnInit {
           }
 
           const seleccionadoExiste = data.some(
-            (combate) => combate._id === this.selectedCombateId(),
+            (c) => c._id === this.selectedCombateId(),
           );
-
           if (!seleccionadoExiste) {
             this.selectedCombateId.set('');
           }
         },
-
         error: (err) => {
           this.loading.set(false);
           this.combates.set([]);
-
           this.formError.set(
             extractErrorMessage(
               err,
@@ -409,20 +366,12 @@ export class TorneoResultadosComponent implements OnInit {
       });
   }
 
-  // =========================
-  // CAMBIAR TAB
-  // =========================
-
   setTab(tab: TabEstado): void {
     this.activeTab.set(tab);
     this.selectedCombateId.set('');
     this.formError.set(null);
     this.successMessage.set(null);
   }
-
-  // =========================
-  // SIGUIENTE RONDA
-  // =========================
 
   continuarSiguienteRonda(): void {
     const faseActual = this.faseActual();
@@ -436,15 +385,12 @@ export class TorneoResultadosComponent implements OnInit {
     this.errorMessage.set(null);
     this.successMessage.set(null);
 
-    // EVALUAMOS SI ESTAMOS EN LA FASE DE GRUPOS
     if (faseActual === FaseCombate.FASE_GRUPOS) {
       this.rankingService.generarFaseEliminatoria(this.torneoId).subscribe({
         next: (respuesta: any) => {
           this.generandoSiguienteRonda.set(false);
           this.router.navigate(['/torneos', this.torneoId, 'enfrentamientos'], {
-            queryParams: {
-              fase: respuesta.faseInicial,
-            },
+            queryParams: { fase: respuesta.faseInicial },
           });
         },
         error: (err) => {
@@ -458,7 +404,6 @@ export class TorneoResultadosComponent implements OnInit {
         },
       });
     } else {
-      // FLUJO PARA RONDAS AVANZADAS (Octavos, Cuartos, Semifinal)
       this.rankingService
         .generarSiguienteRonda(this.torneoId, faseActual)
         .subscribe({
@@ -467,9 +412,7 @@ export class TorneoResultadosComponent implements OnInit {
             this.router.navigate(
               ['/torneos', this.torneoId, 'enfrentamientos'],
               {
-                queryParams: {
-                  fase: respuesta.siguienteFase,
-                },
+                queryParams: { fase: respuesta.siguienteFase },
               },
             );
           },
@@ -486,18 +429,12 @@ export class TorneoResultadosComponent implements OnInit {
     }
   }
 
-  // =========================
-  // RESULTADOS DE PRUEBA
-  // =========================
-
   generarResultadosPrueba(): void {
     const confirmado = window.confirm(
       `Se generarán resultados aleatorios únicamente para los combates pendientes de "${this.faseActual()}". ¿Deseas continuar?`,
     );
 
-    if (!confirmado) {
-      return;
-    }
+    if (!confirmado) return;
 
     this.saving.set(true);
     this.formError.set(null);
@@ -521,10 +458,8 @@ export class TorneoResultadosComponent implements OnInit {
               `No se encontraron combates pendientes para actualizar en "${this.faseActual()}".`,
             );
           }
-
           this.load();
         },
-
         error: (err) => {
           this.saving.set(false);
           this.formError.set(
@@ -537,10 +472,6 @@ export class TorneoResultadosComponent implements OnInit {
       });
   }
 
-  // =========================
-  // SELECCIONAR COMBATE
-  // =========================
-
   selectCombate(combate: Combate): void {
     this.selectedCombateId.set(combate._id);
     this.formError.set(null);
@@ -550,15 +481,9 @@ export class TorneoResultadosComponent implements OnInit {
       resultado: combate.resultado,
       metodoVictoria: combate.metodoVictoria,
       otroMetodoVictoria: combate.otroMetodoVictoria ?? '',
-      tiempo: this.formatSegundos(combate.duracionSegundos),
-      jueces: combate.jueces.join(', '),
       observaciones: combate.observaciones,
     });
   }
-
-  // =========================
-  // INICIAR / REGISTRAR COMBATE
-  // =========================
 
   registrar(combate: Combate): void {
     this.starting.set(true);
@@ -572,7 +497,6 @@ export class TorneoResultadosComponent implements OnInit {
         this.selectCombate(actualizado);
         this.activeTab.set('En curso');
       },
-
       error: (err) => {
         this.starting.set(false);
         this.formError.set(
@@ -582,23 +506,14 @@ export class TorneoResultadosComponent implements OnInit {
     });
   }
 
-  // =========================
-  // DOJOS
-  // =========================
-
   loadDojos(): void {
-    // STAFF obtiene los dojos exclusivamente de sus combates autorizados.
     if (this.isStaffOnly) return;
     this.combateService.resumenDojos(this.torneoId).subscribe({
-      next: (data) => {
-        this.dojosResumen.set(data);
-      },
-
-      error: (err) => {
+      next: (data) => this.dojosResumen.set(data),
+      error: (err) =>
         this.formError.set(
           extractErrorMessage(err, 'No se pudieron cargar los dojos.'),
-        );
-      },
+        ),
     });
   }
 
@@ -617,10 +532,6 @@ export class TorneoResultadosComponent implements OnInit {
     this.formError.set(null);
     this.successMessage.set(null);
   }
-
-  // =========================
-  // GUARDAR RESULTADO
-  // =========================
 
   submitResultado(): void {
     const combate = this.selectedCombate();
@@ -648,41 +559,22 @@ export class TorneoResultadosComponent implements OnInit {
       return;
     }
 
-    // =========================
-    // NOMBRE DEL GANADOR
-    // =========================
-
     let ganador = 'Empate';
-
     if (raw.resultado === ResultadoCombate.GANA_ROBOT_1) {
       ganador = this.participanteLabel(combate.robot1, combate.placeholder1);
     }
-
     if (raw.resultado === ResultadoCombate.GANA_ROBOT_2) {
       ganador = this.participanteLabel(combate.robot2, combate.placeholder2);
     }
 
-    // =========================
-    // CONFIRMACIÓN
-    // =========================
-
     const confirmado = window.confirm(
       `¿Deseas registrar este combate?\n\nResultado: ${ganador}`,
     );
-
-    if (!confirmado) {
-      return;
-    }
-
-    const duracionSegundos = this.parseTiempo(raw.tiempo);
+    if (!confirmado) return;
 
     this.saving.set(true);
     this.formError.set(null);
     this.successMessage.set(null);
-
-    // =========================
-    // GUARDAR EN BACKEND
-    // =========================
 
     this.combateService
       .registrarResultado(combate._id, {
@@ -692,16 +584,8 @@ export class TorneoResultadosComponent implements OnInit {
           raw.metodoVictoria === MetodoVictoria.OTRO
             ? raw.otroMetodoVictoria.trim()
             : undefined,
-
-        duracionSegundos: duracionSegundos ?? undefined,
-
-        jueces: raw.jueces
-          ? raw.jueces
-              .split(',')
-              .map((juez) => juez.trim())
-              .filter(Boolean)
-          : [],
-
+        duracionSegundos: undefined,
+        jueces: [],
         observaciones: raw.observaciones || '',
       })
       .subscribe({
@@ -713,14 +597,11 @@ export class TorneoResultadosComponent implements OnInit {
             resultado: null,
             metodoVictoria: null,
             otroMetodoVictoria: '',
-            tiempo: '',
-            jueces: '',
             observaciones: '',
           });
           this.successMessage.set('Combate registrado correctamente.');
           this.load();
         },
-
         error: (err) => {
           this.saving.set(false);
           this.formError.set(
@@ -730,16 +611,9 @@ export class TorneoResultadosComponent implements OnInit {
       });
   }
 
-  // =========================
-  // CANCELAR COMBATE
-  // =========================
-
   cancelarCombate(): void {
     const combate = this.selectedCombate();
-
-    if (!combate) {
-      return;
-    }
+    if (!combate) return;
 
     this.combateService.cancelar(combate._id).subscribe({
       next: (actualizado) => {
@@ -747,7 +621,6 @@ export class TorneoResultadosComponent implements OnInit {
         this.selectedCombateId.set('');
         this.activeTab.set('Pendiente');
       },
-
       error: (err) => {
         this.formError.set(
           extractErrorMessage(err, 'No se pudo cancelar el combate.'),
@@ -756,83 +629,31 @@ export class TorneoResultadosComponent implements OnInit {
     });
   }
 
-  // =========================
-  // ACTUALIZAR COMBATE LOCAL
-  // =========================
-
   private replaceCombate(actualizado: Combate): void {
     this.combates.update((lista) =>
-      lista.map((combate) =>
-        combate._id === actualizado._id ? actualizado : combate,
-      ),
+      lista.map((c) => (c._id === actualizado._id ? actualizado : c)),
     );
   }
 
-  // =========================
-  // TIEMPO
-  // =========================
-
-  private parseTiempo(value: string): number | null {
-    const match = value?.trim().match(/^(\d+):([0-5]?\d)$/);
-
-    if (!match) {
-      return null;
-    }
-
-    return parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
-  }
-
-  formatSegundos(segundos: number | null): string {
-    if (segundos === null || segundos === undefined) {
-      return '';
-    }
-
-    const min = Math.floor(segundos / 60);
-    const sec = segundos % 60;
-
-    return `${min}:${sec.toString().padStart(2, '0')}`;
-  }
-
-  // =========================
-  // EQUIPO
-  // =========================
-
   equipoNombre(robot: Combate['robot1']): string {
     const equipo = robot?.equipo;
-
-    if (!equipo) {
-      return '';
-    }
-
+    if (!equipo) return '';
     return typeof equipo === 'string' ? equipo : equipo.nombre;
   }
-
-  // =========================
-  // BADGES
-  // =========================
 
   estadoBadgeClass(estado: EstadoCombate): string {
     switch (estado) {
       case EstadoCombate.PENDIENTE:
         return 'badge--neutral';
-
       case EstadoCombate.EN_CURSO:
         return 'badge--warning';
-
       default:
         return 'badge--success';
     }
   }
 
-  // =========================
-  // HORA
-  // =========================
-
   formatHora(fecha: string): string {
-    if (!fecha) {
-      return '';
-    }
-
+    if (!fecha) return '';
     return new Date(fecha).toLocaleTimeString('es-MX', {
       hour: '2-digit',
       minute: '2-digit',

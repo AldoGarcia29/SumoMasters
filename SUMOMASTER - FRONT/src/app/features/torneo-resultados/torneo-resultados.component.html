@@ -1,8 +1,5 @@
 <div class="app-shell">
-  <app-sidebar
-    [isOpen]="sidebarOpen()"
-    (closeRequested)="closeSidebar()"
-  />
+  <app-sidebar [isOpen]="sidebarOpen()" (closeRequested)="closeSidebar()" />
 
   <div
     class="app-shell__backdrop"
@@ -13,31 +10,20 @@
   <div class="app-shell__main">
     <app-topbar
       title="Registro de resultados"
-      [subtitle]="
-        'Torneos › ' +
-        (torneo()?.nombre ?? '') +
-        ' › Combates'
-      "
+      [subtitle]="'Torneos › ' + (torneo()?.nombre ?? '') + ' › Combates'"
       [notificationCount]="3"
       (menuToggle)="toggleSidebar()"
     />
 
     <main class="resultados-page">
-
       <!-- ===================================== -->
       <!-- ENCABEZADO DEL TORNEO -->
       <!-- ===================================== -->
 
       <section class="panel panel--header">
-
         <div class="panel--header__info">
-
           <span class="panel--header__icon">
-            <svg
-              viewBox="0 0 24 24"
-              width="18"
-              height="18"
-            >
+            <svg viewBox="0 0 24 24" width="18" height="18">
               <path
                 d="M7 4h10v3a5 5 0 0 1-5 5 5 5 0 0 1-5-5V4Z"
                 fill="none"
@@ -56,58 +42,37 @@
 
           <div>
             <h2>
-              {{ torneo()?.nombre ?? 'Torneo' }}
+              {{ torneo()?.nombre ?? "Torneo" }}
             </h2>
 
-            <p>
-              Selecciona tu dojo y registra los
-              resultados de los combates.
-            </p>
+            <p>Selecciona tu dojo y registra los resultados de los combates.</p>
 
             <!-- MENSAJE DE ÉXITO -->
-            <p
-              class="panel__success"
-              *ngIf="successMessage()"
-            >
+            <p class="panel__success" *ngIf="successMessage()">
               ✓ {{ successMessage() }}
             </p>
 
             <!-- MENSAJE DE ERROR -->
-            <p
-              class="panel__error"
-              *ngIf="formError()"
-            >
+            <p class="panel__error" *ngIf="formError()">
               {{ formError() }}
             </p>
 
-            <p
-              class="panel__error"
-              *ngIf="errorMessage()"
-            >
+            <p class="panel__error" *ngIf="errorMessage()">
               {{ errorMessage() }}
             </p>
           </div>
-
         </div>
 
         <!-- ================================= -->
         <!-- ACCIONES EXCLUSIVAS DEL ADMIN -->
         <!-- ================================= -->
 
-        <div
-          class="panel--header__actions"
-          *appCan="'admin'"
-        >
-
+        <div class="panel--header__actions" *appCan="'admin'">
           <a
             class="btn btn--ghost"
-            [routerLink]="[
-              '/torneos',
-              torneoId,
-              'dojos'
-            ]"
+            [routerLink]="['/torneos', torneoId, 'dojos']"
             [queryParams]="{
-              fase: faseActual()
+              fase: faseActual(),
             }"
           >
             Ver asignación de dojos
@@ -116,31 +81,20 @@
           <button
             type="button"
             class="btn btn--ghost"
-            [disabled]="
-              generatingRandomResults() ||
-              saving() ||
-              starting()
-            "
+            [disabled]="generatingRandomResults() || saving() || starting()"
             (click)="generarResultadosPrueba()"
           >
             {{
               generatingRandomResults()
-                ? 'Generando resultados…'
-                : 'Generar resultados de prueba'
+                ? "Generando resultados…"
+                : "Generar resultados de prueba"
             }}
           </button>
 
           <a
-            *ngIf="
-              faseActual() ===
-              FaseCombate.FASE_GRUPOS
-            "
+            *ngIf="faseActual() === FaseCombate.FASE_GRUPOS"
             class="btn btn--ghost"
-            [routerLink]="[
-              '/torneos',
-              torneoId,
-              'ranking'
-            ]"
+            [routerLink]="['/torneos', torneoId, 'ranking']"
           >
             Ver tabla de posiciones →
           </a>
@@ -148,50 +102,35 @@
           <button
             type="button"
             class="btn btn--primary"
-            [disabled]="
-              generandoSiguienteRonda()
-            "
+            [disabled]="generandoSiguienteRonda()"
             (click)="continuarSiguienteRonda()"
           >
             {{
               generandoSiguienteRonda()
-                ? 'Generando siguiente ronda…'
-                : 'Continuar al cuadro eliminatorio →'
+                ? "Generando siguiente ronda…"
+                : "Continuar al cuadro eliminatorio →"
             }}
           </button>
 
           <a
-  *ngIf="faseActual() === FaseCombate.FINAL"
-  class="btn btn--ghost"
-  [routerLink]="[
-    '/torneos',
-    torneoId,
-    'enfrentamientos'
-  ]"
-  [queryParams]="{
-    fase: FaseCombate.TERCER_LUGAR
-  }"
->
-  Ver combate por tercer lugar →
-</a>
+            *ngIf="faseActual() === FaseCombate.FINAL"
+            class="btn btn--ghost"
+            [routerLink]="['/torneos', torneoId, 'enfrentamientos']"
+            [queryParams]="{
+              fase: FaseCombate.TERCER_LUGAR,
+            }"
+          >
+            Ver combate por tercer lugar →
+          </a>
 
           <a
-            *ngIf="
-              faseActual() ===
-              FaseCombate.FINAL
-            "
+            *ngIf="faseActual() === FaseCombate.FINAL"
             class="btn btn--primary"
-            [routerLink]="[
-              '/torneos',
-              torneoId,
-              'podio'
-            ]"
+            [routerLink]="['/torneos', torneoId, 'podio']"
           >
             Ver podio y resultados →
           </a>
-
         </div>
-
       </section>
 
       <!-- ===================================== -->
@@ -199,257 +138,149 @@
       <!-- ===================================== -->
 
       <div class="resultados-layout">
-
         <!-- ================================= -->
         <!-- 1. SELECCIONAR DOJO Y COMBATE -->
         <!-- ================================= -->
 
         <section class="panel resultados-col">
-
-          <h4>
-            1. Seleccionar combate
-          </h4>
+          <h4>1. Seleccionar combate</h4>
 
           <div class="resultados-filtros">
-
-            <!--
-              ESTE ES EL FILTRO PRINCIPAL
-              QUE UTILIZARÁ STAFF
-            -->
-
             <!-- STAFF: dojo asignado automáticamente (sin selector) -->
-            <div class="field" *ngIf="isStaffOnly && dojosAsignados().length === 1">
+            <div
+              class="field"
+              *ngIf="isStaffOnly && dojosAsignados().length === 1"
+            >
               <span>Dojo asignado</span>
               <strong>{{ dojosAsignados()[0].nombre }}</strong>
             </div>
 
             <!-- STAFF con más de un dojo hoy, o ADMIN -->
-            <label class="field" *ngIf="!isStaffOnly || dojosAsignados().length > 1">
-              <span>
-                Dojo asignado
-              </span>
+            <label
+              class="field"
+              *ngIf="!isStaffOnly || dojosAsignados().length > 1"
+            >
+              <span> Dojo asignado </span>
 
               <select
                 [value]="dojoFiltro()"
-                (change)="
-                  cambiarDojo(
-                    $any($event.target).value
-                  )
-                "
+                (change)="cambiarDojo($any($event.target).value)"
               >
-                <option value="">
-                  Selecciona tu dojo
-                </option>
+                <option value="">Selecciona tu dojo</option>
 
                 <!-- Dojos asignados al STAFF -->
-<ng-container *ngIf="isStaffOnly">
-  <option
-    *ngFor="let dojo of dojosAsignados()"
-    [value]="dojo._id"
-  >
-    {{ dojo.nombre }}
-  </option>
-</ng-container>
+                <ng-container *ngIf="isStaffOnly">
+                  <option
+                    *ngFor="let dojo of dojosAsignados()"
+                    [value]="dojo._id"
+                  >
+                    {{ dojo.nombre }}
+                  </option>
+                </ng-container>
 
-<!-- Dojos disponibles para ADMIN -->
-<ng-container *ngIf="!isStaffOnly">
-  <option
-    *ngFor="let resumen of dojosResumen()"
-    [value]="resumen.dojo._id"
-  >
-    {{ resumen.dojo.nombre }}
-  </option>
-</ng-container>
-
+                <!-- Dojos disponibles para ADMIN -->
+                <ng-container *ngIf="!isStaffOnly">
+                  <option
+                    *ngFor="let resumen of dojosResumen()"
+                    [value]="resumen.dojo._id"
+                  >
+                    {{ resumen.dojo.nombre }}
+                  </option>
+                </ng-container>
               </select>
             </label>
 
-            <!--
-              FILTRO DE ARENA
-              SOLO PARA ADMIN
-            -->
-
-            <label
-              *appCan="'admin'"
-              class="field"
-            >
-              <ng-container
-                *ngIf="dojoFiltro()"
-              >
-                <span>
-                  Arena
-                </span>
+            <!-- FILTRO DE ARENA SOLO PARA ADMIN -->
+            <label *appCan="'admin'" class="field">
+              <ng-container *ngIf="dojoFiltro()">
+                <span> Arena </span>
 
                 <select
-                  [value]="
-                    arenaFiltro() ?? ''
-                  "
-                  (change)="
-                    cambiarArena(
-                      $any(
-                        $event.target
-                      ).value
-                    )
-                  "
+                  [value]="arenaFiltro() ?? ''"
+                  (change)="cambiarArena($any($event.target).value)"
                 >
-                  <option value="">
-                    Todas las arenas
-                  </option>
+                  <option value="">Todas las arenas</option>
 
                   <option
-                    *ngFor="
-                      let arena of
-                        arenasDisponibles()
-                    "
+                    *ngFor="let arena of arenasDisponibles()"
                     [value]="arena"
                   >
                     Arena {{ arena }}
                   </option>
-
                 </select>
               </ng-container>
             </label>
-
           </div>
 
           <!-- ================================= -->
           <!-- ESTADOS -->
           <!-- ================================= -->
 
-          <div
-            class="
-              panel--tabs
-              panel--tabs--compact
-            "
-          >
-
+          <div class="panel--tabs panel--tabs--compact">
             <button
               type="button"
-              [class.tab--active]="
-                activeTab() ===
-                'Pendiente'
-              "
-              (click)="
-                setTab('Pendiente')
-              "
+              [class.tab--active]="activeTab() === 'Pendiente'"
+              (click)="setTab('Pendiente')"
             >
-              Pendientes
-              ({{
-                countByEstado().Pendiente
-              }})
+              Pendientes ({{ countByEstado().Pendiente }})
             </button>
 
             <button
               type="button"
-              [class.tab--active]="
-                activeTab() ===
-                'En curso'
-              "
-              (click)="
-                setTab('En curso')
-              "
+              [class.tab--active]="activeTab() === 'En curso'"
+              (click)="setTab('En curso')"
             >
-              En curso
-              ({{
-                countByEstado()[
-                  'En curso'
-                ]
-              }})
+              En curso ({{ countByEstado()["En curso"] }})
             </button>
 
             <button
               type="button"
-              [class.tab--active]="
-                activeTab() ===
-                'Finalizado'
-              "
-              (click)="
-                setTab('Finalizado')
-              "
+              [class.tab--active]="activeTab() === 'Finalizado'"
+              (click)="setTab('Finalizado')"
             >
-              Finalizados
-              ({{
-                countByEstado().Finalizado
-              }})
+              Finalizados ({{ countByEstado().Finalizado }})
             </button>
-
           </div>
 
           <!-- ================================= -->
           <!-- CARGANDO -->
           <!-- ================================= -->
 
-          <p
-            class="table__loading"
-            *ngIf="loading()"
-          >
-            Cargando combates…
-          </p>
+          <p class="table__loading" *ngIf="loading()">Cargando combates…</p>
 
           <!-- ================================= -->
           <!-- LISTA DE COMBATES -->
           <!-- ================================= -->
 
-          <ul
-            class="combate-select-list"
-            *ngIf="!loading()"
-          >
-
+          <ul class="combate-select-list" *ngIf="!loading()">
             <li
-              *ngFor="
-                let combate of
-                  combatesFiltrados()
-              "
-              class="
-                combate-select-list__item
-              "
+              *ngFor="let combate of combatesFiltrados()"
+              class="combate-select-list__item"
               [class.combate-select-list__item--active]="
-                selectedCombateId() ===
-                combate._id
+                selectedCombateId() === combate._id
               "
-              (click)="
-                selectCombate(combate)
-              "
+              (click)="selectCombate(combate)"
             >
-
               <!-- Información del turno -->
 
-              <div
-                class="
-                  combate-select-list__schedule
-                "
-              >
-
+              <div class="combate-select-list__schedule">
                 <strong>
                   Turno
-                  {{ combate.turno ?? '—' }}
+                  {{ combate.turno ?? "—" }}
                 </strong>
 
                 <span>
-                  {{
-                    combate.dojo?.nombre ??
-                    'Sin dojo'
-                  }}
+                  {{ combate.dojo?.nombre ?? "Sin dojo" }}
 
                   · Arena
-                  {{ combate.arena ?? '—' }}
+                  {{ combate.arena ?? "—" }}
                 </span>
-
               </div>
 
               <!-- Robots -->
 
-              <div
-                class="
-                  combate-select-list__row
-                "
-              >
-
-                <span
-                  class="
-                    combate-select-list__num
-                  "
-                >
+              <div class="combate-select-list__row">
+                <span class="combate-select-list__num">
                   #{{ combate.numero }}
                 </span>
 
@@ -460,9 +291,7 @@
                   [participantes]="torneo()?.participantes"
                 />
 
-                <span class="table__vs">
-                  vs
-                </span>
+                <span class="table__vs"> vs </span>
 
                 <app-robot-chip
                   [robot]="combate.robot2"
@@ -470,7 +299,6 @@
                   [torneoId]="torneoId"
                   [participantes]="torneo()?.participantes"
                 />
-
               </div>
 
               <!-- ================================= -->
@@ -479,28 +307,15 @@
 
               <button
                 type="button"
-                class="
-                  btn
-                  btn--primary
-                  btn--sm
-                "
-                *ngIf="
-                  combate.estado ===
-                    'Pendiente' &&
-                  canManage()
-                "
+                class="btn btn--primary btn--sm"
+                *ngIf="combate.estado === 'Pendiente' && canManage()"
                 [disabled]="starting()"
-                (click)="
-                  registrar(combate);
-                  $event.stopPropagation()
-                "
+                (click)="registrar(combate); $event.stopPropagation()"
               >
                 {{
-                  starting() &&
-                  selectedCombateId() ===
-                    combate._id
-                    ? 'Abriendo…'
-                    : 'Registrar'
+                  starting() && selectedCombateId() === combate._id
+                    ? "Abriendo…"
+                    : "Registrar"
                 }}
               </button>
 
@@ -508,84 +323,56 @@
 
               <span
                 class="badge"
-                [class]="
-                  estadoBadgeClass(
-                    combate.estado
-                  )
-                "
-                *ngIf="
-                  combate.estado !==
-                    'Pendiente' ||
-                  !canManage()
-                "
+                [class]="estadoBadgeClass(combate.estado)"
+                *ngIf="combate.estado !== 'Pendiente' || !canManage()"
               >
                 {{ combate.estado }}
               </span>
-
             </li>
 
             <!-- No seleccionó dojo -->
 
-            <li
-              class="table__empty"
-              *ngIf="!dojoFiltro()"
-            >
-              {{ isStaffOnly && staffSinAsignacion()
-                ? 'No tienes un dojo asignado para hoy en este torneo.'
-                : 'Selecciona el dojo en el que vas a registrar los combates.' }}
+            <li class="table__empty" *ngIf="!dojoFiltro()">
+              {{
+                isStaffOnly && staffSinAsignacion()
+                  ? "No tienes un dojo asignado para hoy en este torneo."
+                  : "Selecciona el dojo en el que vas a registrar los combates."
+              }}
             </li>
 
             <!-- No hay combates -->
 
             <li
               class="table__empty"
-              *ngIf="
-                dojoFiltro() &&
-                combatesFiltrados()
-                  .length === 0
-              "
+              *ngIf="dojoFiltro() && combatesFiltrados().length === 0"
             >
-              No hay combates en este dojo
-              para el estado seleccionado.
+              No hay combates en este dojo para el estado seleccionado.
             </li>
-
           </ul>
-
         </section>
 
         <!-- ================================= -->
         <!-- 2. REGISTRAR RESULTADO -->
         <!-- ================================= -->
 
-        <section
-          class="panel resultados-col"
-        >
-
+        <section class="panel resultados-col">
           <h4>
             {{
               canManage()
-                ? '2. Registrar resultado'
-                : '2. Resultado del combate'
+                ? "2. Registrar resultado"
+                : "2. Resultado del combate"
             }}
           </h4>
 
           <!-- Ningún combate seleccionado -->
 
-          <div
-            *ngIf="!selectedCombate()"
-            class="empty-hint"
-          >
-            <ng-container
-              *ngIf="dojoFiltro(); else seleccionarDojo"
-            >
-              Selecciona un combate de la
-              lista para registrar su
-              resultado.
+          <div *ngIf="!selectedCombate()" class="empty-hint">
+            <ng-container *ngIf="dojoFiltro(); else seleccionarDojo">
+              Selecciona un combate de la lista para registrar su resultado.
             </ng-container>
 
             <ng-template #seleccionarDojo>
-              Primero selecciona tu dojo
-              para consultar los combates.
+              Primero selecciona tu dojo para consultar los combates.
             </ng-template>
           </div>
 
@@ -593,27 +380,18 @@
           <!-- COMBATE SELECCIONADO -->
           <!-- ================================= -->
 
-          <ng-container
-            *ngIf="
-              selectedCombate() as combate
-            "
-          >
-
+          <ng-container *ngIf="selectedCombate() as combate">
             <p class="combate-title">
               Turno
-              {{ combate.turno ?? '—' }}
+              {{ combate.turno ?? "—" }}
 
               ·
-              {{
-                combate.dojo?.nombre ??
-                'Dojo sin asignar'
-              }}
+              {{ combate.dojo?.nombre ?? "Dojo sin asignar" }}
 
               · Arena
-              {{ combate.arena ?? '—' }}
+              {{ combate.arena ?? "—" }}
 
-              · Combate
-              #{{ combate.numero }}
+              · Combate #{{ combate.numero }}
             </p>
 
             <!-- ================================= -->
@@ -621,48 +399,36 @@
             <!-- ================================= -->
 
             <div class="versus-box">
-
               <!-- ROBOT 1 -->
 
-              <div class="versus-box__side">
-
-                <span
-                  class="
-                    versus-box__tag
-                    versus-box__tag--blue
-                  "
-                >
+              <div
+                class="versus-box__side"
+                [class.is-winner]="
+                  form.get('resultado')?.value === ResultadoCombate.GANA_ROBOT_1
+                "
+                [class.is-loser]="
+                  form.get('resultado')?.value === ResultadoCombate.GANA_ROBOT_2
+                "
+                (click)="seleccionarGanador(ResultadoCombate.GANA_ROBOT_1)"
+              >
+                <span class="versus-box__tag versus-box__tag--blue">
                   Robot 1 (Azul)
                 </span>
 
                 <img
-                  *ngIf="
-                    combate.robot1?.imagenUrl;
-                    else placeholder1
-                  "
+                  *ngIf="combate.robot1?.imagenUrl; else placeholder1"
                   class="versus-box__photo"
-                  [src]="
-                    combate.robot1?.imagenUrl
-                  "
+                  [src]="combate.robot1?.imagenUrl"
                   [alt]="
                     participanteLabel(combate.robot1, combate.placeholder1)
                   "
                 />
 
-                <ng-template
-                  #placeholder1
-                >
+                <ng-template #placeholder1>
                   <span
-                    class="
-                      versus-box__photo
-                      versus-box__photo--placeholder
-                    "
+                    class="versus-box__photo versus-box__photo--placeholder"
                   >
-                    <svg
-                      viewBox="0 0 24 24"
-                      width="26"
-                      height="26"
-                    >
+                    <svg viewBox="0 0 24 24" width="26" height="26">
                       <rect
                         x="5"
                         y="9"
@@ -673,21 +439,8 @@
                         stroke="currentColor"
                         stroke-width="1.6"
                       />
-
-                      <circle
-                        cx="9.5"
-                        cy="14"
-                        r="1.2"
-                        fill="currentColor"
-                      />
-
-                      <circle
-                        cx="14.5"
-                        cy="14"
-                        r="1.2"
-                        fill="currentColor"
-                      />
-
+                      <circle cx="9.5" cy="14" r="1.2" fill="currentColor" />
+                      <circle cx="14.5" cy="14" r="1.2" fill="currentColor" />
                       <path
                         d="M12 9V6m-3.5 0h7"
                         fill="none"
@@ -699,76 +452,50 @@
                   </span>
                 </ng-template>
 
-                <span
-                  class="versus-box__name"
-                >
-                  {{
-                    participanteLabel(combate.robot1, combate.placeholder1)
-                  }}
+                <span class="versus-box__name">
+                  {{ participanteLabel(combate.robot1, combate.placeholder1) }}
                 </span>
 
                 <span
                   class="versus-box__team"
-                  *ngIf="
-                    equipoNombre(
-                      combate.robot1
-                    )
-                  "
+                  *ngIf="equipoNombre(combate.robot1)"
                 >
-                  {{
-                    equipoNombre(
-                      combate.robot1
-                    )
-                  }}
+                  {{ equipoNombre(combate.robot1) }}
                 </span>
-
               </div>
 
-              <span class="versus-box__vs">
-                VS
-              </span>
+              <span class="versus-box__vs"> VS </span>
 
               <!-- ROBOT 2 -->
 
-              <div class="versus-box__side">
-
-                <span
-                  class="
-                    versus-box__tag
-                    versus-box__tag--red
-                  "
-                >
+              <div
+                class="versus-box__side"
+                [class.is-winner]="
+                  form.get('resultado')?.value === ResultadoCombate.GANA_ROBOT_2
+                "
+                [class.is-loser]="
+                  form.get('resultado')?.value === ResultadoCombate.GANA_ROBOT_1
+                "
+                (click)="seleccionarGanador(ResultadoCombate.GANA_ROBOT_2)"
+              >
+                <span class="versus-box__tag versus-box__tag--red">
                   Robot 2 (Rojo)
                 </span>
 
                 <img
-                  *ngIf="
-                    combate.robot2?.imagenUrl;
-                    else placeholder2
-                  "
+                  *ngIf="combate.robot2?.imagenUrl; else placeholder2"
                   class="versus-box__photo"
-                  [src]="
-                    combate.robot2?.imagenUrl
-                  "
+                  [src]="combate.robot2?.imagenUrl"
                   [alt]="
                     participanteLabel(combate.robot2, combate.placeholder2)
                   "
                 />
 
-                <ng-template
-                  #placeholder2
-                >
+                <ng-template #placeholder2>
                   <span
-                    class="
-                      versus-box__photo
-                      versus-box__photo--placeholder
-                    "
+                    class="versus-box__photo versus-box__photo--placeholder"
                   >
-                    <svg
-                      viewBox="0 0 24 24"
-                      width="26"
-                      height="26"
-                    >
+                    <svg viewBox="0 0 24 24" width="26" height="26">
                       <rect
                         x="5"
                         y="9"
@@ -779,21 +506,8 @@
                         stroke="currentColor"
                         stroke-width="1.6"
                       />
-
-                      <circle
-                        cx="9.5"
-                        cy="14"
-                        r="1.2"
-                        fill="currentColor"
-                      />
-
-                      <circle
-                        cx="14.5"
-                        cy="14"
-                        r="1.2"
-                        fill="currentColor"
-                      />
-
+                      <circle cx="9.5" cy="14" r="1.2" fill="currentColor" />
+                      <circle cx="14.5" cy="14" r="1.2" fill="currentColor" />
                       <path
                         d="M12 9V6m-3.5 0h7"
                         fill="none"
@@ -805,31 +519,17 @@
                   </span>
                 </ng-template>
 
-                <span
-                  class="versus-box__name"
-                >
-                  {{
-                    participanteLabel(combate.robot2, combate.placeholder2)
-                  }}
+                <span class="versus-box__name">
+                  {{ participanteLabel(combate.robot2, combate.placeholder2) }}
                 </span>
 
                 <span
                   class="versus-box__team"
-                  *ngIf="
-                    equipoNombre(
-                      combate.robot2
-                    )
-                  "
+                  *ngIf="equipoNombre(combate.robot2)"
                 >
-                  {{
-                    equipoNombre(
-                      combate.robot2
-                    )
-                  }}
+                  {{ equipoNombre(combate.robot2) }}
                 </span>
-
               </div>
-
             </div>
 
             <!-- ================================= -->
@@ -840,195 +540,122 @@
               [formGroup]="form"
               (ngSubmit)="submitResultado()"
               *ngIf="
-                combate.estado !==
-                  'Finalizado' &&
-                canManage() &&
-                combate.robot1 &&
-                combate.robot2;
+                combate.estado !== 'Finalizado' &&
+                  canManage() &&
+                  combate.robot1 &&
+                  combate.robot2;
                 else soloLectura
               "
             >
-
               <!-- GANADOR -->
 
               <div class="field">
-
-                <span>
-                  Resultado del combate
-                </span>
-
+                <span>Resultado del combate</span>
                 <div class="radio-row">
-
-                  <label
-                    class="radio-option"
-                  >
+                  <label class="radio-option">
                     <input
                       type="radio"
                       formControlName="resultado"
-                      [value]="
-                        ResultadoCombate.GANA_ROBOT_1
-                      "
+                      [value]="ResultadoCombate.GANA_ROBOT_1"
                     />
-
                     Gana
                     {{
                       participanteLabel(combate.robot1, combate.placeholder1)
                     }}
                   </label>
 
-                  <label
-                    class="radio-option"
-                  >
+                  <label class="radio-option">
                     <input
                       type="radio"
                       formControlName="resultado"
-                      [value]="
-                        ResultadoCombate.EMPATE
-                      "
+                      [value]="ResultadoCombate.EMPATE"
                     />
-
                     Empate
                   </label>
 
-                  <label
-                    class="radio-option"
-                  >
+                  <label class="radio-option">
                     <input
                       type="radio"
                       formControlName="resultado"
-                      [value]="
-                        ResultadoCombate.GANA_ROBOT_2
-                      "
+                      [value]="ResultadoCombate.GANA_ROBOT_2"
                     />
-
                     Gana
                     {{
                       participanteLabel(combate.robot2, combate.placeholder2)
                     }}
                   </label>
-
                 </div>
               </div>
 
               <!-- MÉTODO -->
 
               <label class="field">
-
-                <span>
-                  Método de victoria *
-                </span>
-
-                <select
-                  formControlName="metodoVictoria"
-                >
-
-                  <option [ngValue]="null">
-                    Selecciona un método
-                  </option>
-
+                <span>Método de victoria *</span>
+                <select formControlName="metodoVictoria">
+                  <option [ngValue]="null">Selecciona un método</option>
                   <option
-                    *ngFor="
-                      let metodo of
-                        metodosVictoria
-                    "
+                    *ngFor="let metodo of metodosVictoria"
                     [value]="metodo"
                   >
                     {{ metodo }}
                   </option>
-
                 </select>
-
               </label>
 
-              <label class="field" *ngIf="form.controls.metodoVictoria.value === 'Otro'">
+              <label
+                class="field"
+                *ngIf="form.controls.metodoVictoria.value === 'Otro'"
+              >
                 <span>Otro método de victoria *</span>
-                <input type="text" formControlName="otroMetodoVictoria" maxlength="150"
-                  placeholder="Escribe el método de victoria" />
-                <small style="color: #dc2626; font-weight: 600;" *ngIf="form.controls.otroMetodoVictoria.touched && !form.controls.otroMetodoVictoria.value.trim()">
+                <input
+                  type="text"
+                  formControlName="otroMetodoVictoria"
+                  maxlength="150"
+                  placeholder="Escribe el método de victoria"
+                />
+                <small
+                  style="color: #dc2626; font-weight: 600"
+                  *ngIf="
+                    form.controls.otroMetodoVictoria.touched &&
+                    !form.controls.otroMetodoVictoria.value.trim()
+                  "
+                >
                   Es obligatorio especificar el método.
                 </small>
               </label>
-              <small style="color: #dc2626; font-weight: 600;" *ngIf="form.controls.metodoVictoria.touched && form.controls.metodoVictoria.invalid">
+              <small
+                style="color: #dc2626; font-weight: 600"
+                *ngIf="
+                  form.controls.metodoVictoria.touched &&
+                  form.controls.metodoVictoria.invalid
+                "
+              >
                 Selecciona un método de victoria.
               </small>
-              <!-- TIEMPO Y JUECES -->
-
-              <div class="field-row">
-
-                <label class="field">
-
-                  <span>
-                    Tiempo del combate
-                  </span>
-
-                  <input
-                    type="text"
-                    formControlName="tiempo"
-                    placeholder="mm:ss"
-                  />
-
-                </label>
-
-                <label class="field">
-
-                  <span>
-                    Jueces (opcional)
-                  </span>
-
-                  <input
-                    type="text"
-                    formControlName="jueces"
-                    placeholder="Juez 1, Juez 2, Juez 3"
-                  />
-
-                </label>
-
-              </div>
 
               <!-- OBSERVACIONES -->
 
               <label class="field">
-
-                <span>
-                  Observaciones
-                  (opcional)
-                </span>
-
+                <span>Observaciones (opcional)</span>
                 <textarea
                   formControlName="observaciones"
                   rows="3"
                   placeholder="Escribe alguna observación sobre el combate…"
                 ></textarea>
-
               </label>
 
               <!-- ERROR -->
-
-              <p
-                class="field__error"
-                *ngIf="formError()"
-              >
+              <p class="field__error" *ngIf="formError()">
                 {{ formError() }}
               </p>
 
               <!-- BOTONES -->
-
-              <div
-                class="resultados-actions"
-              >
-
-                <!--
-                  Cancelar combate se deja
-                  únicamente para ADMIN.
-                -->
-
+              <div class="resultados-actions">
                 <button
                   *appCan="'admin'"
                   type="button"
                   class="btn btn--ghost"
-                  (click)="
-                    cancelarCombate()
-                  "
+                  (click)="cancelarCombate()"
                 >
                   ✕ Cancelar combate
                 </button>
@@ -1038,15 +665,9 @@
                   class="btn btn--primary"
                   [disabled]="saving()"
                 >
-                  {{
-                    saving()
-                      ? 'Guardando…'
-                      : '✓ Guardar resultado'
-                  }}
+                  {{ saving() ? "Guardando…" : "✓ Guardar resultado" }}
                 </button>
-
               </div>
-
             </form>
 
             <!-- ================================= -->
@@ -1054,46 +675,23 @@
             <!-- ================================= -->
 
             <ng-template #soloLectura>
-
               <div class="info-box">
-
                 <ng-container
-                  *ngIf="
-                    combate.estado ===
-                      'Finalizado';
-                    else sinPermiso
-                  "
+                  *ngIf="combate.estado === 'Finalizado'; else sinPermiso"
                 >
-                  Este combate ya fue
-                  registrado como
-
-                  <strong>
-                    {{ combate.resultado }}
-                  </strong>
-
+                  Este combate ya fue registrado como
+                  <strong>{{ combate.resultado }}</strong>
                   y no puede modificarse.
                 </ng-container>
 
-                <ng-template
-                  #sinPermiso
-                >
+                <ng-template #sinPermiso>
                   Este combate está
-
-                  <strong>
-                    {{ combate.estado }}
-                  </strong>.
-
-                  Solo el personal
-                  autorizado puede registrar
-                  resultados.
+                  <strong>{{ combate.estado }}</strong
+                  >. Solo el personal autorizado puede registrar resultados.
                 </ng-template>
-
               </div>
-
             </ng-template>
-
           </ng-container>
-
         </section>
 
         <!-- ================================= -->
@@ -1101,223 +699,93 @@
         <!-- SOLO ADMIN -->
         <!-- ================================= -->
 
-        <section
-          *appCan="'admin'"
-          class="
-            panel
-            resultados-col
-          "
-        >
-
-          <ng-container
-            *ngIf="
-              selectedCombate() as combate
-            "
-          >
-
-            <div
-              class="panel__title-row"
-            >
-
-              <h4>
-                3. Información del combate
-              </h4>
-
-              <span
-                class="badge"
-                [class]="
-                  estadoBadgeClass(
-                    combate.estado
-                  )
-                "
-              >
+        <section *appCan="'admin'" class="panel resultados-col">
+          <ng-container *ngIf="selectedCombate() as combate">
+            <div class="panel__title-row">
+              <h4>3. Información del combate</h4>
+              <span class="badge" [class]="estadoBadgeClass(combate.estado)">
                 {{ combate.estado }}
               </span>
-
             </div>
 
             <dl class="info-list">
-
               <div>
-                <dt>
-                  Torneo
-                </dt>
-
-                <dd>
-                  {{ torneo()?.nombre }}
-                </dd>
+                <dt>Torneo</dt>
+                <dd>{{ torneo()?.nombre }}</dd>
               </div>
 
               <div>
-                <dt>
-                  Categoría
-                </dt>
-
-                <dd>
-                  {{
-                    $any(
-                      torneo()?.categoria
-                    )?.nombre
-                  }}
-                </dd>
+                <dt>Categoría</dt>
+                <dd>{{ $any(torneo()?.categoria)?.nombre }}</dd>
               </div>
 
               <div>
-                <dt>
-                  Fase
-                </dt>
-
-                <dd>
-                  {{ combate.fase }}
-
-                  —
-
-                  {{
-                    combate.bloque
-                      ?.nombre
-                  }}
-                </dd>
+                <dt>Fase</dt>
+                <dd>{{ combate.fase }} — {{ combate.bloque?.nombre }}</dd>
               </div>
 
               <div>
-                <dt>
-                  Dojo
-                </dt>
-
-                <dd>
-                  {{
-                    combate.dojo
-                      ?.nombre ??
-                    'Sin asignar'
-                  }}
-                </dd>
+                <dt>Dojo</dt>
+                <dd>{{ combate.dojo?.nombre ?? "Sin asignar" }}</dd>
               </div>
 
               <div>
-                <dt>
-                  Turno
-                </dt>
-
-                <dd>
-                  {{
-                    combate.turno ??
-                    '—'
-                  }}
-                </dd>
+                <dt>Turno</dt>
+                <dd>{{ combate.turno ?? "—" }}</dd>
               </div>
 
               <div>
-                <dt>
-                  Arena
-                </dt>
-
-                <dd>
-                  {{
-                    combate.arena ??
-                    '—'
-                  }}
-                </dd>
+                <dt>Arena</dt>
+                <dd>{{ combate.arena ?? "—" }}</dd>
               </div>
 
               <div>
-                <dt>
-                  Fecha y hora
-                </dt>
-
+                <dt>Fecha y hora</dt>
                 <dd>
                   {{
                     combate.createdAt
-                      ? (
-                          combate.createdAt
-                            | date:
-                                'dd MMM yyyy, HH:mm'
-                        )
-                      : '—'
+                      ? (combate.createdAt | date: "dd MMM yyyy, HH:mm")
+                      : "—"
                   }}
                 </dd>
               </div>
-
             </dl>
 
-            <h5
-              class="
-                info-list__heading
-              "
-            >
-              Historial del combate
-            </h5>
+            <h5 class="info-list__heading">Historial del combate</h5>
 
             <ul class="timeline">
-
               <li
-                *ngFor="
-                  let evento of
-                    combate.historial
-                "
+                *ngFor="let evento of combate.historial"
                 class="timeline__item"
-                [class]="
-                  'timeline__item--' +
-                  evento.tipo
-                "
+                [class]="'timeline__item--' + evento.tipo"
               >
-
-                <span
-                  class="timeline__dot"
-                ></span>
-
-                <span
-                  class="timeline__hora"
-                >
-                  {{
-                    formatHora(
-                      evento.hora
-                    )
-                  }}
+                <span class="timeline__dot"></span>
+                <span class="timeline__hora">
+                  {{ formatHora(evento.hora) }}
                 </span>
-
-                <span
-                  class="timeline__desc"
-                >
-                  {{
-                    evento.descripcion
-                  }}
+                <span class="timeline__desc">
+                  {{ evento.descripcion }}
                 </span>
-
               </li>
 
-              <li
-                class="table__empty"
-                *ngIf="
-                  combate.historial
-                    .length === 0
-                "
-              >
-                Sin eventos registrados
-                todavía.
+              <li class="table__empty" *ngIf="combate.historial.length === 0">
+                Sin eventos registrados todavía.
               </li>
-
             </ul>
 
             <div class="info-box">
-              Asegúrate de registrar el
-              resultado correctamente.
-              Una vez guardado, no podrá
-              ser modificado.
+              Asegúrate de registrar el resultado correctamente. Una vez
+              guardado, no podrá ser modificado.
             </div>
-
           </ng-container>
-
         </section>
-
       </div>
 
       <!-- ===================================== -->
       <!-- VOLVER -->
       <!-- ===================================== -->
 
-      <div
-        class="panel--footer-actions"
-      >
+      <div class="panel--footer-actions">
         <a
           class="btn btn--ghost"
           [routerLink]="isStaffOnly ? '/staff/resultados' : '/torneos'"
@@ -1325,7 +793,6 @@
           ← Volver a torneos
         </a>
       </div>
-
     </main>
   </div>
 </div>

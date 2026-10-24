@@ -1,4 +1,4 @@
-@use '../../shared/styles/admin-page';
+@use "../../shared/styles/admin-page";
 
 .resultados-page {
   display: flex;
@@ -140,6 +140,42 @@
   gap: 0.35rem;
   align-items: center;
   min-width: 0;
+  padding: 1rem 0.5rem;
+  border-radius: 1rem;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition:
+    transform 0.3s ease,
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    opacity 0.3s ease;
+
+  &:hover {
+    background: #fdfcff;
+  }
+
+  /* Estado Ganador */
+  &.is-winner {
+    transform: scale(1.08);
+    background-color: #dcfce7;
+    border-color: #22c55e;
+
+    .versus-box__photo {
+      border-color: #22c55e;
+    }
+  }
+
+  /* Estado Perdedor */
+  &.is-loser {
+    transform: scale(0.95);
+    background-color: #fee2e2;
+    border-color: #ef4444;
+    opacity: 0.75;
+
+    .versus-box__photo {
+      border-color: #ef4444;
+    }
+  }
 }
 
 .versus-box__tag {
@@ -149,8 +185,14 @@
   border-radius: 999px;
 }
 
-.versus-box__tag--blue { color: #1d4ed8; background: #dbeafe; }
-.versus-box__tag--red { color: #b91c1c; background: #fee2e2; }
+.versus-box__tag--blue {
+  color: #1d4ed8;
+  background: #dbeafe;
+}
+.versus-box__tag--red {
+  color: #b91c1c;
+  background: #fee2e2;
+}
 
 .versus-box__vs {
   font-size: 0.78rem;
@@ -159,12 +201,13 @@
 }
 
 .versus-box__photo {
-  width: 3.5rem;
-  height: 3.5rem;
+  width: 5.5rem;
+  height: 5.5rem;
   object-fit: cover;
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: 3px solid var(--color-border);
   border-radius: 0.75rem;
+  transition: border-color 0.3s ease;
 }
 
 .versus-box__photo--placeholder {
@@ -172,6 +215,11 @@
   align-items: center;
   justify-content: center;
   color: var(--color-text-muted);
+
+  svg {
+    width: 2.2rem;
+    height: 2.2rem;
+  }
 }
 
 .versus-box__name {
@@ -278,10 +326,18 @@
   border-radius: 50%;
 }
 
-.timeline__item--success .timeline__dot { background: #16a34a; }
-.timeline__item--warning .timeline__dot { background: #d97706; }
-.timeline__item--danger .timeline__dot { background: #dc2626; }
-.timeline__item--info .timeline__dot { background: #2563eb; }
+.timeline__item--success .timeline__dot {
+  background: #16a34a;
+}
+.timeline__item--warning .timeline__dot {
+  background: #d97706;
+}
+.timeline__item--danger .timeline__dot {
+  background: #dc2626;
+}
+.timeline__item--info .timeline__dot {
+  background: #2563eb;
+}
 
 .timeline__hora {
   color: var(--color-text-muted);
@@ -336,8 +392,8 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas:
-    'schedule action'
-    'robots action';
+    "schedule action"
+    "robots action";
   align-items: center;
   gap: 0.4rem 0.6rem;
   min-width: 0;
@@ -420,20 +476,55 @@
   flex-wrap: wrap;
 }
 
-
-
 /* Ajustes móviles para registro de resultados */
 @media (max-width: 600px) {
-  :host { display:block; min-width:0; }
-  .resultados-page { padding: 12px; gap:12px; }
-  .resultados-layout { display:grid; grid-template-columns:minmax(0,1fr); gap:12px; }
-  .resultados-col { padding:14px; min-width:0; }
-  .panel { min-width:0; }
-  .panel--header { align-items:flex-start; }
-  .panel--header__actions { width:100%; }
-  .panel--header__actions .btn { max-width:100%; }
-  input, select, textarea { max-width:100%; min-width:0; box-sizing:border-box; font-size:16px; }
-  textarea { resize:vertical; min-height:90px; }
-  .combate-select-list .combate-select-list__item { grid-template-columns:minmax(0,1fr); grid-template-areas:'schedule' 'robots' 'action'; }
-  .combate-select-list__item > .btn, .combate-select-list__item > .badge { justify-self:start; }
+  :host {
+    display: block;
+    min-width: 0;
+  }
+  .resultados-page {
+    padding: 12px;
+    gap: 12px;
+  }
+  .resultados-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .resultados-col {
+    padding: 14px;
+    min-width: 0;
+  }
+  .panel {
+    min-width: 0;
+  }
+  .panel--header {
+    align-items: flex-start;
+  }
+  .panel--header__actions {
+    width: 100%;
+  }
+  .panel--header__actions .btn {
+    max-width: 100%;
+  }
+  input,
+  select,
+  textarea {
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    font-size: 16px;
+  }
+  textarea {
+    resize: vertical;
+    min-height: 90px;
+  }
+  .combate-select-list .combate-select-list__item {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "schedule" "robots" "action";
+  }
+  .combate-select-list__item > .btn,
+  .combate-select-list__item > .badge {
+    justify-self: start;
+  }
 }
