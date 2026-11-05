@@ -78,6 +78,12 @@ export class SidebarComponent {
       roles: [Role.ADMIN],
     },
     {
+      icon: 'swords',
+      label: 'Combate extra',
+      route: '/combate-extra',
+      roles: [Role.ADMIN],
+    },
+    {
       icon: 'trophy',
       label: 'Registrar resultados',
       route: '/staff/resultados',

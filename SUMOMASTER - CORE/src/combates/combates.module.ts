@@ -8,6 +8,8 @@ import { CombatesService } from './combates.service';
 import { AsignacionesStaffService } from './asignaciones-staff.service';
 import { AsignacionStaff, AsignacionStaffSchema } from './schemas/asignacion-staff.schema';
 import { User, UserSchema } from '../common/schemas/user.schema';
+import { Robot, RobotSchema } from '../robots/schemas/robot.schema';
+import { Torneo, TorneoSchema } from '../torneos/schemas/torneo.schema';
 
 @Module({
   imports: [
@@ -15,6 +17,8 @@ import { User, UserSchema } from '../common/schemas/user.schema';
       { name: Combate.name, schema: CombateSchema },
       { name: Bloque.name, schema: BloqueSchema },
       { name: Dojo.name, schema: DojoSchema },
+      { name: Robot.name, schema: RobotSchema },
+      { name: Torneo.name, schema: TorneoSchema },
       { name: User.name, schema: UserSchema },
       { name: AsignacionStaff.name, schema: AsignacionStaffSchema },
     ]),

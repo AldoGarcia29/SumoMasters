@@ -17,6 +17,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../common/interfaces/jwt-payload.interface';
 import { AsignarDojoDto } from './dto/asignar-dojo.dto';
 import { GenerarCombatesDto } from './dto/generar-combates.dto';
+import { CrearCombateExtraDto } from './dto/crear-combate-extra.dto';
 import { RegistrarResultadoDto } from './dto/registrar-resultado.dto';
 import {
   FaseCombate,
@@ -87,6 +88,15 @@ actualizarHorario(
   @Post('torneos/:torneoId/combates/generar')
   generar(@Param('torneoId') torneoId: string, @Body() dto: GenerarCombatesDto) {
     return this.combatesService.generar(torneoId, dto);
+  }
+
+  @Roles(Role.ADMIN)
+  @Post('torneos/:torneoId/combates/extra')
+  crearExtra(
+    @Param('torneoId') torneoId: string,
+    @Body() dto: CrearCombateExtraDto,
+  ) {
+    return this.combatesService.crearCombateExtra(torneoId, dto);
   }
 
   @Roles(Role.ADMIN)

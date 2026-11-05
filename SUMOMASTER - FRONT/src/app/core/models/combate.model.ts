@@ -10,6 +10,8 @@ export enum FaseCombate {
   SEMIFINAL = 'Semifinal',
   TERCER_LUGAR = 'Tercer lugar',
   FINAL = 'Final',
+  /** Combate suelto creado a mano; no forma parte del cuadro del torneo. */
+  COMBATE_EXTRA = 'Combate extra',
 }
 export enum EstadoCombate {
   PENDIENTE = 'Pendiente',
@@ -75,5 +77,14 @@ export interface RegistrarResultadoPayload {
   otroMetodoVictoria?: string;
   duracionSegundos?: number;
   jueces?: string[];
+  observaciones?: string;
+}
+
+export interface CrearCombateExtraPayload {
+  robot1Id: string;
+  robot2Id: string;
+  dojoId?: string;
+  /** ISO 8601 con zona horaria (por ejemplo, el resultado de Date.toISOString()). */
+  horarioProgramado?: string;
   observaciones?: string;
 }

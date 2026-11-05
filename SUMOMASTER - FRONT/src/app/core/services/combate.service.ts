@@ -10,6 +10,7 @@ import { environment } from '../../../environments/environment';
 import {
   Combate,
   EstadoCombate,
+  CrearCombateExtraPayload,
   FaseCombate,
   RegistrarResultadoPayload,
 } from '../models/combate.model';
@@ -101,6 +102,17 @@ export class CombateService {
   ): Observable<Combate[]> {
     return this.http.post<Combate[]>(
       `${this.baseUrl}/torneos/${torneoId}/combates/generar`,
+      payload,
+    );
+  }
+
+  /** Crea un combate extra eligiendo manualmente los dos robots. */
+  crearCombateExtra(
+    torneoId: string,
+    payload: CrearCombateExtraPayload,
+  ): Observable<Combate> {
+    return this.http.post<Combate>(
+      `${this.baseUrl}/torneos/${torneoId}/combates/extra`,
       payload,
     );
   }
