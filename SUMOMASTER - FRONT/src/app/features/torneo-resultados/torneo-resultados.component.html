@@ -20,7 +20,7 @@
       <!-- ENCABEZADO DEL TORNEO -->
       <!-- ===================================== -->
 
-      <section class="panel panel--header">
+      <section class="panel panel--header" *ngIf="!isStaffOnly">
         <div class="panel--header__info">
           <span class="panel--header__icon">
             <svg viewBox="0 0 24 24" width="18" height="18">
