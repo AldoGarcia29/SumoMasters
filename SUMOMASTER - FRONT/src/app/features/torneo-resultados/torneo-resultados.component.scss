@@ -528,3 +528,45 @@
     justify-self: start;
   }
 }
+
+/* Vista compacta de Staff: scroll solo en el listado si es necesario. */
+.staff-compact {display:grid;grid-template-columns:minmax(280px,1fr) minmax(360px,1.12fr);gap:16px;min-height:0;align-items:stretch}
+.staff-compact .panel {min-width:0;padding:18px;border-radius:18px}
+.staff-compact__heading,.staff-fight__top {display:flex;justify-content:space-between;align-items:center;gap:8px}
+.staff-compact__heading {font-size:1.15rem;color:#19112c}
+.staff-pill {background:#d9f6d3;color:#116313;padding:5px 14px;border-radius:22px;font-size:.8rem}
+.staff-compact__dojo,.staff-compact__meta {color:#676171;font-size:.86rem;margin:5px 0 12px}
+.staff-compact__tabs {display:flex;gap:4px;background:#f3f1f9;border-radius:12px;padding:4px;margin:12px 0}
+.staff-compact__tabs button {flex:1;border:0;border-radius:9px;background:transparent;padding:10px 4px;font-size:.8rem;color:#5e596a;cursor:pointer}
+.staff-compact__tabs button.active {background:#6d18e8;color:#fff;font-weight:700}
+.staff-compact__items {display:grid;align-content:start;gap:8px;max-height:calc(100dvh - 260px);overflow-y:auto;overscroll-behavior:contain}
+.staff-fight {width:100%;border:1px solid #e0dbea;background:#fff;border-radius:12px;padding:10px 12px;text-align:left;cursor:pointer;color:#1c1530}
+.staff-fight.selected {border-color:#7520eb;background:#f4edff}
+.staff-fight__top small {color:#147525;background:#dff8d7;padding:3px 8px;border-radius:15px}
+.staff-fight__robots {display:flex;align-items:center;gap:8px;margin-top:7px;min-width:0;font-size:.82rem}
+.staff-fight__robots img {width:35px;height:35px;object-fit:cover;border-radius:7px}
+.staff-fight__robots strong {min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.staff-fight__robots em {font-style:normal;color:#686274;font-weight:700}
+.staff-fight__robots span:last-child {margin-left:auto;font-size:1.4rem}
+.staff-compact__detail h2 {text-align:center;margin:0;color:#17102a;font-size:1.4rem}
+.staff-compact__detail .staff-compact__meta {text-align:center}
+.staff-versus {display:grid;grid-template-columns:minmax(0,1fr) 32px minmax(0,1fr);align-items:center;gap:8px;margin:14px 0}
+.staff-versus>div {min-width:0;border:2px solid #ded8e9;background:#f8f6fb;border-radius:15px;padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.staff-versus>div.winner {background:#e2fbe7;border-color:#0ca42a}
+.staff-versus>div.loser {background:#ffe5e7;border-color:#e42b38}
+.staff-versus img {height:76px;width:90px;max-width:100%;object-fit:contain;border-radius:10px}
+.staff-versus strong {font-size:.94rem;overflow-wrap:anywhere}
+.staff-versus>b {text-align:center;color:#625d69}
+.staff-form {display:grid;gap:11px}
+.staff-winners {display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.staff-winners label {display:flex;align-items:center;gap:8px;padding:11px 8px;background:#f6f4fb;border:1px solid #ddd7ed;border-radius:10px;cursor:pointer;font-size:.86rem;overflow-wrap:anywhere}
+.staff-winners label:has(input:checked) {background:#e3fbe7;border-color:#0ca42a}
+.staff-winners input,.staff-draw input {accent-color:#0ca42a}
+.staff-draw {font-size:.85rem;color:#595368}
+.staff-form .field {display:grid;gap:6px;margin:0}
+.staff-form select,.staff-form .field input {width:100%;min-height:42px;border:1px solid #ded8ed;border-radius:10px;padding:8px;background:#f8f7fb}
+.staff-save {width:100%;border:0;border-radius:12px;background:linear-gradient(110deg,#8124f2,#5d0dd7);color:white;font-size:1rem;font-weight:700;padding:13px;cursor:pointer;margin-top:6px}
+.staff-save:disabled {opacity:.6;cursor:wait}
+.staff-empty,.staff-readonly {padding:24px 12px;text-align:center;color:#696477}
+@media(max-width:900px) {.staff-compact {grid-template-columns:1fr 1fr;gap:10px}.staff-compact .panel {padding:12px}.resultados-page {padding:12px}}
+@media(max-width:650px) {.staff-compact {grid-template-columns:1fr}.staff-compact__items {max-height:230px}.staff-versus img {height:58px}.staff-compact__detail h2 {font-size:1.2rem}.staff-compact__tabs button {font-size:.72rem}.staff-compact .panel {padding:12px}}

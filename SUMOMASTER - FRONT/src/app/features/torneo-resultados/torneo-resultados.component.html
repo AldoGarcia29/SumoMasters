@@ -137,7 +137,76 @@
       <!-- CONTENIDO PRINCIPAL -->
       <!-- ===================================== -->
 
-      <div class="resultados-layout">
+      <!-- Vista simplificada exclusiva para STAFF -->
+      <div class="staff-compact" *ngIf="isStaffOnly">
+        <section class="staff-compact__list panel">
+          <div class="staff-compact__heading"><strong>Registro de resultados</strong><span class="staff-pill">Staff</span></div>
+          <div class="staff-compact__dojo" *ngIf="dojosAsignados().length === 1">{{ dojosAsignados()[0].nombre }} · {{ torneo()?.nombre }}</div>
+          <label class="field" *ngIf="dojosAsignados().length > 1">Dojo asignado
+            <select [value]="dojoFiltro()" (change)="cambiarDojo($any($event.target).value)">
+              <option value="">Selecciona tu dojo</option>
+              <option *ngFor="let dojo of dojosAsignados()" [value]="dojo._id">{{ dojo.nombre }}</option>
+            </select>
+          </label>
+          <div class="staff-compact__tabs">
+            <button type="button" [class.active]="activeTab() === 'Pendiente'" (click)="setTab('Pendiente')">Pendientes ({{ countByEstado().Pendiente }})</button>
+            <button type="button" [class.active]="activeTab() === 'En curso'" (click)="setTab('En curso')">En curso ({{ countByEstado()['En curso'] }})</button>
+            <button type="button" [class.active]="activeTab() === 'Finalizado'" (click)="setTab('Finalizado')">Finalizados ({{ countByEstado().Finalizado }})</button>
+          </div>
+          <p *ngIf="loading()">Cargando combates…</p>
+          <div class="staff-compact__items" *ngIf="!loading()">
+            <button type="button" class="staff-fight" *ngFor="let combate of combatesFiltrados()"
+              [class.selected]="selectedCombateId() === combate._id"
+              (click)="selectCombate(combate)">
+              <span class="staff-fight__top"><strong>Turno {{ combate.turno ?? '—' }} · Combate #{{ combate.numero }}</strong><small>{{ combate.estado }}</small></span>
+              <span class="staff-fight__robots">
+                <img *ngIf="combate.robot1?.imagenUrl" [src]="combate.robot1?.imagenUrl" alt="Robot 1" />
+                <strong>{{ participanteLabel(combate.robot1, combate.placeholder1) }}</strong><em>VS</em>
+                <img *ngIf="combate.robot2?.imagenUrl" [src]="combate.robot2?.imagenUrl" alt="Robot 2" />
+                <strong>{{ participanteLabel(combate.robot2, combate.placeholder2) }}</strong><span>›</span>
+              </span>
+            </button>
+            <p *ngIf="!dojoFiltro()">{{ staffSinAsignacion() ? 'No tienes un dojo asignado para hoy.' : 'Selecciona un dojo.' }}</p>
+            <p *ngIf="dojoFiltro() && !combatesFiltrados().length">No hay combates en este estado.</p>
+          </div>
+        </section>
+        <section class="staff-compact__detail panel">
+          <ng-container *ngIf="selectedCombate() as combate; else staffEmpty">
+            <h2>Combate #{{ combate.numero }}</h2>
+            <p class="staff-compact__meta">Turno {{ combate.turno ?? '—' }} · {{ combate.dojo?.nombre ?? 'Dojo' }} · Arena {{ combate.arena ?? '—' }}</p>
+            <div class="staff-versus">
+              <div [class.winner]="form.controls.resultado.value === ResultadoCombate.GANA_ROBOT_1" [class.loser]="form.controls.resultado.value === ResultadoCombate.GANA_ROBOT_2">
+                <img *ngIf="combate.robot1?.imagenUrl" [src]="combate.robot1?.imagenUrl" alt="Robot 1" />
+                <strong>{{ participanteLabel(combate.robot1, combate.placeholder1) }}</strong>
+              </div>
+              <b>VS</b>
+              <div [class.winner]="form.controls.resultado.value === ResultadoCombate.GANA_ROBOT_2" [class.loser]="form.controls.resultado.value === ResultadoCombate.GANA_ROBOT_1">
+                <img *ngIf="combate.robot2?.imagenUrl" [src]="combate.robot2?.imagenUrl" alt="Robot 2" />
+                <strong>{{ participanteLabel(combate.robot2, combate.placeholder2) }}</strong>
+              </div>
+            </div>
+            <form *ngIf="combate.estado !== 'Finalizado' && canManage() && combate.robot1 && combate.robot2; else staffReadonly" [formGroup]="form" (ngSubmit)="submitResultado()" class="staff-form">
+              <strong>Robot ganador</strong>
+              <div class="staff-winners">
+                <label><input type="radio" formControlName="resultado" [value]="ResultadoCombate.GANA_ROBOT_1" />{{ participanteLabel(combate.robot1, combate.placeholder1) }}</label>
+                <label><input type="radio" formControlName="resultado" [value]="ResultadoCombate.GANA_ROBOT_2" />{{ participanteLabel(combate.robot2, combate.placeholder2) }}</label>
+              </div>
+              <label class="staff-draw"><input type="radio" formControlName="resultado" [value]="ResultadoCombate.EMPATE" /> Empate</label>
+              <label class="field"><strong>Método de victoria</strong>
+                <select formControlName="metodoVictoria"><option [ngValue]="null">Selecciona un método</option><option *ngFor="let metodo of metodosVictoria" [value]="metodo">{{ metodo }}</option></select>
+              </label>
+              <label class="field" *ngIf="form.controls.metodoVictoria.value === 'Otro'"><strong>Especifica el método</strong><input formControlName="otroMetodoVictoria" maxlength="150" /></label>
+              <p class="field__error" *ngIf="formError()">{{ formError() }}</p>
+              <button type="submit" class="staff-save" [disabled]="saving()">{{ saving() ? 'Guardando…' : '✓ Guardar resultado' }}</button>
+            </form>
+            <ng-template #staffReadonly><p class="staff-readonly">{{ combate.estado === 'Finalizado' ? 'Resultado registrado: ' + combate.resultado : 'Selecciona un combate en curso para guardar su resultado.' }}</p>
+              <button *ngIf="combate.estado === 'Pendiente' && canManage()" type="button" class="staff-save" [disabled]="starting()" (click)="registrar(combate)">{{ starting() ? 'Iniciando…' : 'Iniciar combate' }}</button>
+            </ng-template>
+          </ng-container>
+          <ng-template #staffEmpty><div class="staff-empty">Selecciona un combate de la lista para registrar su resultado.</div></ng-template>
+        </section>
+      </div>
+      <div class="resultados-layout" *ngIf="!isStaffOnly">
         <!-- ================================= -->
         <!-- 1. SELECCIONAR DOJO Y COMBATE -->
         <!-- ================================= -->
