@@ -879,8 +879,8 @@
         <h2 id="staff-confirm-title">Confirmar resultado</h2>
         <p>¿Deseas registrar el resultado de este combate?</p>
         <div class="staff-modal__summary">
-          <span>Ganador</span><strong>{{ nombreGanadorConfirmacion() }}</strong>
-          <span>Método</span><strong>{{ form.controls.metodoVictoria.value }}</strong>
+          <div class="staff-modal__summary-row"><span>Robot ganador</span><strong>{{ nombreGanadorConfirmacion() }}</strong></div>
+          <div class="staff-modal__summary-row"><span>Método de victoria</span><strong>{{ form.controls.metodoVictoria.value === MetodoVictoria.EMPUJE_FUERA ? 'Empuje fuera del área' : form.controls.metodoVictoria.value === MetodoVictoria.ABANDONO ? 'Abandono' : 'Descalificación' }}</strong></div>
         </div>
         <p class="staff-modal__warning">Una vez guardado, el resultado no podrá modificarse.</p>
         <div class="staff-modal__actions">

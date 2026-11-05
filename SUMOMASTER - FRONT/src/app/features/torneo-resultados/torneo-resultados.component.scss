@@ -461,3 +461,45 @@
  .staff-versus .staff-robot-choice { min-height: 135px; padding: 10px 5px; }
  .staff-versus img { width: 72px; height: 65px; }
 }
+
+/* Correcciones específicas Staff: selección visible, pestañas y confirmación móvil */
+.staff-compact .staff-compact__tabs button:not(.active) {
+  background: #1b4565 !important;
+  color: #f5fbff !important;
+  border: 1px solid #356988 !important;
+  opacity: 1 !important;
+}
+.staff-compact .staff-compact__tabs button.active {
+  background: #13c9e9 !important;
+  color: #06283c !important;
+  border: 1px solid #38e0fb !important;
+}
+.staff-compact .staff-versus button.staff-robot-choice.winner,
+.staff-compact .staff-versus button.staff-robot-choice.winner:first-child,
+.staff-compact .staff-versus button.staff-robot-choice.winner:last-child {
+  background: #124a34 !important;
+  border: 3px solid #4df29a !important;
+  color: #edfff4 !important;
+  box-shadow: 0 0 0 2px #34d98533;
+}
+.staff-compact .staff-versus button.staff-robot-choice.loser,
+.staff-compact .staff-versus button.staff-robot-choice.loser:first-child,
+.staff-compact .staff-versus button.staff-robot-choice.loser:last-child {
+  background: #492331 !important;
+  border: 2px solid #ff6c88 !important;
+  color: #fff0f3 !important;
+}
+.staff-modal__summary { display: flex !important; flex-direction: column; gap: 0; text-align: left; min-width: 0; }
+.staff-modal__summary-row { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 12px 3px; min-width: 0; }
+.staff-modal__summary-row + .staff-modal__summary-row { border-top: 1px solid #34617e; }
+.staff-modal__summary-row span { font-size: .85rem; color: #b8d6e9; }
+.staff-modal__summary-row strong { display: block; font-size: 1rem; line-height: 1.4; color: #f8fdff; overflow-wrap: anywhere; width: 100%; }
+.staff-modal__summary-row:first-child strong { color: #79f5ae; }
+.staff-modal__actions { display: grid !important; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.staff-modal__actions button { min-width: 0; width: 100%; white-space: normal; line-height: 1.25; padding: 12px 8px; }
+@media(max-width:480px) {
+  .staff-modal { width: min(100%, 420px); padding: 20px 16px; }
+  .staff-modal__actions { gap: 8px; }
+  .staff-modal__actions button { font-size: .9rem; }
+  .staff-compact .staff-compact__tabs button { font-size: .76rem; padding: 10px 3px; overflow-wrap: anywhere; }
+}
