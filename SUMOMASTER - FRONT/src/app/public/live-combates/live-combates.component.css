@@ -1444,3 +1444,112 @@ a:focus-visible {
     will-change: auto !important;
   }
 }
+
+
+/* ==========================================
+   UTEQ 2026 - COMBATES EN VIVO
+   ========================================== */
+
+:host {
+  color: #f3faff;
+  background: #071324;
+  font-size: 16px;
+}
+
+.programa {
+  background:
+    radial-gradient(
+      ellipse at 50% 0%,
+      rgba(0, 209, 255, .15),
+      transparent 58%
+    ),
+    linear-gradient(145deg, #0d2741, #071324);
+}
+
+.cabecera h1 {
+  font-size: clamp(2rem, 4.1vw, 4.3rem);
+  color: #f8fdff;
+  letter-spacing: -.03em;
+}
+
+.subtitulo,
+.cabecera__torneo p {
+  color: #c5daed;
+  font-size: clamp(1rem, 1.3vw, 1.2rem);
+}
+
+.seccion-titulo h2,
+.mi-proximo h3 {
+  font-size: clamp(1.3rem, 2.1vw, 2rem);
+  color: #f6fcff;
+}
+
+.filtros {
+  background: #102b46;
+  border: 1px solid #2e637e;
+}
+
+.filtros label span {
+  color: #d8eafa;
+  font-size: 1rem;
+}
+
+select,
+input[type="search"] {
+  color: #f7fbff;
+  background: #0b213a;
+  border: 1px solid #3a708f;
+  min-height: 50px;
+  font-size: 1rem;
+}
+
+.navegacion a {
+  color: #55e3ff;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.boton--principal {
+  background: #0acced;
+  color: #051a2e;
+  border-color: #0acced;
+  font-weight: 850;
+}
+
+.tabla th {
+  font-size: clamp(.95rem, 1.2vw, 1.15rem);
+  color: #9cefff;
+  letter-spacing: .035em;
+}
+
+.tabla td {
+  font-size: clamp(.96rem, 1.15vw, 1.12rem);
+}
+
+.robot__nombre strong {
+  font-size: clamp(1rem, 1.35vw, 1.3rem);
+}
+
+.vs {
+  color: #ffd15a;
+  font-size: clamp(1.25rem, 1.8vw, 1.9rem);
+  font-weight: 900;
+}
+
+.boton:focus-visible,
+select:focus-visible,
+input:focus-visible,
+a:focus-visible {
+  outline: 3px solid #ffd05a;
+  outline-offset: 3px;
+}
+
+@media (max-width: 700px) {
+  .programa {
+    padding: 16px 12px;
+  }
+
+  .filtros {
+    padding: 16px;
+  }
+}

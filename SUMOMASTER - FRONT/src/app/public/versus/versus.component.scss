@@ -1394,3 +1394,50 @@ main {
     animation: none !important;
   }
 }
+
+
+/* ==========================================
+   UTEQ 2026 - VERSUS PÚBLICO
+   ========================================== */
+
+:host {
+  --blue: #30b5ff;
+  --red: #ff4d70;
+  --gold: #ffda68;
+
+  color: #f8fcff;
+}
+
+.marca {
+  font-size: clamp(1.15rem, 2vw, 1.8rem);
+}
+
+.encabezado h1 {
+  font-size: clamp(2rem, 4.25vw, 4.7rem);
+  text-shadow: 0 5px 28px #00162e;
+}
+
+.etiqueta {
+  letter-spacing: .1em;
+  font-weight: 800;
+}
+
+.robot .lado {
+  font-weight: 850;
+}
+
+.robot .nombre {
+  text-shadow: 0 4px 20px rgba(0, 0, 0, .7);
+}
+
+.vs {
+  filter: drop-shadow(
+    0 4px 18px rgba(0, 0, 0, .45)
+  );
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid #ffda68;
+  outline-offset: 4px;
+}
