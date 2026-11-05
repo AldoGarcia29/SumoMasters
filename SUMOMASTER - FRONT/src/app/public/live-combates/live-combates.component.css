@@ -850,3 +850,597 @@ a:focus-visible {
 @media (prefers-reduced-motion:reduce) {
   .entrando .contenido-dojo,.saliendo .contenido-dojo,.entrando .llamado-actual,.saliendo .llamado-actual { animation:none; }
 }
+
+/* =========================================
+   SUMO MASTERS — ARENA ÉPICA
+   ========================================= */
+
+/* Cada cuadro conserva sus efectos dentro. */
+.arena .panel-dojo {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+
+  border: 1px solid #ab78ff80;
+
+  background:
+    radial-gradient(
+      ellipse at 12% 55%,
+      #087aff25,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse at 88% 55%,
+      #ff244525,
+      transparent 55%
+    ),
+    linear-gradient(145deg, #171025, #090b18);
+
+  box-shadow:
+    inset 0 0 45px #00000070,
+    0 0 20px #8b3dff12;
+
+  transition:
+    border-color 500ms ease,
+    box-shadow 500ms ease;
+}
+
+/* Fuego estilizado: columnas de luz y llamas. */
+.arena .panel-dojo::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+
+  inset: 35% -12% -28%;
+
+  background:
+    radial-gradient(
+      ellipse at 15% 100%,
+      #008cff 0%,
+      #006aff90 15%,
+      transparent 48%
+    ),
+    radial-gradient(
+      ellipse at 85% 100%,
+      #ff3030 0%,
+      #ff362b90 15%,
+      transparent 48%
+    ),
+    repeating-conic-gradient(
+      from 0deg at 50% 100%,
+      transparent 0deg 10deg,
+      #ff7b0022 12deg 15deg,
+      transparent 18deg 28deg
+    );
+
+  filter: blur(13px);
+  opacity: 0.7;
+  transform-origin: center bottom;
+
+  animation: smFuego 4s ease-in-out infinite alternate;
+}
+
+/* Chispas que suben detrás de los robots. */
+.arena .panel-dojo::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  inset: 0;
+
+  background-image:
+    radial-gradient(circle, #ffd689 0 1px, transparent 2px),
+    radial-gradient(circle, #ff814b 0 1px, transparent 2px),
+    radial-gradient(circle, #8edbff 0 1px, transparent 2px);
+
+  background-size:
+    139px 173px,
+    211px 227px,
+    181px 197px;
+
+  background-position:
+    15px 0,
+    75px 30px,
+    20px 80px;
+
+  opacity: 0.45;
+
+  /* Desvanece las partículas cerca de los nombres. */
+  mask-image: linear-gradient(
+    to top,
+    #000,
+    #0008 60%,
+    transparent
+  );
+
+  animation: smChispas 12s linear infinite;
+}
+
+/* Ritmos distintos: evita que todos se muevan igual. */
+.arena .panel-dojo:nth-child(2)::before {
+  animation-delay: -1.4s;
+}
+
+.arena .panel-dojo:nth-child(3)::before {
+  animation-delay: -2.8s;
+}
+
+.arena .panel-dojo:nth-child(4)::before {
+  animation-delay: -0.7s;
+}
+
+.arena .panel-dojo:nth-child(even)::after {
+  animation-delay: -6s;
+}
+
+/* Cabecera de cada dojo. */
+.arena .panel-dojo__cabecera {
+  position: relative;
+  background: linear-gradient(
+    90deg,
+    #58319745,
+    #171326dd 55%,
+    #171326dd
+  );
+  border-bottom: 1px solid #bb8cff35;
+}
+
+.arena .panel-dojo__cabecera h2 {
+  color: #fff;
+  text-shadow:
+    0 0 12px #c08bff65,
+    0 2px 0 #000;
+}
+
+/* Mantener el texto por encima de las luces. */
+.arena .contenido-dojo,
+.arena .proximo {
+  position: relative;
+}
+
+.arena .combate-meta {
+  color: #ded1f1;
+  text-shadow: 0 2px 5px #000;
+}
+
+/* Entrada inicial de cada enfrentamiento. */
+.arena .duelo {
+  perspective: 900px;
+  animation: smPresentacion 900ms ease-out both;
+}
+
+.arena .robot--azul {
+  animation: smAzulInicial 1100ms
+    cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.arena .robot--rojo {
+  animation: smRojoInicial 1100ms
+    cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Fotos: energía y movimiento continuo suave. */
+.arena .robot .foto {
+  position: relative;
+  overflow: hidden;
+  background: #101628;
+
+  transition:
+    border-color 400ms ease,
+    box-shadow 400ms ease;
+
+  will-change: transform;
+}
+
+.arena .robot--azul .foto {
+  border-color: #66c9ff;
+
+  box-shadow:
+    0 0 12px #009dff80,
+    0 0 28px #006aff35,
+    inset 0 0 12px #009dff30;
+
+  animation: smFlotarAzul 4.8s ease-in-out infinite;
+}
+
+.arena .robot--rojo .foto {
+  border-color: #ff6e87;
+
+  box-shadow:
+    0 0 12px #ff315c80,
+    0 0 28px #ff183835,
+    inset 0 0 12px #ff315c30;
+
+  animation: smFlotarRojo 4.8s ease-in-out infinite;
+}
+
+/* Reflejo que atraviesa las fotografías. */
+.arena .foto::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  inset: -50%;
+
+  background: linear-gradient(
+    110deg,
+    transparent 38%,
+    #ffffff08 44%,
+    #ffffff45 50%,
+    #ffffff08 56%,
+    transparent 62%
+  );
+
+  transform: translateX(-120%);
+  animation: smReflejo 8s ease-in-out infinite;
+}
+
+.arena .robot--rojo .foto::after {
+  animation-delay: 1.5s;
+}
+
+.arena .foto img {
+  position: relative;
+  object-fit: contain;
+}
+
+/* Nombres legibles sobre los efectos. */
+.arena .robot__nombre strong {
+  color: #fff;
+  text-shadow:
+    0 2px 4px #000,
+    0 0 18px #000;
+}
+
+.arena .robot__nombre .numero {
+  color: #e0c7ff;
+}
+
+.arena .robot-boton:hover .robot__nombre strong {
+  text-decoration: none;
+}
+
+/* VS: núcleo de energía entre los dos robots. */
+.arena .duelo > .vs {
+  position: relative;
+  isolation: isolate;
+
+  color: #f7eaff;
+  font-weight: 1000;
+  letter-spacing: -3px;
+
+  text-shadow:
+    0 0 8px #c986ff,
+    0 0 24px #a238ff90,
+    3px 3px 0 #4a176c;
+
+  animation: smPulsoVs 3s ease-in-out infinite;
+}
+
+.arena .duelo > .vs::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+
+  width: 120px;
+  height: 120px;
+  left: 50%;
+  top: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      #efb7ff45,
+      #aa37ff22 35%,
+      transparent 68%
+    );
+
+  transform: translate(-50%, -50%);
+}
+
+/* Franja del siguiente llamado. */
+.arena .proximo {
+  background: linear-gradient(
+    90deg,
+    #090d1bef,
+    #21122aef,
+    #090d1bef
+  );
+
+  border-top: 1px solid #b379ff50;
+}
+
+.arena .proximo > span {
+  color: #dabfff;
+  font-weight: 800;
+  letter-spacing: 3px;
+}
+
+.arena .proximo strong {
+  color: #f7f0ff;
+  text-shadow: 0 2px 4px #000;
+}
+
+/* =========================================
+   ENTRA EL SIGUIENTE COMBATE
+   Usa las clases que ya activa el TS.
+   ========================================= */
+
+.arena .entrando .contenido-dojo {
+  animation: smNuevoCombate 650ms ease-out both;
+}
+
+/* Nombres de animación distintos para reiniciar
+   la entrada al cambiar de combate. */
+.arena .entrando .robot--azul {
+  animation: smAzulRelevo 650ms ease-out both;
+}
+
+.arena .entrando .robot--rojo {
+  animation: smRojoRelevo 650ms ease-out both;
+}
+
+.arena .saliendo .contenido-dojo {
+  animation: smRetirarCombate 650ms ease-in both;
+}
+
+/* =========================================
+   GANADOR
+   ========================================= */
+
+.arena .panel-dojo.celebrando {
+  border-color: #ffe29b;
+
+  box-shadow:
+    inset 0 0 60px #ffbd3020,
+    0 0 22px #ffc34745,
+    0 0 45px #ff8a0015;
+}
+
+.arena .panel-dojo.celebrando::before {
+  background:
+    radial-gradient(
+      ellipse at 25% 100%,
+      #ffcf4d,
+      #ff7b0060 28%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse at 75% 100%,
+      #ffeb9b,
+      #ffad0060 28%,
+      transparent 60%
+    );
+
+  opacity: 0.85;
+}
+
+.arena .celebrando .robot.ganador .foto {
+  border-color: #ffe59b;
+
+  box-shadow:
+    0 0 16px #ffd978bb,
+    0 0 40px #ffb30065,
+    0 0 65px #ff7b0025;
+
+  animation: smCampeon 1.8s ease-in-out infinite;
+}
+
+.arena .celebrando .robot.ganador .robot__nombre strong {
+  color: #ffe6a2;
+
+  text-shadow:
+    0 0 12px #ffa60065,
+    0 2px 4px #000;
+}
+
+.arena .celebrando .robot__nombre small:last-child {
+  letter-spacing: 1px;
+}
+
+.arena .resultado {
+  color: #ffe6a2;
+  text-shadow: 0 0 15px #ffae0060;
+  animation: smAnunciarResultado 600ms ease-out both;
+}
+
+/* =========================================
+   ANIMACIONES
+   ========================================= */
+
+@keyframes smFuego {
+  0% {
+    transform: translateY(7%) scaleX(1) scaleY(0.9);
+  }
+
+  50% {
+    transform: translateY(-2%) scaleX(1.06) scaleY(1.08);
+  }
+
+  100% {
+    transform: translateY(-7%) scaleX(0.96) scaleY(1.2);
+  }
+}
+
+@keyframes smChispas {
+  from {
+    background-position:
+      15px 173px,
+      75px 227px,
+      20px 197px;
+  }
+
+  to {
+    background-position:
+      15px 0,
+      75px 0,
+      20px 0;
+  }
+}
+
+@keyframes smPresentacion {
+  from {
+    opacity: 0;
+    transform: scale(0.93);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes smAzulInicial {
+  from {
+    opacity: 0;
+    transform: translateX(-65px) rotateY(15deg) scale(0.88);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0) rotateY(0) scale(1);
+  }
+}
+
+@keyframes smRojoInicial {
+  from {
+    opacity: 0;
+    transform: translateX(65px) rotateY(-15deg) scale(0.88);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0) rotateY(0) scale(1);
+  }
+}
+
+@keyframes smAzulRelevo {
+  from {
+    opacity: 0;
+    transform: translateX(-50px) scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes smRojoRelevo {
+  from {
+    opacity: 0;
+    transform: translateX(50px) scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes smFlotarAzul {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(-1deg);
+  }
+
+  50% {
+    transform: translate(4px, -5px) rotate(1deg);
+  }
+}
+
+@keyframes smFlotarRojo {
+  0%,
+  100% {
+    transform: translate(0, -5px) rotate(1deg);
+  }
+
+  50% {
+    transform: translate(-4px, 0) rotate(-1deg);
+  }
+}
+
+@keyframes smReflejo {
+  0%,
+  65% {
+    transform: translateX(-120%);
+  }
+
+  90%,
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+@keyframes smPulsoVs {
+  0%,
+  100% {
+    transform: scale(1) rotate(-3deg);
+  }
+
+  50% {
+    transform: scale(1.08) rotate(-3deg);
+  }
+}
+
+@keyframes smNuevoCombate {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes smRetirarCombate {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-18px) scale(1.04);
+  }
+}
+
+@keyframes smCampeon {
+  0%,
+  100% {
+    transform: translateY(-3px) scale(1.03);
+  }
+
+  50% {
+    transform: translateY(-7px) scale(1.08);
+  }
+}
+
+@keyframes smAnunciarResultado {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Preferencia de movimiento reducido. */
+@media (prefers-reduced-motion: reduce) {
+  .arena .panel-dojo,
+  .arena .panel-dojo::before,
+  .arena .panel-dojo::after,
+  .arena .panel-dojo *,
+  .arena .panel-dojo *::before,
+  .arena .panel-dojo *::after {
+    animation: none !important;
+    transition: none !important;
+    will-change: auto !important;
+  }
+}
