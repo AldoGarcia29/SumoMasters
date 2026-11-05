@@ -7,6 +7,8 @@ export enum FaseCombate {
   SEMIFINAL = 'Semifinal',
   TERCER_LUGAR = 'Tercer lugar',
   FINAL = 'Final',
+  /** Combate suelto, creado a mano; no forma parte del cuadro del torneo. */
+  COMBATE_EXTRA = 'Combate extra',
 }
 
 export enum EstadoCombate {

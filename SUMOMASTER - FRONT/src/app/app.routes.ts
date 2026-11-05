@@ -185,6 +185,15 @@ export const routes: Routes = [
   },
 
   {
+    path: 'combate-extra',
+    canActivate: [authGuard, SOLO_ADMIN],
+    loadComponent: () =>
+      import('./features/combate-extra/combate-extra.component').then(
+        (m) => m.CombateExtraComponent,
+      ),
+  },
+
+  {
     path: 'torneos/:id/bloques',
     canActivate: [authGuard, SOLO_ADMIN],
     loadComponent: () =>

@@ -11,6 +11,9 @@ import { Model, Types } from 'mongoose';
 import { Bloque, BloqueDocument } from '../bloques/schemas/bloque.schema';
 
 import { Dojo, DojoDocument } from '../dojos/schemas/dojo.schema';
+import { Robot, RobotDocument } from '../robots/schemas/robot.schema';
+import { Torneo, TorneoDocument } from '../torneos/schemas/torneo.schema';
+import { CrearCombateExtraDto } from './dto/crear-combate-extra.dto';
 
 import {
   EstadoCombate,
@@ -56,8 +59,82 @@ export class CombatesService {
     @InjectModel(Bloque.name)
     private readonly bloqueModel: Model<BloqueDocument>,
     @InjectModel(Dojo.name) private readonly dojoModel: Model<DojoDocument>,
+    @InjectModel(Robot.name) private readonly robotModel: Model<RobotDocument>,
+    @InjectModel(Torneo.name) private readonly torneoModel: Model<TorneoDocument>,
     private readonly asignaciones: AsignacionesStaffService,
   ) {}
+
+  /**
+   * Crea un combate extra con selección manual de los dos robots.
+   * Usa la fase COMBATE_EXTRA para quedar fuera de la fase de grupos, del
+   * ranking y del cuadro eliminatorio, pero sigue siendo un combate normal
+   * (se inicia y se le registra resultado igual que los demás).
+   */
+  async crearCombateExtra(
+    torneoId: string,
+    dto: CrearCombateExtraDto,
+  ): Promise<CombateDocument> {
+    if (!Types.ObjectId.isValid(torneoId)) {
+      throw new BadRequestException('El identificador del torneo no es válido.');
+    }
+    if (dto.robot1Id === dto.robot2Id) {
+      throw new BadRequestException('Un robot no puede pelear contra sí mismo.');
+    }
+
+    const torneoExiste = await this.torneoModel.exists({ _id: torneoId });
+    if (!torneoExiste) throw new NotFoundException('Torneo no encontrado');
+
+    const robots = await this.robotModel
+      .find({ _id: { $in: [dto.robot1Id, dto.robot2Id] } })
+      .select('_id')
+      .lean()
+      .exec();
+    if (robots.length !== 2) {
+      throw new NotFoundException('Alguno de los robots seleccionados no existe.');
+    }
+
+    const ultimo = await this.combateModel
+      .findOne({ torneo: torneoId, fase: FaseCombate.COMBATE_EXTRA })
+      .sort({ numero: -1 })
+      .select('numero')
+      .lean()
+      .exec();
+
+    const creado = await this.combateModel.create({
+      torneo: new Types.ObjectId(torneoId),
+      bloque: null,
+      fase: FaseCombate.COMBATE_EXTRA,
+      numero: (ultimo?.numero ?? 0) + 1,
+      robot1: new Types.ObjectId(dto.robot1Id),
+      robot2: new Types.ObjectId(dto.robot2Id),
+      horarioProgramado: dto.horarioProgramado
+        ? new Date(dto.horarioProgramado)
+        : null,
+      observaciones: dto.observaciones?.trim() ?? '',
+      historial: [
+        {
+          hora: new Date(),
+          descripcion: 'Combate extra creado con selección manual',
+          tipo: 'info',
+        },
+      ],
+    });
+
+    if (dto.dojoId) {
+      try {
+        return await this.asignarDojo(String(creado._id), { dojo: dto.dojoId });
+      } catch (error) {
+        // Si el dojo no es válido o está lleno, no dejamos un combate a medias.
+        await this.combateModel.deleteOne({ _id: creado._id }).exec();
+        throw error;
+      }
+    }
+
+    return (await this.combateModel
+      .findById(creado._id)
+      .populate(POPULATE)
+      .exec()) as CombateDocument;
+  }
 
   async actualizarHorario(
     torneoId: string,

@@ -141,7 +141,9 @@ export class RankingService {
   // Evita mezclar el cuadro manual con eliminatorias anteriores.
   if (
     todos.some(
-      (combate) => combate.fase !== FaseCombate.FASE_GRUPOS,
+      (combate) =>
+        combate.fase !== FaseCombate.FASE_GRUPOS &&
+        combate.fase !== FaseCombate.COMBATE_EXTRA,
     )
   ) {
     throw new ConflictException(
