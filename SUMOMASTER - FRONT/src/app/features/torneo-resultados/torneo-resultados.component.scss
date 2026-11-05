@@ -1,3 +1,5 @@
+@use '../../shared/styles/admin-page';
+
 /* Layout autónomo de Staff: no depende de estilos globales de otras pantallas. */
 :host { display: block; min-width: 0; }
 .resultados-page:has(.staff-compact) { min-width: 0; padding: 20px; box-sizing: border-box; }
@@ -502,4 +504,27 @@
   .staff-modal__actions { gap: 8px; }
   .staff-modal__actions button { font-size: .9rem; }
   .staff-compact .staff-compact__tabs button { font-size: .76rem; padding: 10px 3px; overflow-wrap: anywhere; }
+}
+
+/* Ajuste del layout principal: el sidebar conserva su ancho y el contenido
+   utiliza exclusivamente el espacio disponible a su derecha. */
+:host { display: block; width: 100%; min-width: 0; }
+.app-shell { width: 100%; min-width: 0; overflow-x: clip; }
+.app-shell__main { min-width: 0; width: 0; flex: 1 1 0%; }
+.resultados-page:has(.staff-compact) { width: 100%; min-width: 0; flex: 1 1 auto; overflow-x: clip; }
+.staff-compact { width: 100%; min-width: 0; grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr); }
+.staff-compact > .panel { min-width: 0; overflow: hidden; }
+.staff-compact__tabs { min-width: 0; }
+.staff-fight__robots { min-width: 0; }
+.staff-fight__robots strong { overflow-wrap: anywhere; }
+/* La distribución se calcula según el ancho restante después del sidebar,
+   no solo según el ancho total de la ventana. */
+@media (max-width: 1300px) {
+  .staff-compact { grid-template-columns: minmax(0, 1fr); }
+  .staff-compact__items { max-height: 370px; }
+}
+@media (max-width: 720px) {
+  .resultados-page:has(.staff-compact) { padding: 12px; }
+  .staff-compact { gap: 14px; }
+  .staff-compact__items { max-height: 290px; }
 }
