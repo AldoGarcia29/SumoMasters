@@ -243,7 +243,7 @@ export class TorneoResultadosComponent implements OnInit {
       Validators.required,
     ),
     metodoVictoria: this.fb.control<MetodoVictoria | null>(
-      null,
+      MetodoVictoria.EMPUJE_FUERA,
       Validators.required,
     ),
     otroMetodoVictoria: [''],
