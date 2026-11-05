@@ -27,6 +27,14 @@ import {
 } from '../models/live.model';
 import { PublicApiService } from '../services/public-api.service';
 
+interface DojoPantalla {
+  numero: number;
+  actual: CombateLive | null;
+  siguiente: CombateLive | null;
+  etapa: 'espera' | 'entrada' | 'combate' | 'resultado' | 'salida';
+  hasta: number;
+}
+
 const POLL_MS = 5_000;
 const ROTACION_MS = 15_000;
 const ESTADO_FINAL = 'Finalizado';
@@ -72,8 +80,14 @@ export class LiveCombatesComponent implements OnInit, OnDestroy {
   modoProyeccion = false;
   rotacionAutomatica = false;
   pagina = 0;
-  readonly porPagina = 6;
+  readonly porPagina = 4;
 
+  vistaProyeccion: 'arena' | 'lista' = 'arena';
+  readonly opcionesDojos = [1, 2, 3, 4];
+  dojosSeleccionados = [1, 2, 3, 4];
+  dojosPantalla: DojoPantalla[] = [];
+
+  private ultimoAvance = Date.now();
   private readonly subs = new Subscription();
   private readonly fotosFallidas = new Set<string>();
 
@@ -85,6 +99,14 @@ export class LiveCombatesComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.subs.add(
+      fromEvent(document, 'fullscreenchange').subscribe(() => {
+        if (!document.fullscreenElement) {
+          this.modoProyeccion = false;
+        }
+      }),
+    );
+
     this.subs.add(
       this.api.getTorneos().subscribe({
         next: (torneos) => {
@@ -112,6 +134,7 @@ export class LiveCombatesComponent implements OnInit, OnDestroy {
           switchMap((id) => {
             this.id = id;
             this.data = null;
+            this.dojosPantalla = [];
             this.error = null;
             this.cargando = true;
 
@@ -168,12 +191,14 @@ export class LiveCombatesComponent implements OnInit, OnDestroy {
 
           this.validarSeleccion();
           this.ajustarPagina();
+          this.sincronizarDojos();
         }),
     );
 
     this.subs.add(
       timer(0, 1_000).subscribe(() => {
         this.horaActual = new Date();
+        this.avanzarDojos();
 
         if (this.actualizadoEn) {
           this.segundosDesdeActualizacion = Math.floor(
@@ -187,6 +212,7 @@ export class LiveCombatesComponent implements OnInit, OnDestroy {
       timer(ROTACION_MS, ROTACION_MS).subscribe(() => {
         if (
           !document.hidden &&
+          !this.modoProyeccion &&
           this.rotacionAutomatica &&
           this.totalPaginas > 1
         ) {
@@ -251,16 +277,12 @@ export class LiveCombatesComponent implements OnInit, OnDestroy {
         if (
           this.esGrupos &&
           this.rondaSeleccionada !== '' &&
-          String(combate.ronda ?? 0) !==
-            this.rondaSeleccionada
+          String(combate.ronda ?? 0) !== this.rondaSeleccionada
         ) {
           return false;
         }
 
-        if (
-          this.soloPendientes &&
-          this.terminado(combate)
-        ) {
+        if (this.soloPendientes && this.terminado(combate)) {
           return false;
         }
 
@@ -345,6 +367,14 @@ export class LiveCombatesComponent implements OnInit, OnDestroy {
     ).length;
   }
 
+  get sinDojo(): number {
+    return (this.data?.combates ?? []).filter(
+      (c) =>
+        !this.terminado(c) &&
+        this.numeroDojo(c.dojo) === null,
+    ).length;
+  }
+
   cambiarTorneo(id: string): void {
     if (!id || id === this.id) return;
 
@@ -382,6 +412,9 @@ export class LiveCombatesComponent implements OnInit, OnDestroy {
   }
 
   async activarProyeccion(): Promise<void> {
+    if (!this.dojosSeleccionados.length) return;
+
+    this.sincronizarDojos();
     this.modoProyeccion = true;
 
     try {
@@ -520,8 +553,7 @@ export class LiveCombatesComponent implements OnInit, OnDestroy {
 
     if (!Number.isFinite(fecha.getTime())) return '';
 
-    // Una fecha guardada como medianoche UTC representa
-    // el día del evento, sin restarle horas por zona local.
+    // La fecha del evento se interpreta como día, sin restar horas.
     return new Intl.DateTimeFormat('es-MX', {
       timeZone: 'UTC',
       day: 'numeric',
@@ -539,6 +571,14 @@ export class LiveCombatesComponent implements OnInit, OnDestroy {
       minute: '2-digit',
       second: '2-digit',
     }).format(this.actualizadoEn);
+  }
+
+  horaMexico(): string {
+    return new Intl.DateTimeFormat('es-MX', {
+      timeZone: 'America/Mexico_City',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(this.horaActual);
   }
 
   abrirFicha(robot: RobotDetalleLive | null): void {
@@ -563,6 +603,217 @@ export class LiveCombatesComponent implements OnInit, OnDestroy {
     combate: CombateLive,
   ): string {
     return combate.id;
+  }
+
+  trackDojo(
+    _index: number,
+    dojo: DojoPantalla,
+  ): number {
+    return dojo.numero;
+  }
+
+  seleccionarDojo(
+    numero: number,
+    seleccionado: boolean,
+  ): void {
+    this.dojosSeleccionados = seleccionado
+      ? [...new Set([...this.dojosSeleccionados, numero])]
+          .sort((a, b) => a - b)
+      : this.dojosSeleccionados.filter((n) => n !== numero);
+
+    this.sincronizarDojos();
+  }
+
+  private numeroDojo(valor: string): number | null {
+    // Acepta "1", "Dojo 1" o "Dojo #1".
+    const coincidencia = normalizar(
+      (valor || '').trim(),
+    ).match(/^(?:dojo\s*#?\s*)?0*([1-4])$/);
+
+    return coincidencia ? Number(coincidencia[1]) : null;
+  }
+
+  private colaDojo(numero: number): CombateLive[] {
+    // Los filtros de la tabla no afectan a la proyección.
+    return (this.data?.combates ?? [])
+      .filter(
+        (c) =>
+          this.numeroDojo(c.dojo) === numero &&
+          (
+            c.estado === ESTADO_EN_CURSO ||
+            c.estado === 'Pendiente'
+          ),
+      )
+      .sort((a, b) => {
+        const curso =
+          Number(b.estado === ESTADO_EN_CURSO) -
+          Number(a.estado === ESTADO_EN_CURSO);
+
+        if (curso) return curso;
+
+        const fecha = (c: CombateLive): number => {
+          const t = c.horarioProgramado
+            ? Date.parse(c.horarioProgramado)
+            : NaN;
+
+          return Number.isFinite(t)
+            ? t
+            : Number.MAX_SAFE_INTEGER;
+        };
+
+        return (
+          fecha(a) - fecha(b) ||
+          (a.ronda ?? 0) - (b.ronda ?? 0) ||
+          a.numero - b.numero ||
+          a.id.localeCompare(b.id)
+        );
+      });
+  }
+
+  private ponerCombate(
+    d: DojoPantalla,
+    c: CombateLive | null,
+    ahora: number,
+  ): void {
+    d.actual = c;
+    d.etapa = c ? 'entrada' : 'espera';
+    d.hasta = c ? ahora + 700 : 0;
+  }
+
+  private sincronizarDojos(): void {
+    const ahora = Date.now();
+
+    this.dojosPantalla = this.dojosSeleccionados.map(
+      (numero) => {
+        const d: DojoPantalla =
+          this.dojosPantalla.find(
+            (item) => item.numero === numero,
+          ) ?? {
+            numero,
+            actual: null,
+            siguiente: null,
+            etapa: 'espera',
+            hasta: 0,
+          };
+
+        const cola = this.colaDojo(numero);
+
+        const actualizado = d.actual
+          ? this.data?.combates.find(
+              (c) => c.id === d.actual?.id,
+            )
+          : null;
+
+        if (
+          actualizado &&
+          this.numeroDojo(actualizado.dojo) === numero &&
+          (
+            this.terminado(actualizado) ||
+            actualizado.estado === ESTADO_EN_CURSO ||
+            actualizado.estado === 'Pendiente'
+          )
+        ) {
+          d.actual = actualizado;
+
+          if (this.terminado(actualizado)) {
+            if (
+              d.etapa !== 'resultado' &&
+              d.etapa !== 'salida'
+            ) {
+              d.etapa = 'resultado';
+              d.hasta = ahora + 5000;
+            }
+          } else if (
+            d.etapa === 'resultado' ||
+            d.etapa === 'salida'
+          ) {
+            // El juez corrigió el resultado.
+            d.etapa = 'combate';
+            d.hasta = 0;
+          }
+        } else if (d.actual) {
+          // Combate eliminado, cancelado o reasignado.
+          this.ponerCombate(
+            d,
+            cola[0] ?? null,
+            ahora,
+          );
+        }
+
+        if (!d.actual) {
+          this.ponerCombate(
+            d,
+            cola[0] ?? null,
+            ahora,
+          );
+        }
+
+        if (
+          d.actual &&
+          d.etapa !== 'resultado' &&
+          d.etapa !== 'salida' &&
+          cola[0] &&
+          cola[0].id !== d.actual.id
+        ) {
+          this.ponerCombate(d, cola[0], ahora);
+        }
+
+        d.siguiente =
+          cola.find(
+            (c) => c.id !== d.actual?.id,
+          ) ?? null;
+
+        return d;
+      },
+    );
+  }
+
+  private avanzarDojos(): void {
+    const ahora = Date.now();
+
+    // Pausa las transiciones mientras la pestaña está oculta.
+    if (document.hidden) {
+      for (const d of this.dojosPantalla) {
+        if (d.hasta) {
+          d.hasta += ahora - this.ultimoAvance;
+        }
+      }
+
+      this.ultimoAvance = ahora;
+      return;
+    }
+
+    const salto = ahora - this.ultimoAvance;
+    this.ultimoAvance = ahora;
+
+    for (const d of this.dojosPantalla) {
+      if (salto > 2500 && d.hasta) {
+        d.hasta += salto;
+      }
+
+      if (!d.hasta || ahora < d.hasta) {
+        continue;
+      }
+
+      if (d.etapa === 'resultado') {
+        d.etapa = 'salida';
+        d.hasta = ahora + 700;
+      } else if (d.etapa === 'salida') {
+        this.ponerCombate(
+          d,
+          this.colaDojo(d.numero)[0] ?? null,
+          ahora,
+        );
+
+        d.siguiente =
+          this.colaDojo(d.numero).find(
+            (c) => c.id !== d.actual?.id,
+          ) ?? null;
+      } else if (d.etapa === 'entrada') {
+        d.etapa = 'combate';
+        d.hasta = 0;
+      }
+    }
   }
 
   private validarSeleccion(): void {

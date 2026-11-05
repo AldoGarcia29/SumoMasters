@@ -1,19 +1,32 @@
-<main class="programa" [class.programa--proyeccion]="modoProyeccion">
+<main
+  class="programa"
+  [class.programa--proyeccion]="modoProyeccion"
+>
   <div class="controles" *ngIf="!modoProyeccion">
     <app-live-user-menu />
 
     <nav class="navegacion">
       <a routerLink="/live">← Torneos</a>
-      <a *ngIf="id" [routerLink]="['/live', id]">Resumen del torneo</a>
+      <a *ngIf="id" [routerLink]="['/live', id]">
+        Resumen del torneo
+      </a>
     </nav>
 
     <section class="filtros">
       <label>
         <span>Torneo</span>
-        <select [ngModel]="id" (ngModelChange)="cambiarTorneo($event)">
-          <option value="" disabled>Selecciona un torneo</option>
-          <option *ngFor="let torneo of torneos" [value]="torneo.id">
-            {{ torneo.nombre }}
+        <select
+          [ngModel]="id"
+          (ngModelChange)="cambiarTorneo($event)"
+        >
+          <option value="" disabled>
+            Selecciona un torneo
+          </option>
+          <option
+            *ngFor="let t of torneos"
+            [value]="t.id"
+          >
+            {{ t.nombre }}
           </option>
         </select>
       </label>
@@ -25,16 +38,25 @@
           (ngModelChange)="cambiarFase($event)"
           [disabled]="!fases.length"
         >
-          <option *ngFor="let fase of fases" [value]="fase">{{ fase }}</option>
+          <option *ngFor="let f of fases" [value]="f">
+            {{ f }}
+          </option>
         </select>
       </label>
 
       <label *ngIf="esGrupos">
         <span>Ronda</span>
-        <select [(ngModel)]="rondaSeleccionada" (ngModelChange)="reiniciarPagina()">
+        <select
+          [(ngModel)]="rondaSeleccionada"
+          (ngModelChange)="reiniciarPagina()"
+        >
           <option value="">Todas las rondas</option>
-          <option *ngFor="let numero of rondas" [value]="numero">
-            {{ numero > 0 ? "Ronda " + numero : "Sin ronda registrada" }}
+          <option *ngFor="let n of rondas" [value]="n">
+            {{
+              n > 0
+                ? "Ronda " + n
+                : "Sin ronda registrada"
+            }}
           </option>
         </select>
       </label>
@@ -52,154 +74,540 @@
 
     <div class="opciones">
       <label class="checkbox">
-        <input type="checkbox" [(ngModel)]="soloPendientes" (ngModelChange)="reiniciarPagina()" />
+        <input
+          type="checkbox"
+          [(ngModel)]="soloPendientes"
+          (ngModelChange)="reiniciarPagina()"
+        />
         Ocultar finalizados
       </label>
+
       <label class="checkbox">
-        <input type="checkbox" [(ngModel)]="rotacionAutomatica" />
-        Cambiar de página cada 15 segundos
+        <input
+          type="checkbox"
+          [(ngModel)]="rotacionAutomatica"
+        />
+        Cambiar página de tabla cada 15 segundos
       </label>
-      <button type="button" class="boton boton--principal" [disabled]="!data" (click)="activarProyeccion()">
+    </div>
+
+    <section class="config-proyeccion">
+      <fieldset>
+        <legend>Dojos a proyectar</legend>
+
+        <label
+          class="checkbox"
+          *ngFor="let n of opcionesDojos"
+        >
+          <input
+            type="checkbox"
+            [ngModel]="dojosSeleccionados.includes(n)"
+            (ngModelChange)="seleccionarDojo(n, $event)"
+          />
+          Dojo {{ n }}
+        </label>
+      </fieldset>
+
+      <label>
+        Vista inicial
+        <select [(ngModel)]="vistaProyeccion">
+          <option value="arena">Arena dividida</option>
+          <option value="lista">Lista de llamados</option>
+        </select>
+      </label>
+
+      <button
+        type="button"
+        class="boton boton--principal"
+        [disabled]="!data || !dojosSeleccionados.length"
+        (click)="activarProyeccion()"
+      >
         Proyectar pantalla ⛶
       </button>
-    </div>
+
+      <small>
+        La proyección muestra la cola completa de los dojos
+        seleccionados. Los filtros superiores solo afectan
+        a la tabla.
+      </small>
+    </section>
+
+    <p class="aviso" *ngIf="data && sinDojo">
+      {{ sinDojo }} combates pendientes o activos no tienen
+      un dojo del 1 al 4 reconocido. Asígnalos para incluirlos
+      en la proyección.
+    </p>
   </div>
 
-  <p class="aviso aviso--error" role="status" *ngIf="error">{{ error }}</p>
-  <p class="aviso" role="status" *ngIf="aviso && !modoProyeccion">{{ aviso }}</p>
+  <p
+    class="aviso aviso--error"
+    role="status"
+    *ngIf="error"
+  >
+    {{ error }}
+  </p>
 
+  <p
+    class="aviso"
+    role="status"
+    *ngIf="aviso && !modoProyeccion"
+  >
+    {{ aviso }}
+  </p>
 
   <header class="cabecera">
-    <div class="marca">SUMO <strong>MASTERS</strong></div>
+    <div class="marca">
+      SUMO <strong>MASTERS</strong>
+    </div>
+
     <div class="cabecera__torneo">
-      <span class="subtitulo">PROGRAMA DE COMBATES</span>
-      <h1>{{ data?.torneo?.nombre || "Cargando torneo…" }}</h1>
-      <p>
+      <span class="subtitulo">
+        {{
+          modoProyeccion
+            ? "LLAMADOS POR DOJO"
+            : "PROGRAMA DE COMBATES"
+        }}
+      </span>
+
+      <h1>
+        {{ data?.torneo?.nombre || "Cargando torneo…" }}
+      </h1>
+
+      <p *ngIf="!modoProyeccion">
         {{ faseSeleccionada }}
-        <ng-container *ngIf="tituloRonda"> · {{ tituloRonda }}</ng-container>
+        <ng-container *ngIf="tituloRonda">
+          · {{ tituloRonda }}
+        </ng-container>
       </p>
     </div>
+
     <div class="cabecera__fecha">
       {{ fechaEvento() }}
-      <small>Hora del centro de México · {{ horaActual | date: "shortTime" }}</small>
+      <small>
+        Centro de México · {{ horaMexico() }}
+      </small>
     </div>
   </header>
 
-  <section class="vacio" *ngIf="cargando && !data">Cargando programa de combates…</section>
-  <section class="vacio" *ngIf="!cargando && data && !filtrados.length">
-    No hay combates para esta selección.
-  </section>
+  <!-- Ficha compartida por la tabla y las proyecciones. -->
+  <ng-template #robotFicha let-c let-lado="lado">
+    <button
+      type="button"
+      class="robot robot-boton"
+      [class.robot--azul]="lado === 1"
+      [class.robot--rojo]="lado === 2"
+      [class.ganador]="ganador(c, lado)"
+      [disabled]="!detalleRobot(c, lado)"
+      (click)="abrirFicha(detalleRobot(c, lado))"
+    >
+      <span class="foto">
+        <img
+          *ngIf="fotoRobot(c, lado) as foto; else sinFoto"
+          [src]="foto"
+          [alt]="nombreRobot(c, lado)"
+          (error)="marcarFotoFallida(foto)"
+        />
 
-  <div class="tabla-contenedor" *ngIf="data && filtrados.length">
-    <table class="tabla">
-      <thead>
-        <tr>
-          <th scope="col">Horario</th>
-          <th scope="col">Grupo / combate</th>
-          <th scope="col">Robot azul</th>
-          <th scope="col" class="col-vs">VS</th>
-          <th scope="col">Robot rojo</th>
-          <th scope="col">Dojo</th>
-          <th scope="col">Estado</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          *ngFor="let c of visibles; trackBy: trackCombate"
-          [class.en-curso]="c.estado === 'En curso'"
-          [class.finalizado]="terminado(c)"
+        <ng-template #sinFoto>
+          <span
+            class="foto-vacia"
+            aria-label="Sin fotografía"
+          >
+            🤖
+          </span>
+        </ng-template>
+      </span>
+
+      <span class="robot__nombre">
+        <small class="numero">
+          #{{ numeroLabel(numeroRobot(c, lado)) }}
+        </small>
+
+        <strong>{{ nombreRobot(c, lado) }}</strong>
+
+        <small *ngIf="ganador(c, lado)">
+          🏆 GANADOR
+        </small>
+      </span>
+    </button>
+  </ng-template>
+
+  <ng-template #duelo let-c>
+    <div class="duelo">
+      <ng-container
+        *ngTemplateOutlet="
+          robotFicha;
+          context: { $implicit: c, lado: 1 }
+        "
+      ></ng-container>
+
+      <span class="vs">VS</span>
+
+      <ng-container
+        *ngTemplateOutlet="
+          robotFicha;
+          context: { $implicit: c, lado: 2 }
+        "
+      ></ng-container>
+    </div>
+  </ng-template>
+
+  <!-- Tabla del programa. -->
+  <ng-container *ngIf="!modoProyeccion">
+    <section class="vacio" *ngIf="cargando && !data">
+      Cargando programa de combates…
+    </section>
+
+    <section
+      class="vacio"
+      *ngIf="!cargando && data && !filtrados.length"
+    >
+      No hay combates para esta selección.
+    </section>
+
+    <div
+      class="tabla-contenedor"
+      *ngIf="data && filtrados.length"
+    >
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>Horario</th>
+            <th>Grupo / combate</th>
+            <th>Robot azul</th>
+            <th class="col-vs">VS</th>
+            <th>Robot rojo</th>
+            <th>Dojo</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr
+            *ngFor="let c of visibles; trackBy: trackCombate"
+            [class.en-curso]="c.estado === 'En curso'"
+            [class.finalizado]="terminado(c)"
+          >
+            <td class="hora">
+              {{ horario(c) }}
+              <small *ngIf="c.horarioProgramado">
+                {{
+                  c.horarioProgramado
+                    | date: "shortDate":"America/Mexico_City"
+                }}
+              </small>
+            </td>
+
+            <td class="grupo">
+              <strong>{{ grupo(c) }}</strong>
+              <small>Combate #{{ c.numero }}</small>
+              <small *ngIf="esGrupos && c.ronda">
+                Ronda {{ c.ronda }}
+              </small>
+            </td>
+
+            <td>
+              <ng-container
+                *ngTemplateOutlet="
+                  robotFicha;
+                  context: { $implicit: c, lado: 1 }
+                "
+              ></ng-container>
+            </td>
+
+            <td class="col-vs">
+              <span class="vs">VS</span>
+            </td>
+
+            <td>
+              <ng-container
+                *ngTemplateOutlet="
+                  robotFicha;
+                  context: { $implicit: c, lado: 2 }
+                "
+              ></ng-container>
+            </td>
+
+            <td>
+              <span class="dojo">
+                {{ c.dojo || "Por asignar" }}
+              </span>
+            </td>
+
+            <td>
+              <span
+                class="estado"
+                [class.estado--curso]="c.estado === 'En curso'"
+                [class.estado--final]="terminado(c)"
+              >
+                {{ c.estado }}
+              </span>
+
+              <small class="empate" *ngIf="c.empate">
+                Empate
+              </small>
+
+              <small
+                class="metodo"
+                *ngIf="terminado(c) && c.metodoVictoria"
+              >
+                {{ c.metodoVictoria }}
+              </small>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <footer class="pie" *ngIf="data">
+      <div>
+        <strong>
+          {{ filtrados.length }} combates ·
+          {{ cantidadEnCurso }} en curso
+        </strong>
+
+        <small>
+          Actualizado hace {{ segundosDesdeActualizacion }}s
+          · {{ ultimaActualizacionLabel() }}
+        </small>
+      </div>
+
+      <div class="paginacion">
+        <button
+          type="button"
+          class="boton"
+          aria-label="Página anterior"
+          [disabled]="pagina === 0"
+          (click)="anterior()"
         >
-          <td class="hora">
-            {{ horario(c) }}
-            <small *ngIf="c.horarioProgramado">{{ c.horarioProgramado | date: "shortDate" }}</small>
-          </td>
-          <td class="grupo">
-            <strong>{{ grupo(c) }}</strong>
-            <small>Combate #{{ c.numero }}</small>
-            <small *ngIf="esGrupos && c.ronda">Ronda {{ c.ronda }}</small>
-          </td>
-          <td>
-            <button *ngIf="detalleRobot(c, 1) as detalle; else robotAzulTexto"
-              type="button" class="robot robot--azul robot-boton"
-              [class.ganador]="ganador(c, 1)" (click)="abrirFicha(detalle)">
-              <span class="foto">
-                <img *ngIf="fotoRobot(c, 1) as foto; else sinFotoAzul" [src]="foto"
-                  [alt]="nombreRobot(c, 1)" (error)="marcarFotoFallida(foto)" />
-                <ng-template #sinFotoAzul><span class="foto-vacia" aria-label="Sin fotografía">🤖</span></ng-template>
+          ←
+        </button>
+
+        <span>
+          Página {{ pagina + 1 }} de {{ totalPaginas }}
+        </span>
+
+        <button
+          type="button"
+          class="boton"
+          aria-label="Página siguiente"
+          [disabled]="pagina >= totalPaginas - 1"
+          (click)="siguiente()"
+        >
+          →
+        </button>
+      </div>
+    </footer>
+  </ng-container>
+
+  <!-- Proyección: dos vistas con el mismo estado. -->
+  <ng-container *ngIf="modoProyeccion">
+    <nav
+      class="barra-proyeccion"
+      aria-label="Vista de proyección"
+    >
+      <button
+        type="button"
+        class="boton"
+        [class.activo]="vistaProyeccion === 'arena'"
+        [attr.aria-pressed]="vistaProyeccion === 'arena'"
+        (click)="vistaProyeccion = 'arena'"
+      >
+        ▦ Arena
+      </button>
+
+      <button
+        type="button"
+        class="boton"
+        [class.activo]="vistaProyeccion === 'lista'"
+        [attr.aria-pressed]="vistaProyeccion === 'lista'"
+        (click)="vistaProyeccion = 'lista'"
+      >
+        ☷ Lista de llamados
+      </button>
+
+      <span class="conexion">
+        Actualizado hace {{ segundosDesdeActualizacion }}s
+      </span>
+
+      <button
+        type="button"
+        class="boton"
+        (click)="salirProyeccion()"
+      >
+        Salir ⛶
+      </button>
+    </nav>
+
+    <!-- Vista de arena dividida. -->
+    <section
+      class="arena"
+      [class.arena--uno]="dojosPantalla.length === 1"
+      [class.arena--dos]="dojosPantalla.length === 2"
+      [class.arena--tres]="dojosPantalla.length === 3"
+      *ngIf="vistaProyeccion === 'arena'"
+      aria-label="Combates por dojo"
+    >
+      <article
+        class="panel-dojo"
+        *ngFor="let d of dojosPantalla; trackBy: trackDojo"
+        [class.celebrando]="d.etapa === 'resultado'"
+        [class.saliendo]="d.etapa === 'salida'"
+        [class.entrando]="d.etapa === 'entrada'"
+      >
+        <header class="panel-dojo__cabecera">
+          <h2>DOJO {{ d.numero }}</h2>
+
+          <span
+            class="estado"
+            [class.estado--curso]="
+              d.actual?.estado === 'En curso'
+            "
+          >
+            {{
+              d.actual
+                ? terminado(d.actual)
+                  ? "RESULTADO"
+                  : d.actual.estado === "En curso"
+                    ? "● EN CURSO"
+                    : "EN LÍNEA"
+                : "EN ESPERA"
+            }}
+          </span>
+        </header>
+
+        <div class="contenido-dojo">
+          <ng-container
+            *ngIf="d.actual as c; else esperaArena"
+          >
+            <p class="combate-meta">
+              {{ c.fase }} · Combate #{{ c.numero }}
+              <span *ngIf="c.ronda">
+                · Ronda {{ c.ronda }}
               </span>
-              <span class="robot__nombre">
-                <small class="numero">#{{ numeroLabel(numeroRobot(c, 1)) }}</small>
-                <strong>{{ nombreRobot(c, 1) }}</strong>
-                <small *ngIf="ganador(c, 1)">🏆 Ganador</small>
-              </span>
-            </button>
-            <ng-template #robotAzulTexto>
-              <span class="robot robot--azul">
-                <span class="foto"><span class="foto-vacia">🤖</span></span>
-                <span class="robot__nombre">
-                  <small class="placeholder-numero">Participante por definir</small>
-                  <strong>{{ nombreRobot(c, 1) }}</strong>
-                </span>
-              </span>
-            </ng-template>
-          </td>
-          <td class="col-vs"><span class="vs">VS</span></td>
-          <td>
-            <button *ngIf="detalleRobot(c, 2) as detalle; else robotRojoTexto"
-              type="button" class="robot robot--rojo robot-boton"
-              [class.ganador]="ganador(c, 2)" (click)="abrirFicha(detalle)">
-              <span class="foto">
-                <img *ngIf="fotoRobot(c, 2) as foto; else sinFotoRojo" [src]="foto"
-                  [alt]="nombreRobot(c, 2)" (error)="marcarFotoFallida(foto)" />
-                <ng-template #sinFotoRojo><span class="foto-vacia" aria-label="Sin fotografía">🤖</span></ng-template>
-              </span>
-              <span class="robot__nombre">
-                <small class="numero">#{{ numeroLabel(numeroRobot(c, 2)) }}</small>
-                <strong>{{ nombreRobot(c, 2) }}</strong>
-                <small *ngIf="ganador(c, 2)">🏆 Ganador</small>
-              </span>
-            </button>
-            <ng-template #robotRojoTexto>
-              <span class="robot robot--rojo">
-                <span class="foto"><span class="foto-vacia">🤖</span></span>
-                <span class="robot__nombre">
-                  <small class="placeholder-numero">Participante por definir</small>
-                  <strong>{{ nombreRobot(c, 2) }}</strong>
-                </span>
-              </span>
-            </ng-template>
-          </td>
-          <td><span class="dojo">{{ c.dojo || "Por asignar" }}</span></td>
-          <td>
-            <span class="estado" [class.estado--curso]="c.estado === 'En curso'"
-              [class.estado--final]="terminado(c)">
-              {{ c.estado === "En curso" ? "● En curso" : c.estado }}
+            </p>
+
+            <ng-container
+              *ngTemplateOutlet="
+                duelo;
+                context: { $implicit: c }
+              "
+            ></ng-container>
+
+            <p class="resultado" *ngIf="terminado(c)">
+              {{
+                c.empate
+                  ? "EMPATE"
+                  : "RESULTADO CONFIRMADO"
+              }}
+
+              <small *ngIf="c.metodoVictoria">
+                {{ c.metodoVictoria }}
+              </small>
+            </p>
+          </ng-container>
+
+          <ng-template #esperaArena>
+            <div class="espera-dojo">
+              <span>◎</span>
+              <p>Esperando próximo combate</p>
+            </div>
+          </ng-template>
+        </div>
+
+        <footer class="proximo">
+          <span>SIGUIENTE</span>
+
+          <strong
+            *ngIf="d.siguiente as c; else noSiguiente"
+          >
+            #{{ numeroLabel(numeroRobot(c, 1)) }}
+            {{ nombreRobot(c, 1) }}
+            <b>vs</b>
+            #{{ numeroLabel(numeroRobot(c, 2)) }}
+            {{ nombreRobot(c, 2) }}
+          </strong>
+
+          <ng-template #noSiguiente>
+            <strong>Por anunciar</strong>
+          </ng-template>
+        </footer>
+      </article>
+    </section>
+
+    <!-- Vista de lista de llamados. -->
+    <section
+      class="lista-llamados"
+      *ngIf="vistaProyeccion === 'lista'"
+      aria-label="En línea y siguiente por dojo"
+    >
+      <div class="lista-titulos">
+        <span>DOJO</span>
+        <span>EN LÍNEA</span>
+        <span>SIGUIENTE · PREPÁRENSE</span>
+      </div>
+
+      <article
+        class="fila-llamado"
+        *ngFor="let d of dojosPantalla; trackBy: trackDojo"
+        [class.celebrando]="d.etapa === 'resultado'"
+        [class.saliendo]="d.etapa === 'salida'"
+        [class.entrando]="d.etapa === 'entrada'"
+      >
+        <h2>
+          DOJO <strong>{{ d.numero }}</strong>
+        </h2>
+
+        <div class="llamado-actual">
+          <ng-container
+            *ngIf="d.actual as c; else esperaLista"
+          >
+            <span class="etiqueta-llamado">
+              {{
+                terminado(c)
+                  ? c.empate
+                    ? "EMPATE"
+                    : "RESULTADO CONFIRMADO"
+                  : c.estado === "En curso"
+                    ? "● EN CURSO"
+                    : "EN LÍNEA"
+              }}
             </span>
-            <small class="empate" *ngIf="c.empate">Empate</small>
-            <small class="metodo" *ngIf="terminado(c) && c.metodoVictoria">{{ c.metodoVictoria }}</small>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
 
-  <footer class="pie" *ngIf="data">
-    <div>
-      <strong>{{ filtrados.length }} combates · {{ cantidadEnCurso }} en curso</strong>
-      <small>Actualizado hace {{ segundosDesdeActualizacion }}s · {{ ultimaActualizacionLabel() }}</small>
-    </div>
-    <div class="paginacion">
-      <button type="button" class="boton" aria-label="Página anterior" [disabled]="pagina === 0" (click)="anterior()">←</button>
-      <span>Página {{ pagina + 1 }} de {{ totalPaginas }}</span>
-      <button type="button" class="boton" aria-label="Página siguiente"
-        [disabled]="pagina >= totalPaginas - 1" (click)="siguiente()">→</button>
-    </div>
-    <span class="actualizacion">
-      {{ rotacionAutomatica ? "PÁGINAS AUTOMÁTICAS · 15 S" : "ACTUALIZACIÓN AUTOMÁTICA · 5 S" }}
-    </span>
-  </footer>
+            <ng-container
+              *ngTemplateOutlet="
+                duelo;
+                context: { $implicit: c }
+              "
+            ></ng-container>
+          </ng-container>
 
-  <button *ngIf="modoProyeccion" type="button" class="salir-proyeccion" (click)="salirProyeccion()">
-    Salir de proyección
-  </button>
+          <ng-template #esperaLista>
+            <p>Esperando próximo combate</p>
+          </ng-template>
+        </div>
+
+        <div class="llamado-siguiente">
+          <ng-container
+            *ngIf="d.siguiente as c; else esperaSiguiente"
+          >
+            <span class="etiqueta-llamado">
+              SIGUIENTE · COMBATE #{{ c.numero }}
+            </span>
+
+            <ng-container
+              *ngTemplateOutlet="
+                duelo;
+                context: { $implicit: c }
+              "
+            ></ng-container>
+          </ng-container>
+
+          <ng-template #esperaSiguiente>
+            <p>Por anunciar</p>
+          </ng-template>
+        </div>
+      </article>
+    </section>
+  </ng-container>
 </main>
