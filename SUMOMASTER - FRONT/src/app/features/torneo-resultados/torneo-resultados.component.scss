@@ -570,3 +570,27 @@
 .staff-empty,.staff-readonly {padding:24px 12px;text-align:center;color:#696477}
 @media(max-width:900px) {.staff-compact {grid-template-columns:1fr 1fr;gap:10px}.staff-compact .panel {padding:12px}.resultados-page {padding:12px}}
 @media(max-width:650px) {.staff-compact {grid-template-columns:1fr}.staff-compact__items {max-height:230px}.staff-versus img {height:58px}.staff-compact__detail h2 {font-size:1.2rem}.staff-compact__tabs button {font-size:.72rem}.staff-compact .panel {padding:12px}}
+
+/* Staff: selección directa de robots y confirmación propia */
+.staff-versus .staff-robot-choice {appearance:none;font:inherit;color:inherit;min-width:0;border:2px solid #e2ddec;background:#f8f6fb;border-radius:15px;padding:12px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;cursor:pointer;transition:background .15s,border-color .15s,transform .15s}
+.staff-versus .staff-robot-choice:not(:disabled):hover {border-color:#8b5cf6;transform:translateY(-2px)}
+.staff-versus .staff-robot-choice:focus-visible {outline:3px solid #7c3aed;outline-offset:3px}
+.staff-versus .staff-robot-choice.winner {background:#e2fbe7;border-color:#0ca42a}
+.staff-versus .staff-robot-choice.loser {background:#ffe5e7;border-color:#e42b38}
+.staff-versus .staff-robot-choice:disabled {cursor:default}
+.staff-versus .staff-robot-choice small {color:#087b22;font-weight:700}
+.staff-hint {font-size:.82rem;color:#6b6478;text-align:center;margin:0}
+.staff-modal-backdrop {position:fixed;inset:0;z-index:9999;background:rgba(17,10,34,.58);display:grid;place-items:center;padding:16px;backdrop-filter:blur(3px)}
+.staff-modal {width:min(100%,440px);background:#fff;border:1px solid #e8e2f4;border-radius:22px;padding:28px;box-shadow:0 24px 80px rgba(20,10,40,.3);text-align:center;color:#1d1530}
+.staff-modal__symbol {margin:0 auto 12px;width:54px;height:54px;border-radius:50%;background:#e9ddff;color:#6d18e8;display:grid;place-items:center;font-size:1.8rem;font-weight:800}
+.staff-modal h2 {font-size:1.4rem;margin:0 0 8px}
+.staff-modal>p {color:#645d70;margin:0 0 18px}
+.staff-modal__summary {display:grid;grid-template-columns:auto 1fr;gap:12px;text-align:left;background:#f6f3fc;border-radius:12px;padding:16px;margin:18px 0}
+.staff-modal__summary span {color:#6b6478}.staff-modal__summary strong {text-align:right;overflow-wrap:anywhere}
+.staff-modal .staff-modal__warning {font-size:.8rem;color:#806b40}
+.staff-modal__actions {display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.staff-modal__actions button {border-radius:11px;border:1px solid #e1dbea;padding:12px 8px;font-weight:700;cursor:pointer}
+.staff-modal__cancel {background:#fff;color:#3d3154}
+.staff-modal__confirm {background:linear-gradient(110deg,#8124f2,#5d0dd7);color:#fff;border-color:transparent!important}
+.staff-modal__actions button:disabled {opacity:.6;cursor:wait}
+@media(max-width:450px){.staff-modal{padding:20px}.staff-modal__actions{grid-template-columns:1fr}}

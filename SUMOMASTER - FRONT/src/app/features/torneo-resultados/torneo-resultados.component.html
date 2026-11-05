@@ -174,28 +174,38 @@
           <ng-container *ngIf="selectedCombate() as combate; else staffEmpty">
             <h2>Combate #{{ combate.numero }}</h2>
             <p class="staff-compact__meta">Turno {{ combate.turno ?? '—' }} · {{ combate.dojo?.nombre ?? 'Dojo' }} · Arena {{ combate.arena ?? '—' }}</p>
-            <div class="staff-versus">
-              <div [class.winner]="form.controls.resultado.value === ResultadoCombate.GANA_ROBOT_1" [class.loser]="form.controls.resultado.value === ResultadoCombate.GANA_ROBOT_2">
+            <div class="staff-versus" [class.staff-versus--readonly]="combate.estado === 'Finalizado'">
+              <button type="button" class="staff-robot-choice"
+                [class.winner]="form.controls.resultado.value === ResultadoCombate.GANA_ROBOT_1"
+                [class.loser]="form.controls.resultado.value === ResultadoCombate.GANA_ROBOT_2"
+                [disabled]="combate.estado === 'Finalizado' || !canManage() || !combate.robot1 || !combate.robot2"
+                [attr.aria-pressed]="form.controls.resultado.value === ResultadoCombate.GANA_ROBOT_1"
+                (click)="seleccionarGanador(ResultadoCombate.GANA_ROBOT_1)">
                 <img *ngIf="combate.robot1?.imagenUrl" [src]="combate.robot1?.imagenUrl" alt="Robot 1" />
                 <strong>{{ participanteLabel(combate.robot1, combate.placeholder1) }}</strong>
-              </div>
+                <small *ngIf="form.controls.resultado.value === ResultadoCombate.GANA_ROBOT_1">✓ Ganador</small>
+              </button>
               <b>VS</b>
-              <div [class.winner]="form.controls.resultado.value === ResultadoCombate.GANA_ROBOT_2" [class.loser]="form.controls.resultado.value === ResultadoCombate.GANA_ROBOT_1">
+              <button type="button" class="staff-robot-choice"
+                [class.winner]="form.controls.resultado.value === ResultadoCombate.GANA_ROBOT_2"
+                [class.loser]="form.controls.resultado.value === ResultadoCombate.GANA_ROBOT_1"
+                [disabled]="combate.estado === 'Finalizado' || !canManage() || !combate.robot1 || !combate.robot2"
+                [attr.aria-pressed]="form.controls.resultado.value === ResultadoCombate.GANA_ROBOT_2"
+                (click)="seleccionarGanador(ResultadoCombate.GANA_ROBOT_2)">
                 <img *ngIf="combate.robot2?.imagenUrl" [src]="combate.robot2?.imagenUrl" alt="Robot 2" />
                 <strong>{{ participanteLabel(combate.robot2, combate.placeholder2) }}</strong>
-              </div>
+                <small *ngIf="form.controls.resultado.value === ResultadoCombate.GANA_ROBOT_2">✓ Ganador</small>
+              </button>
             </div>
             <form *ngIf="combate.estado !== 'Finalizado' && canManage() && combate.robot1 && combate.robot2; else staffReadonly" [formGroup]="form" (ngSubmit)="submitResultado()" class="staff-form">
-              <strong>Robot ganador</strong>
-              <div class="staff-winners">
-                <label><input type="radio" formControlName="resultado" [value]="ResultadoCombate.GANA_ROBOT_1" />{{ participanteLabel(combate.robot1, combate.placeholder1) }}</label>
-                <label><input type="radio" formControlName="resultado" [value]="ResultadoCombate.GANA_ROBOT_2" />{{ participanteLabel(combate.robot2, combate.placeholder2) }}</label>
-              </div>
-              <label class="staff-draw"><input type="radio" formControlName="resultado" [value]="ResultadoCombate.EMPATE" /> Empate</label>
+              <p class="staff-hint">Selecciona la imagen del robot ganador.</p>
               <label class="field"><strong>Método de victoria</strong>
-                <select formControlName="metodoVictoria"><option [ngValue]="null">Selecciona un método</option><option *ngFor="let metodo of metodosVictoria" [value]="metodo">{{ metodo }}</option></select>
+                <select formControlName="metodoVictoria">
+                  <option [value]="MetodoVictoria.EMPUJE_FUERA">Empuje fuera del área</option>
+                  <option [value]="MetodoVictoria.ABANDONO">Abandono</option>
+                  <option [value]="MetodoVictoria.DESCALIFICACION">Descalificación</option>
+                </select>
               </label>
-              <label class="field" *ngIf="form.controls.metodoVictoria.value === 'Otro'"><strong>Especifica el método</strong><input formControlName="otroMetodoVictoria" maxlength="150" /></label>
               <p class="field__error" *ngIf="formError()">{{ formError() }}</p>
               <button type="submit" class="staff-save" [disabled]="saving()">{{ saving() ? 'Guardando…' : '✓ Guardar resultado' }}</button>
             </form>
@@ -863,5 +873,21 @@
         </a>
       </div>
     </main>
+    <div class="staff-modal-backdrop" *ngIf="isStaffOnly && confirmandoResultado()" (click)="cerrarConfirmacion()">
+      <section class="staff-modal" role="dialog" aria-modal="true" aria-labelledby="staff-confirm-title" (click)="$event.stopPropagation()">
+        <div class="staff-modal__symbol">✓</div>
+        <h2 id="staff-confirm-title">Confirmar resultado</h2>
+        <p>¿Deseas registrar el resultado de este combate?</p>
+        <div class="staff-modal__summary">
+          <span>Ganador</span><strong>{{ nombreGanadorConfirmacion() }}</strong>
+          <span>Método</span><strong>{{ form.controls.metodoVictoria.value }}</strong>
+        </div>
+        <p class="staff-modal__warning">Una vez guardado, el resultado no podrá modificarse.</p>
+        <div class="staff-modal__actions">
+          <button type="button" class="staff-modal__cancel" (click)="cerrarConfirmacion()" [disabled]="saving()">Cancelar</button>
+          <button type="button" class="staff-modal__confirm" (click)="confirmarResultado()" [disabled]="saving()">{{ saving() ? 'Guardando…' : 'Confirmar resultado' }}</button>
+        </div>
+      </section>
+    </div>
   </div>
 </div>

@@ -97,6 +97,8 @@ export class TorneoResultadosComponent implements OnInit {
 
   readonly ResultadoCombate = ResultadoCombate;
   readonly FaseCombate = FaseCombate;
+  readonly MetodoVictoria = MetodoVictoria;
+  readonly confirmandoResultado = signal(false);
   readonly metodosVictoria = Object.values(MetodoVictoria);
 
   // =========================
@@ -473,13 +475,14 @@ export class TorneoResultadosComponent implements OnInit {
   }
 
   selectCombate(combate: Combate): void {
+    this.confirmandoResultado.set(false);
     this.selectedCombateId.set(combate._id);
     this.formError.set(null);
     this.successMessage.set(null);
 
     this.form.reset({
       resultado: combate.resultado,
-      metodoVictoria: combate.metodoVictoria,
+      metodoVictoria: combate.metodoVictoria ?? (this.isStaffOnly ? MetodoVictoria.EMPUJE_FUERA : null),
       otroMetodoVictoria: combate.otroMetodoVictoria ?? '',
       observaciones: combate.observaciones,
     });
@@ -567,10 +570,15 @@ export class TorneoResultadosComponent implements OnInit {
       ganador = this.participanteLabel(combate.robot2, combate.placeholder2);
     }
 
-    const confirmado = window.confirm(
-      `¿Deseas registrar este combate?\n\nResultado: ${ganador}`,
-    );
-    if (!confirmado) return;
+    if (this.isStaffOnly && !this.confirmandoResultado()) {
+      this.confirmandoResultado.set(true);
+      return;
+    }
+    if (!this.isStaffOnly) {
+      const confirmado = window.confirm(`¿Deseas registrar este combate?\n\nResultado: ${ganador}`);
+      if (!confirmado) return;
+    }
+    this.confirmandoResultado.set(false);
 
     this.saving.set(true);
     this.formError.set(null);
@@ -595,7 +603,7 @@ export class TorneoResultadosComponent implements OnInit {
           this.activeTab.set('Pendiente');
           this.form.reset({
             resultado: null,
-            metodoVictoria: null,
+            metodoVictoria: this.isStaffOnly ? MetodoVictoria.EMPUJE_FUERA : null,
             otroMetodoVictoria: '',
             observaciones: '',
           });
@@ -609,6 +617,24 @@ export class TorneoResultadosComponent implements OnInit {
           );
         },
       });
+  }
+
+  cerrarConfirmacion(): void {
+    if (!this.saving()) this.confirmandoResultado.set(false);
+  }
+
+  nombreGanadorConfirmacion(): string {
+    const combate = this.selectedCombate();
+    if (!combate) return '—';
+    const resultado = this.form.controls.resultado.value;
+    if (resultado === ResultadoCombate.GANA_ROBOT_1) return this.participanteLabel(combate.robot1, combate.placeholder1);
+    if (resultado === ResultadoCombate.GANA_ROBOT_2) return this.participanteLabel(combate.robot2, combate.placeholder2);
+    return 'Empate';
+  }
+
+  confirmarResultado(): void {
+    if (!this.confirmandoResultado() || this.saving()) return;
+    this.submitResultado();
   }
 
   cancelarCombate(): void {
