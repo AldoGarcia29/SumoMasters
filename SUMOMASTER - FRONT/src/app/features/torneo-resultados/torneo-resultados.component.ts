@@ -475,6 +475,11 @@ export class TorneoResultadosComponent implements OnInit {
   }
 
   selectCombate(combate: Combate): void {
+    // Al elegir un combate pendiente, iniciar en el servidor antes de mostrarlo.
+    if (this.isStaffOnly && combate.estado === EstadoCombate.PENDIENTE && this.canManage()) {
+      if (!this.starting()) this.registrar(combate);
+      return;
+    }
     this.confirmandoResultado.set(false);
     this.selectedCombateId.set(combate._id);
     this.formError.set(null);
@@ -621,6 +626,17 @@ export class TorneoResultadosComponent implements OnInit {
 
   cerrarConfirmacion(): void {
     if (!this.saving()) this.confirmandoResultado.set(false);
+  }
+
+  nombreGanadorRegistrado(combate: Combate): string {
+    switch (combate.resultado) {
+      case ResultadoCombate.GANA_ROBOT_1:
+        return this.participanteLabel(combate.robot1, combate.placeholder1);
+      case ResultadoCombate.GANA_ROBOT_2:
+        return this.participanteLabel(combate.robot2, combate.placeholder2);
+      default:
+        return combate.resultado === ResultadoCombate.EMPATE ? 'Empate' : 'Sin ganador registrado';
+    }
   }
 
   nombreGanadorConfirmacion(): string {

@@ -528,3 +528,18 @@
   .staff-compact { gap: 14px; }
   .staff-compact__items { max-height: 290px; }
 }
+
+/* Navegación de regreso visible en el tema oscuro del Staff. */
+.resultados-page:has(.staff-compact) .panel--footer-actions .staff-back-link {
+  color: #67dcf5 !important;
+  background: #173a57 !important;
+  border: 1px solid #39718e !important;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.resultados-page:has(.staff-compact) .panel--footer-actions .staff-back-link:hover {
+  background: #225477 !important;
+  color: #ffffff !important;
+}

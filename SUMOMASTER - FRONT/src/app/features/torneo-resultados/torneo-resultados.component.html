@@ -209,7 +209,7 @@
               <p class="field__error" *ngIf="formError()">{{ formError() }}</p>
               <button type="submit" class="staff-save" [disabled]="saving()">{{ saving() ? 'Guardando…' : '✓ Guardar resultado' }}</button>
             </form>
-            <ng-template #staffReadonly><p class="staff-readonly">{{ combate.estado === 'Finalizado' ? 'Resultado registrado: ' + combate.resultado : 'Selecciona un combate en curso para guardar su resultado.' }}</p>
+            <ng-template #staffReadonly><p class="staff-readonly">{{ combate.estado === 'Finalizado' ? 'Resultado registrado: ' + nombreGanadorRegistrado(combate) : 'Selecciona un combate en curso para guardar su resultado.' }}</p>
               <button *ngIf="combate.estado === 'Pendiente' && canManage()" type="button" class="staff-save" [disabled]="starting()" (click)="registrar(combate)">{{ starting() ? 'Iniciando…' : 'Iniciar combate' }}</button>
             </ng-template>
           </ng-container>
@@ -866,7 +866,7 @@
 
       <div class="panel--footer-actions">
         <a
-          class="btn btn--ghost"
+          class="btn btn--ghost staff-back-link"
           [routerLink]="isStaffOnly ? '/staff/resultados' : '/torneos'"
         >
           ← Volver a torneos
