@@ -544,60 +544,12 @@
   color: #ffffff !important;
 }
 
-
-/* Staff: separación del regreso y optimización para teléfonos.
-   Estos ajustes no cambian el registro, estados ni las vistas de administración. */
+/* Único ajuste: separar «Volver a torneos» del formulario de resultados. */
 .resultados-page:has(.staff-compact) .panel--footer-actions {
-  margin-top: 26px;
-  margin-bottom: 20px;
-  padding-top: 8px;
+  margin-top: 36px;
 }
 @media (max-width: 720px) {
-  .resultados-page:has(.staff-compact) {
-    padding: 10px 10px calc(26px + env(safe-area-inset-bottom, 0px));
-  }
-  .staff-compact { gap: 18px; }
-  .staff-compact .panel { padding: 14px; border-radius: 17px; }
-  .staff-compact__heading { font-size: 1.05rem; line-height: 1.25; }
-  .staff-compact__dojo { font-size: .84rem; margin: 5px 0 8px; }
-  .staff-pill { font-size: .76rem; padding: 4px 9px; }
-  .staff-compact__tabs { margin: 8px 0 10px; gap: 4px; padding: 4px; }
-  .staff-compact .staff-compact__tabs button {
-    min-height: 40px; padding: 7px 3px; font-size: .72rem;
-    line-height: 1.2;
-  }
-  .staff-compact__items { max-height: 240px; gap: 8px; }
-  .staff-fight { padding: 10px; gap: 6px; border-radius: 12px; }
-  .staff-fight__top { font-size: .8rem; }
-  .staff-fight__top small { padding: 3px 7px; font-size: .68rem; }
-  .staff-fight__robots { gap: 5px; }
-  .staff-fight__robots img { width: 32px; height: 32px; border-radius: 7px; }
-  .staff-fight__robots strong { font-size: .72rem; }
-  .staff-compact__detail { gap: 9px; }
-  .staff-compact__detail h2 { font-size: 1.3rem; }
-  .staff-compact__meta { font-size: .82rem; margin-bottom: 2px; }
-  .staff-versus { gap: 5px; grid-template-columns: minmax(0,1fr) 22px minmax(0,1fr); }
-  .staff-versus .staff-robot-choice { min-height: 116px; padding: 8px 5px; gap: 5px; border-radius: 13px; }
-  .staff-versus img, .staff-versus .staff-robot-choice img { width: 62px; height: 58px; }
-  .staff-versus .staff-robot-choice strong { font-size: .76rem; }
-  .staff-versus .staff-robot-choice small { font-size: .68rem; }
-  .staff-versus > b { font-size: 1rem; }
-  .staff-hint, .staff-readonly, .staff-empty { font-size: .84rem; line-height: 1.4; }
-  .staff-hint { margin: 3px 0 7px; }
-  .staff-form .field { font-size: .88rem; }
-  .staff-form select { min-height: 43px; font-size: .88rem; }
-  .staff-save { min-height: 46px; font-size: .95rem; }
   .resultados-page:has(.staff-compact) .panel--footer-actions {
-    margin-top: 28px;
-    padding-top: 8px;
-    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    margin-top: 48px;
   }
-  .resultados-page:has(.staff-compact) .panel--footer-actions .staff-back-link {
-    min-height: 43px; padding: 10px 15px; font-size: .88rem;
-  }
-}
-@media (max-width: 360px) {
-  .staff-compact .panel { padding: 11px; }
-  .staff-compact .staff-compact__tabs button { font-size: .67rem; }
-  .staff-fight__robots strong { font-size: .67rem; }
 }
