@@ -82,7 +82,7 @@ export class LiveCombatesComponent implements OnInit, OnDestroy {
   pagina = 0;
   readonly porPagina = 4;
 
-  vistaProyeccion: 'arena' | 'lista' = 'arena';
+  vistaProyeccion: 'arena' | 'lista' | 'bloques' = 'arena';
   readonly opcionesDojos = [1, 2, 3, 4];
   dojosSeleccionados = [1, 2, 3, 4];
   dojosPantalla: DojoPantalla[] = [];
@@ -224,6 +224,37 @@ export class LiveCombatesComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subs.unsubscribe();
+  }
+
+  // Se usan las asignaciones reales publicadas por el torneo, no datos de ejemplo.
+  get bloquesProyeccion(): { nombre: string; robots: { id: string; numero: number | null; nombre: string; imagenUrl: string | null }[] }[] {
+    const robots = this.data?.robots ?? [];
+    const grupos = new Map<string, typeof robots>();
+    for (const robot of robots) {
+      if (!robot.grupo) continue;
+      const nombre = robot.grupo;
+      if (!grupos.has(nombre)) grupos.set(nombre, []);
+      grupos.get(nombre)!.push(robot);
+    }
+    const fotos = new Map<string, string>();
+    for (const combate of this.data?.combates ?? []) {
+      for (const lado of [1, 2] as const) {
+        const detalle = combate.robotsDetalle?.[lado - 1];
+        const imagen = (lado === 1 ? combate.robot1 : combate.robot2)?.imagenUrl;
+        if (detalle?.id && imagen) fotos.set(detalle.id, imagen);
+      }
+    }
+    return [...grupos.entries()]
+      .sort(([a], [b]) => a.localeCompare(b, 'es', { numeric: true }))
+      .map(([nombre, integrantes]) => ({
+        nombre,
+        robots: integrantes.map(r => ({
+          id: r.id,
+          numero: r.numero,
+          nombre: r.nombre,
+          imagenUrl: fotos.get(r.id) ?? null,
+        })),
+      }));
   }
 
   get esGrupos(): boolean {
@@ -494,6 +525,10 @@ export class LiveCombatesComponent implements OnInit, OnDestroy {
     return imagen && !this.fotosFallidas.has(imagen)
       ? imagen
       : null;
+  }
+
+  fotoDisponible(url: string): boolean {
+    return !this.fotosFallidas.has(url);
   }
 
   marcarFotoFallida(url: string): void {

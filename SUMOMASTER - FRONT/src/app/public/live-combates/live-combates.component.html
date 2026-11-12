@@ -113,6 +113,7 @@
         <select [(ngModel)]="vistaProyeccion">
           <option value="arena">Arena dividida</option>
           <option value="lista">Lista de llamados</option>
+          <option value="bloques">Bloques / Grupos</option>
         </select>
       </label>
 
@@ -426,6 +427,16 @@
         ☷ Lista de llamados
       </button>
 
+      <button
+        type="button"
+        class="boton"
+        [class.activo]="vistaProyeccion === 'bloques'"
+        [attr.aria-pressed]="vistaProyeccion === 'bloques'"
+        (click)="vistaProyeccion = 'bloques'"
+      >
+        ▦ Bloques / Grupos
+      </button>
+
       <span class="conexion">
         Actualizado hace {{ segundosDesdeActualizacion }}s
       </span>
@@ -438,6 +449,38 @@
         Salir ⛶
       </button>
     </nav>
+
+    <!-- Grupos reales asignados desde la generación de bloques. -->
+    <section class="bloques-proyeccion" *ngIf="vistaProyeccion === 'bloques'" aria-label="Asignación de bloques del torneo">
+      <div class="bloques-proyeccion__encabezado">
+        <h2>BLOQUES / GRUPOS</h2>
+        <span>{{ bloquesProyeccion.length }} bloques · {{ data?.robots?.length || 0 }} robots inscritos</span>
+      </div>
+      <div class="bloques-proyeccion__grid" *ngIf="bloquesProyeccion.length; else sinBloques">
+        <article class="bloque-proyectado" *ngFor="let bloque of bloquesProyeccion">
+          <header class="bloque-proyectado__titulo">
+            <h3>{{ bloque.nombre }}</h3>
+            <span>{{ bloque.robots.length }} robots</span>
+          </header>
+          <div class="bloque-proyectado__robots">
+            <div class="bloque-proyectado__robot" *ngFor="let robot of bloque.robots">
+              <div class="bloque-proyectado__foto">
+                <img *ngIf="robot.imagenUrl && fotoDisponible(robot.imagenUrl); else iconoRobotBloque"
+                  [src]="robot.imagenUrl" [alt]="robot.nombre" (error)="marcarFotoFallida(robot.imagenUrl!)" />
+                <ng-template #iconoRobotBloque><span>🤖</span></ng-template>
+              </div>
+              <div class="bloque-proyectado__identidad">
+                <small>#{{ numeroLabel(robot.numero) }}</small>
+                <strong>{{ robot.nombre }}</strong>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+      <ng-template #sinBloques>
+        <div class="bloques-proyeccion__vacio">Todavía no hay bloques asignados para este torneo.</div>
+      </ng-template>
+    </section>
 
     <!-- Vista de arena dividida. -->
     <section
