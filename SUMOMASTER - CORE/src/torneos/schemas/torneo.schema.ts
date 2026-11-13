@@ -1,11 +1,25 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 import { EstadoTorneo } from '../enums/estado-torneo.enum';
+import type { GrupoRoboSoccer } from '../robo-soccer/generar-grupos';
+import type {
+  CruceInicialManual,
+  DecisionesLlave,
+  RondaInicial,
+} from '../robo-soccer/llaves-robo-soccer';
 
 export type TorneoDocument = HydratedDocument<Torneo>;
 
 @Schema({ _id: false })
 export class ParticipanteTorneo {
+
+  @Prop({ type: Object, default: null })
+llaveRoboSoccer?: {
+  rondaInicial: RondaInicial;
+  crucesIniciales: CruceInicialManual[];
+  decisiones: DecisionesLlave;
+} | null;
+
   @Prop({ type: Types.ObjectId, ref: 'Robot', required: true })
   robot: Types.ObjectId;
 
@@ -44,6 +58,20 @@ export class Torneo {
   /** Robots inscritos que participarán en este torneo. */
   @Prop({ type: [Types.ObjectId], ref: 'Robot', default: [] })
   robotsInscritos: Types.ObjectId[];
+
+    /** Equipos inscritos en el torneo de Robo Soccer RC. */
+  @Prop({ type: [Types.ObjectId], ref: 'Equipo', default: [] })
+  equiposInscritos: Types.ObjectId[];
+
+  @Prop({ type: [Object], default: [] })
+gruposRoboSoccer: GrupoRoboSoccer[];
+
+  @Prop({ type: Object, default: null })
+  llaveRoboSoccer?: {
+    rondaInicial: RondaInicial;
+    crucesIniciales: CruceInicialManual[];
+    decisiones: DecisionesLlave;
+  } | null;
 
   @Prop({ type: [ParticipanteTorneoSchema], default: [] })
   participantes: ParticipanteTorneo[];

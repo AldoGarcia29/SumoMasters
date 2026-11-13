@@ -1,0 +1,108 @@
+@use '../../shared/styles/admin-page';
+
+.resultados-page {
+  display: grid;
+  gap: 1.25rem;
+  padding: 1.75rem 2rem 3rem;
+}
+
+.grupo-panel {
+  padding: 1.25rem;
+  min-width: 0;
+}
+
+.resultados-page h2,
+.resultados-page h3 {
+  margin: 0 0 0.75rem;
+  color: var(--color-text);
+  font-family: var(--font-display);
+}
+
+.resultados-page h3 {
+  font-size: 0.95rem;
+}
+
+.panel--header p {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.grupo-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1.25rem;
+}
+
+.partido {
+  padding: 0.85rem;
+  margin-bottom: 0.6rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.partido-cabecera,
+.marcador {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.partido-cabecera {
+  justify-content: space-between;
+}
+
+.marcador {
+  align-items: end;
+  margin-top: 0.75rem;
+}
+
+.marcador .field {
+  flex: 1 1 7rem;
+  min-width: 0;
+  margin: 0;
+}
+
+.tabla-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+th,
+td {
+  padding: 0.65rem;
+  text-align: right;
+  border-bottom: 1px solid var(--color-border);
+}
+
+th:first-child {
+  text-align: left;
+}
+
+thead {
+  background: var(--color-bg);
+}
+
+tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+@media (max-width: 1000px) {
+  .grupo-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .resultados-page {
+    padding: 1.25rem;
+  }
+}

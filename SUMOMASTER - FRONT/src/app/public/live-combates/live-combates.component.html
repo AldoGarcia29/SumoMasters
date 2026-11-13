@@ -113,6 +113,7 @@
         <select [(ngModel)]="vistaProyeccion">
           <option value="arena">Arena dividida</option>
           <option value="bloques">Bloques / Grupos</option>
+          <option value="roboSoccer">Robo Soccer</option>
         </select>
       </label>
 
@@ -426,6 +427,26 @@
         ▦ Bloques / Grupos
       </button>
 
+      <button
+  type="button"
+  class="boton"
+  [class.activo]="vistaProyeccion === 'roboSoccer'"
+  [attr.aria-pressed]="vistaProyeccion === 'roboSoccer'"
+  (click)="vistaProyeccion = 'roboSoccer'"
+>
+  ▦ Robo Soccer
+</button>
+
+<label class="proyeccion-torneo" *ngIf="vistaProyeccion === 'roboSoccer'">
+  <span>Torneo</span>
+  <select [(ngModel)]="torneoSoccerId">
+    <option value="" disabled>Selecciona un torneo</option>
+    <option *ngFor="let t of torneos" [value]="t.id">
+      {{ t.nombre }}
+    </option>
+  </select>
+</label>
+
       <span class="conexion">
         Actualizado hace {{ segundosDesdeActualizacion }}s
       </span>
@@ -438,6 +459,15 @@
         Salir ⛶
       </button>
     </nav>
+
+    <app-robo-soccer-proyeccion
+  *ngIf="vistaProyeccion === 'roboSoccer' && torneoSoccerId"
+  [torneoId]="torneoSoccerId"
+/>
+
+<p *ngIf="vistaProyeccion === 'roboSoccer' && !torneoSoccerId">
+  Selecciona un torneo para proyectar sus partidos.
+</p>
 
     <!-- Grupos reales asignados desde la generación de bloques. -->
     <section class="bloques-proyeccion" *ngIf="vistaProyeccion === 'bloques'" aria-label="Asignación de bloques del torneo">

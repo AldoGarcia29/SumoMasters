@@ -1,0 +1,195 @@
+<div class="app-shell">
+  <app-sidebar
+    [isOpen]="sidebarOpen()"
+    (closeRequested)="sidebarOpen.set(false)"
+  />
+  <div
+    class="app-shell__backdrop"
+    *ngIf="sidebarOpen()"
+    (click)="sidebarOpen.set(false)"
+  ></div>
+
+  <div class="app-shell__main">
+    <app-topbar
+      title="Grupos y partidos"
+      [subtitle]="'Dashboard › Torneos › ' + (torneo()?.nombre ?? 'Grupos y partidos')"
+      [notificationCount]="3"
+      (menuToggle)="sidebarOpen.set(!sidebarOpen())"
+    />
+
+    <main class="grupos-page">
+      <p *ngIf="cargando()" class="panel grupos-panel" role="status">
+        Cargando torneo…
+      </p>
+
+      <p *ngIf="error()" class="panel__error" role="alert">{{ error() }}</p>
+
+      <ng-container *ngIf="torneo() as torneoActual">
+        <section class="panel panel--header grupos-cabecera">
+          <div class="grupos-identidad">
+            <span class="grupos-icono" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+                stroke="currentColor" stroke-width="1.6">
+                <rect x="3" y="5" width="18" height="14" rx="2" />
+                <path d="M12 5v14M3 9h3v6H3m18-6h-3v6h3" />
+                <circle cx="12" cy="12" r="2.5" />
+              </svg>
+            </span>
+
+            <div>
+              <h2>{{ torneoActual.nombre }}</h2>
+              <p>Robo Soccer RC · {{ equipos().length }} equipos inscritos</p>
+            </div>
+          </div>
+
+          <button
+            *ngIf="!grupos().length"
+            type="button"
+            class="btn btn--primary"
+            [disabled]="generando() || !cantidadValida()"
+            (click)="generarGrupos()"
+          >
+            {{ generando() ? 'Generando…' : 'Generar grupos automáticamente' }}
+          </button>
+
+          <a
+  *ngIf="grupos().length"
+  class="btn btn--primary"
+  [routerLink]="['/torneos', torneoActual._id, 'grupos', 'resultados']"
+>
+  Registrar resultados →
+</a>
+        </section>
+
+        <p *ngIf="errorGeneracion()" class="panel__error" role="alert">
+          {{ errorGeneracion() }}
+        </p>
+
+        <div class="grupos-layout">
+          <section class="panel grupos-panel" aria-label="Grupos y equipos">
+            <div class="grupos-pestanas" aria-label="Vista del torneo">
+              <button
+                type="button"
+                [class.activa]="vista() === 'grupos'"
+                [attr.aria-pressed]="vista() === 'grupos'"
+                (click)="vista.set('grupos')"
+              >
+                Vista de grupos
+              </button>
+
+              <button
+                type="button"
+                [class.activa]="vista() === 'equipos'"
+                [attr.aria-pressed]="vista() === 'equipos'"
+                (click)="vista.set('equipos')"
+              >
+                Lista de equipos
+              </button>
+            </div>
+
+            <ng-container *ngIf="vista() === 'grupos'; else listaEquipos">
+              <div class="grupos-grid" *ngIf="grupos().length; else sinGrupos">
+                <article class="grupo-card" *ngFor="let grupo of grupos()">
+                  <header class="grupo-card__header">
+                    <h3>{{ grupo.nombre }}</h3>
+                    <span class="badge badge--success">
+                      {{ grupo.equipoIds.length }} equipos
+                    </span>
+                  </header>
+
+                  <ul class="partidos-lista">
+                    <li class="partido-fila" *ngFor="let partido of grupo.partidos">
+                      <div class="partido-equipos">
+                        <strong>{{ nombrePorId(partido.localId) }}</strong>
+                        <span class="partido-versus">vs.</span>
+                        <strong>{{ nombrePorId(partido.visitanteId) }}</strong>
+                      </div>
+
+                      <span
+                        class="badge"
+                        [class.badge--success]="partido.resultado !== null"
+                        [class.badge--neutral]="partido.resultado === null"
+                      >
+                        <ng-container *ngIf="partido.resultado as marcador; else pendiente">
+                          {{ marcador.golesLocal }}–{{ marcador.golesVisitante }}
+                        </ng-container>
+                        <ng-template #pendiente>Pendiente</ng-template>
+                      </span>
+                    </li>
+                  </ul>
+                </article>
+              </div>
+
+              <ng-template #sinGrupos>
+                <p class="grupos-vacio" role="status">
+                  {{ generando()
+                    ? 'Preparando los cruces del torneo…'
+                    : maximoGrupos() > 0
+                      ? 'Genera los grupos para ver los cruces del torneo.'
+                      : 'Inscribe al menos dos equipos para generar partidos.' }}
+                </p>
+              </ng-template>
+            </ng-container>
+
+            <ng-template #listaEquipos>
+              <ul class="grupos-grid equipos-lista" *ngIf="equipos().length; else sinEquipos">
+                <li class="equipo-card" *ngFor="let equipo of equipos()">
+                  <span class="equipo-card__inicial" aria-hidden="true">
+                    {{ equipoNombre(equipo).charAt(0) | uppercase }}
+                  </span>
+                  <strong>{{ equipoNombre(equipo) }}</strong>
+                </li>
+              </ul>
+
+              <ng-template #sinEquipos>
+                <p class="grupos-vacio">Este torneo todavía no tiene equipos inscritos.</p>
+              </ng-template>
+            </ng-template>
+          </section>
+
+          <aside class="panel grupos-panel grupos-config" aria-labelledby="config-titulo">
+            <h3 id="config-titulo">Configuración</h3>
+
+            <label class="field grupos-cantidad" *ngIf="!grupos().length && maximoGrupos() > 0">
+              <span>Cantidad de grupos</span>
+              <input
+                #cantidad
+                type="number"
+                min="1"
+                step="1"
+                [max]="maximoGrupos()"
+                [value]="cantidadGrupos() ?? ''"
+                [disabled]="generando()"
+                aria-describedby="grupos-rango"
+                (input)="actualizarCantidad(cantidad.valueAsNumber)"
+              />
+              <small id="grupos-rango">
+                {{ maximoGrupos() === 1
+                  ? '1 grupo disponible'
+                  : 'De 1 a ' + maximoGrupos() + ' grupos' }}
+              </small>
+            </label>
+
+            <div class="grupos-resumen" aria-live="polite">
+              <h4>Resumen</h4>
+              <dl>
+                <div><dt>Equipos inscritos</dt><dd>{{ equipos().length }}</dd></div>
+                <div><dt>Grupos generados</dt><dd>{{ grupos().length }}</dd></div>
+                <div><dt>Partidos programados</dt><dd>{{ totalPartidos() }}</dd></div>
+              </dl>
+            </div>
+
+            <p class="grupos-nota">
+              Cada equipo juega una vez contra los demás equipos de su grupo.
+            </p>
+          </aside>
+        </div>
+      </ng-container>
+      
+
+      <div>
+        <a routerLink="/torneos" class="btn btn--ghost grupos-volver">← Volver a torneos</a>
+      </div>
+    </main>
+  </div>
+</div>

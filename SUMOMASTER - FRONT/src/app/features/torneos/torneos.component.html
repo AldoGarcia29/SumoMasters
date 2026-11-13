@@ -190,8 +190,14 @@
 
                 <!-- Participantes -->
                 <td>
-                  {{ torneo.robotsInscritos.length }}
-                </td>
+  <ng-container *ngIf="esTorneoRoboSoccer(torneo); else conteoRobots">
+    {{ torneo.equiposInscritos?.length ?? 0 }} equipos
+  </ng-container>
+
+  <ng-template #conteoRobots>
+    {{ torneo.robotsInscritos.length }}
+  </ng-template>
+</td>
 
                 <!-- ========================= -->
                 <!-- ACCIONES -->
@@ -220,10 +226,10 @@
                   <a
                     *appCan="'admin'"
                     [routerLink]="[
-                      '/torneos',
-                      torneo._id,
-                      'bloques'
-                    ]"
+  '/torneos',
+  torneo._id,
+  esTorneoRoboSoccer(torneo) ? 'grupos' : 'bloques'
+]"
                     aria-label="Gestionar fases"
                     title="Gestionar fases"
                   >
@@ -593,7 +599,7 @@
         ></textarea>
       </label>
 
-      <label class="field">
+      <label class="field" *ngIf="!esRoboSoccerSeleccionado">
         <span>
           Tamaño de bloque
           (fase de grupos)
@@ -607,11 +613,9 @@
       </label>
 
       <div
-        class="field"
-        *ngIf="
-          form.controls.categoria.value
-        "
-      >
+  class="field"
+  *ngIf="form.controls.categoria.value && !esRoboSoccerSeleccionado"
+>
 
         <div class="robot-picker__header">
 
@@ -686,6 +690,31 @@
         </ng-template>
 
       </div>
+
+      <div class="field" *ngIf="esRoboSoccerSeleccionado">
+  <div class="robot-picker__header">
+    <span>
+      Equipos inscritos ({{ form.controls.equiposInscritos.value.length }})
+    </span>
+  </div>
+
+  <div class="robot-picker" *ngIf="equiposDisponibles().length; else noEquipos">
+    <label class="robot-picker__item" *ngFor="let equipo of equiposDisponibles()">
+      <input
+        type="checkbox"
+        [checked]="isEquipoChecked(equipo._id)"
+        (change)="toggleEquipoInscrito(equipo._id, $any($event.target).checked)"
+      />
+      {{ equipo.nombre }}
+    </label>
+  </div>
+
+  <ng-template #noEquipos>
+    <p class="robot-picker__empty">
+      No hay equipos disponibles para esta categoría.
+    </p>
+  </ng-template>
+</div>
 
       <p
         class="field__error"
@@ -857,10 +886,10 @@
         *appCan="'admin'"
         class="btn btn--ghost"
         [routerLink]="[
-          '/torneos',
-          torneo._id,
-          'bloques'
-        ]"
+  '/torneos',
+  torneo._id,
+  esTorneoRoboSoccer(torneo) ? 'grupos' : 'bloques'
+]"
       >
         Gestionar fases →
       </a>

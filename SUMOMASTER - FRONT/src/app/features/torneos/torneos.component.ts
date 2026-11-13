@@ -1,6 +1,10 @@
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError, EMPTY, switchMap, tap } from 'rxjs';
+import { EquipoService } from '../../core/services/equipo.service';
+import { Equipo } from '../../core/models/equipo.model';
 import { extractErrorMessage } from '../../core/utils/error-message.util';
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { SidebarComponent } from '../../shared/components/sidebar/sidebar.component';
@@ -9,9 +13,11 @@ import { TorneoService } from '../../core/services/torneo.service';
 import { CategoriaService } from '../../core/services/categoria.service';
 import { RobotService } from '../../core/services/robot.service';
 import { EstadoTorneo, Torneo } from '../../core/models/torneo.model';
-import { Categoria } from '../../core/models/categoria.model';
+import { Categoria, TipoCombate } from '../../core/models/categoria.model';
 import { Robot } from '../../core/models/robot.model';
 import { CanDirective } from '../../shared/directives/can.directive';
+import type { Observable } from 'rxjs';
+
 
 type ModalMode = 'create' | 'edit' | 'view' | null;
 type TabFilter = 'todos' | EstadoTorneo;
@@ -29,6 +35,8 @@ export class TorneosComponent implements OnInit {
   private readonly torneoService = inject(TorneoService);
   private readonly categoriaService = inject(CategoriaService);
   private readonly robotService = inject(RobotService);
+  private readonly equipoService = inject(EquipoService);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder);
 
   readonly EstadoTorneo = EstadoTorneo;
@@ -46,6 +54,7 @@ export class TorneosComponent implements OnInit {
   readonly torneos = signal<Torneo[]>([]);
   readonly categorias = signal<Categoria[]>([]);
   readonly robotsDisponibles = signal<Robot[]>([]);
+  readonly equiposDisponibles = signal<Equipo[]>([]);
   readonly loading = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly page = signal(1);
@@ -84,23 +93,55 @@ export class TorneosComponent implements OnInit {
     estado: [EstadoTorneo.PROGRAMADO, Validators.required],
     tamanioBloque: [16, [Validators.required, Validators.min(2)]],
     robotsInscritos: this.fb.nonNullable.control<string[]>([]),
+    equiposInscritos: this.fb.nonNullable.control<string[]>([]),
   });
+
+  get esRoboSoccerSeleccionado(): boolean {
+    const categoriaId = this.form.controls.categoria.value;
+    const seleccionada = this.selectedTorneo()?.categoria;
+    const tipoCombate =
+      this.categorias().find((item) => item._id === categoriaId)?.tipoCombate ??
+      (seleccionada && typeof seleccionada !== 'string' && seleccionada._id === categoriaId
+        ? seleccionada.tipoCombate
+        : undefined);
+
+    return tipoCombate === TipoCombate.ROBO_SOCCER_RC;
+  }
 
   ngOnInit(): void {
     this.categoriaService.findAll().subscribe({ next: (data) => this.categorias.set(data) });
     this.loadTorneos();
 
-    // Cada vez que cambia la categoría elegida en el formulario, recarga los robots disponibles
-    this.form.controls.categoria.valueChanges.subscribe((categoriaId) => {
-      this.form.controls.robotsInscritos.setValue([]);
-      if (!categoriaId) {
+    this.form.controls.categoria.valueChanges.pipe(
+      switchMap((categoriaId) => {
+        this.form.controls.robotsInscritos.setValue([]);
+        this.form.controls.equiposInscritos.setValue([]);
         this.robotsDisponibles.set([]);
-        return;
-      }
-      this.robotService.findAll({ categoria: categoriaId }).subscribe({
-        next: (data) => this.robotsDisponibles.set(data),
-      });
-    });
+        this.equiposDisponibles.set([]);
+        this.formError.set(null);
+
+        if (!categoriaId) return EMPTY;
+
+        const esRoboSoccer = this.esRoboSoccerSeleccionado;
+        const consulta: Observable<Equipo[] | Robot[]> = esRoboSoccer
+          ? this.equipoService.findAll({ categoria: categoriaId }).pipe(
+              tap((equipos) => this.equiposDisponibles.set(equipos)),
+            )
+          : this.robotService.findAll({ categoria: categoriaId }).pipe(
+              tap((robots) => this.robotsDisponibles.set(robots)),
+            );
+
+        return consulta.pipe(
+          catchError(() => {
+            this.formError.set(
+              esRoboSoccer ? 'No se pudieron cargar los equipos.' : 'No se pudieron cargar los robots.',
+            );
+            return EMPTY;
+          }),
+        );
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe();
   }
 
   loadTorneos(): void {
@@ -155,12 +196,6 @@ export class TorneosComponent implements OnInit {
     this.selectedTorneo.set(torneo);
     const categoriaId = this.categoriaId(torneo);
 
-    if (categoriaId) {
-      this.robotService.findAll({ categoria: categoriaId }).subscribe({
-        next: (data) => this.robotsDisponibles.set(data),
-      });
-    }
-
     this.form.reset({
       nombre: torneo.nombre,
       fecha: torneo.fecha?.substring(0, 10) ?? '',
@@ -168,10 +203,18 @@ export class TorneosComponent implements OnInit {
       descripcion: torneo.descripcion ?? '',
       estado: torneo.estado,
       tamanioBloque: torneo.tamanioBloque,
-      robotsInscritos: torneo.robotsInscritos.map((r) =>
-        typeof r === 'string' ? r : r._id,
-      ),
     });
+
+    this.form.controls.robotsInscritos.setValue(
+      (torneo.robotsInscritos ?? []).map((robot) =>
+        typeof robot === 'string' ? robot : robot._id,
+      ),
+    );
+    this.form.controls.equiposInscritos.setValue(
+      (torneo.equiposInscritos ?? []).map((equipo) =>
+        typeof equipo === 'string' ? equipo : equipo._id,
+      ),
+    );
     this.modalMode.set('edit');
   }
 
@@ -199,6 +242,17 @@ export class TorneosComponent implements OnInit {
     return this.form.controls.robotsInscritos.value.includes(robotId);
   }
 
+  toggleEquipoInscrito(equipoId: string, checked: boolean): void {
+    const control = this.form.controls.equiposInscritos;
+    const ids = control.value.filter((id) => id !== equipoId);
+    control.setValue(checked ? [...ids, equipoId] : ids);
+    control.markAsDirty();
+  }
+
+  isEquipoChecked(equipoId: string): boolean {
+    return this.form.controls.equiposInscritos.value.includes(equipoId);
+  }
+
   numeroRobotInscrito(robotId: string): number | null {
     const participante = this.selectedTorneo()?.participantes?.find((item) =>
       typeof item.robot === 'string'
@@ -213,29 +267,20 @@ export class TorneosComponent implements OnInit {
   }
 
   todosRobotsSeleccionados(): boolean {
-  const robots = this.robotsDisponibles();
-  const seleccionados = this.form.controls.robotsInscritos.value;
+    const robots = this.robotsDisponibles();
+    const seleccionados = this.form.controls.robotsInscritos.value;
 
-  return (
-    robots.length > 0 &&
-    robots.every((robot) => seleccionados.includes(robot._id))
-  );
-}
-
-toggleTodosRobots(): void {
-  const robots = this.robotsDisponibles();
-
-  if (this.todosRobotsSeleccionados()) {
-    this.form.controls.robotsInscritos.setValue([]);
-  } else {
-    this.form.controls.robotsInscritos.setValue(
-      robots.map((robot) => robot._id),
-    );
+    return robots.length > 0 && robots.every((robot) => seleccionados.includes(robot._id));
   }
 
-  this.form.controls.robotsInscritos.markAsDirty();
-  this.form.controls.robotsInscritos.markAsTouched();
-}
+  toggleTodosRobots(): void {
+    const control = this.form.controls.robotsInscritos;
+    control.setValue(
+      this.todosRobotsSeleccionados() ? [] : this.robotsDisponibles().map((robot) => robot._id),
+    );
+    control.markAsDirty();
+    control.markAsTouched();
+  }
 
   submitForm(): void {
     if (this.form.invalid) {
@@ -251,7 +296,8 @@ toggleTodosRobots(): void {
       descripcion: raw.descripcion?.trim() || '',
       estado: raw.estado,
       tamanioBloque: raw.tamanioBloque,
-      robotsInscritos: raw.robotsInscritos,
+      robotsInscritos: this.esRoboSoccerSeleccionado ? [] : raw.robotsInscritos,
+      equiposInscritos: this.esRoboSoccerSeleccionado ? raw.equiposInscritos : [],
     };
 
     this.saving.set(true);
@@ -309,6 +355,15 @@ toggleTodosRobots(): void {
     const categoria = torneo.categoria;
     return typeof categoria === 'string' ? categoria : categoria?.nombre ?? '—';
   }
+
+  esTorneoRoboSoccer(torneo: Torneo): boolean {
+  const categoria = torneo.categoria;
+  const tipoCombate = typeof categoria === 'string'
+    ? this.categorias().find((item) => item._id === categoria)?.tipoCombate
+    : categoria.tipoCombate;
+
+  return tipoCombate === TipoCombate.ROBO_SOCCER_RC;
+}
 
   robotNombre(robot: Robot | string): string {
     return typeof robot === 'string' ? robot : robot.nombre;

@@ -284,6 +284,32 @@ export const routes: Routes = [
         (m) => m.TorneoReportesComponent,
       ),
   },
+  {
+  path: 'torneos/:id/grupos',
+  canActivate: [authGuard, SOLO_ADMIN],
+  loadComponent: () =>
+    import('./features/torneo-grupos/torneo-grupos.component').then(
+      (m) => m.TorneoGruposComponent,
+    ),
+},
+
+{
+  path: 'torneos/:id/grupos/resultados',
+  canActivate: [authGuard, SOLO_ADMIN],
+  loadComponent: () =>
+    import('./features/torneo-resultados-soccer/torneo-resultados-soccer.component').then(
+      (m) => m.TorneoResultadosSoccerComponent,
+    ),
+},
+
+{
+  path: 'torneos/:id/grupos/llaves',
+  canActivate: [authGuard, SOLO_ADMIN],
+  loadComponent: () =>
+    import('./features/torneo-llaves-soccer/torneo-llaves-soccer.component').then(
+      (m) => m.TorneoLlavesSoccerComponent,
+    ),
+},
 
   // =========================
   // CUALQUIER RUTA DESCONOCIDA

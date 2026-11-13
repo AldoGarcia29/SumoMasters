@@ -1,0 +1,174 @@
+:host {
+  display: block;
+  color: #f8f5ff;
+}
+
+.soccer {
+  padding: 0.75rem 0 1rem;
+}
+
+.soccer-barra,
+.soccer-tarjeta__barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.soccer-barra {
+  margin-bottom: 0.75rem;
+}
+
+.soccer-barra h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.soccer-barra h2 span,
+.soccer-aviso {
+  color: #c8b9db;
+}
+
+.soccer select {
+  max-width: 100%;
+  padding: 0.45rem 0.6rem;
+  color: #f8f5ff;
+  background: #201731;
+  border: 1px solid #59437a;
+  border-radius: 0.5rem;
+  font: inherit;
+}
+
+.soccer-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.soccer-tarjeta {
+  grid-column: span 2;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #59437a;
+  border-radius: 1rem;
+  background:
+    radial-gradient(ellipse at bottom left, #133671, transparent 65%),
+    radial-gradient(ellipse at bottom right, #661f33, transparent 65%),
+    #130f22;
+}
+
+.soccer-grid[data-cantidad="1"] .soccer-tarjeta {
+  grid-column: 2 / 6;
+}
+
+.soccer-grid:is([data-cantidad="2"], [data-cantidad="4"]) .soccer-tarjeta {
+  grid-column: span 3;
+}
+
+.soccer-grid[data-cantidad="5"] .soccer-tarjeta:nth-child(4) {
+  grid-column: 2 / 4;
+}
+
+.soccer-tarjeta__barra {
+  padding: 0.75rem;
+  background: #1c142a;
+  border-bottom: 1px solid #403252;
+}
+
+.soccer-enfrentamiento {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 12rem;
+  padding: 1rem;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.soccer-grid[data-cantidad="1"] .soccer-enfrentamiento {
+  min-height: 22rem;
+}
+
+.soccer-local,
+.soccer-visitante {
+  font-size: clamp(1rem, 2vw, 1.75rem);
+}
+
+.soccer-local { color: #8edaff; }
+.soccer-visitante { color: #ff9aaa; }
+
+.soccer-marcador {
+  font-size: clamp(1.5rem, 3vw, 3rem);
+  text-shadow: 0 0 18px #a34dfb;
+}
+
+.soccer-espera {
+  display: grid;
+  place-items: center;
+  min-height: 12rem;
+  padding: 1rem;
+  color: #c8b9db;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .soccer-grid[data-cantidad] .soccer-tarjeta {
+    grid-column: span 3;
+  }
+
+  .soccer-grid[data-cantidad="1"] .soccer-tarjeta {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 560px) {
+  .soccer-grid[data-cantidad] .soccer-tarjeta {
+    grid-column: 1 / -1;
+  }
+}
+
+
+
+.soccer-local,
+.soccer-visitante {
+  display: grid;
+  place-content: center;
+  gap: .35rem;
+  min-width: 0;
+  min-height: 4rem;
+  padding: .65rem .4rem;
+  border: 2px solid var(--marco-equipo);
+  border-radius: .8rem;
+  background: #130f22;
+  box-shadow: 0 0 16px var(--brillo-equipo);
+  overflow-wrap: anywhere;
+}
+
+.soccer-local {
+  --marco-equipo: #55c8ff;
+  --brillo-equipo: #37acff66;
+}
+
+.soccer-visitante {
+  --marco-equipo: #ff6387;
+  --brillo-equipo: #ff4e7866;
+}
+
+.soccer-marcador {
+  color: #fff4ff;
+  text-shadow: 0 0 8px #cf80ff, 0 0 24px #a34dfb;
+}
+
+.soccer-ganador {
+  border-color: #74edba;
+  box-shadow: 0 0 20px #42e9a477;
+}
+
+.soccer-ganador small {
+  color: #a5f7d2;
+  font-size: .7em;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}

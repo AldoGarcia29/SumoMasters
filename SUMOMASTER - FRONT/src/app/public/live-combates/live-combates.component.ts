@@ -26,6 +26,8 @@ import {
   TorneoResumen,
 } from '../models/live.model';
 import { PublicApiService } from '../services/public-api.service';
+import { RoboSoccerProyeccionComponent } from './robo-soccer-proyeccion.component';
+
 
 interface DojoPantalla {
   numero: number;
@@ -55,6 +57,7 @@ function normalizar(texto: string): string {
     FormsModule,
     RouterLink,
     LiveUserMenuComponent,
+    RoboSoccerProyeccionComponent,
   ],
   templateUrl: './live-combates.component.html',
   styleUrls: ['./live-combates.component.css'],
@@ -82,7 +85,8 @@ export class LiveCombatesComponent implements OnInit, OnDestroy {
   pagina = 0;
   readonly porPagina = 4;
 
-  vistaProyeccion: 'arena' | 'bloques' = 'arena';
+  vistaProyeccion: 'arena' | 'bloques' | 'roboSoccer' = 'arena';
+  torneoSoccerId = '';
   readonly opcionesDojos = [1, 2, 3, 4, 5];
   dojosSeleccionados = [1, 2, 3, 4, 5];
   dojosPantalla: DojoPantalla[] = [];

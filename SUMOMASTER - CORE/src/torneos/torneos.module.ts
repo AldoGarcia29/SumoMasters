@@ -5,9 +5,13 @@ import { TorneosController } from './torneos.controller';
 import { TorneosService } from './torneos.service';
 
 import { PublicModule } from '../public/public.module';
+import { Equipo, EquipoSchema } from '../equipos/schemas/equipo.schema';
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Torneo.name, schema: TorneoSchema }]),
+    MongooseModule.forFeature([
+  { name: Torneo.name, schema: TorneoSchema },
+  { name: Equipo.name, schema: EquipoSchema },
+]),
     PublicModule,
   ],
   controllers: [TorneosController],

@@ -1,0 +1,118 @@
+<div class="app-shell">
+  <app-sidebar [isOpen]="sidebarOpen()" (closeRequested)="sidebarOpen.set(false)" />
+  <div class="app-shell__backdrop" *ngIf="sidebarOpen()" (click)="sidebarOpen.set(false)"></div>
+
+  <div class="app-shell__main">
+    <app-topbar
+      title="Registro de resultados"
+      [subtitle]="'Torneos › ' + (torneo()?.nombre ?? 'Robo Soccer RC') + ' › Resultados'"
+      [notificationCount]="3"
+      (menuToggle)="sidebarOpen.set(!sidebarOpen())"
+    />
+
+    <main class="resultados-page">
+      <p *ngIf="cargando()" role="status">Cargando partidos…</p>
+      <p *ngIf="error()" class="panel__error" role="alert">{{ error() }}</p>
+
+      <ng-container *ngIf="torneo() as actual">
+        <section class="panel panel--header">
+          <div>
+            <h2>{{ actual.nombre }}</h2>
+            <p>Robo Soccer RC · Fase de grupos</p>
+          </div>
+          <a class="btn btn--ghost" [routerLink]="['/torneos', actual._id, 'grupos']">
+            ← Volver a grupos
+          </a>
+
+          <a
+  *ngIf="grupos().length"
+  class="btn btn--primary"
+  [routerLink]="['/torneos', actual._id, 'grupos', 'llaves']"
+>
+  Ir a llaves →
+</a>
+        </section>
+
+        <p *ngIf="errorGuardado()" class="panel__error" role="alert">{{ errorGuardado() }}</p>
+
+        <p class="panel grupo-panel" *ngIf="!grupos().length">
+          Genera los grupos para registrar sus partidos.
+        </p>
+
+        <section class="panel grupo-panel" *ngFor="let grupo of grupos()">
+          <h2>{{ grupo.nombre }}</h2>
+
+          <div class="grupo-layout">
+            <div class="partidos">
+              <h3>Partidos</h3>
+
+              <article class="partido" *ngFor="let partido of grupo.partidos">
+                <div class="partido-cabecera">
+                  <strong>{{ nombreEquipo(partido.localId) }} vs. {{ nombreEquipo(partido.visitanteId) }}</strong>
+                  <span class="badge" [class.badge--success]="partido.resultado"
+                    [class.badge--neutral]="!partido.resultado">
+                    {{ partido.resultado
+                      ? partido.resultado.golesLocal + '–' + partido.resultado.golesVisitante
+                      : 'Pendiente' }}
+                  </span>
+                </div>
+
+                <form
+                  class="marcador"
+                  *ngIf="!partido.resultado"
+                  (submit)="$event.preventDefault(); guardar(grupo.numero, partido, local.valueAsNumber, visita.valueAsNumber)"
+                >
+                  <label class="field">
+                    <span>Goles de {{ nombreEquipo(partido.localId) }}</span>
+                    <input #local type="number" min="0" step="1" required />
+                  </label>
+                  <label class="field">
+                    <span>Goles de {{ nombreEquipo(partido.visitanteId) }}</span>
+                    <input #visita type="number" min="0" step="1" required />
+                  </label>
+                  <button class="btn btn--primary" type="submit" [disabled]="guardando()">
+                    Guardar resultado
+                  </button>
+                </form>
+              </article>
+            </div>
+
+            <div class="posiciones">
+              <h3>Tabla de posiciones</h3>
+              <div class="tabla-scroll">
+                <table [attr.aria-label]="'Posiciones de ' + grupo.nombre">
+                  <thead>
+                    <tr>
+                      <th scope="col">Equipo</th>
+                      <th scope="col" title="Jugados">PJ</th>
+                      <th scope="col" title="Ganados">PG</th>
+                      <th scope="col" title="Empatados">PE</th>
+                      <th scope="col" title="Perdidos">PP</th>
+                      <th scope="col" title="Goles a favor">GF</th>
+                      <th scope="col" title="Goles en contra">GC</th>
+                      <th scope="col" title="Diferencia de goles">DG</th>
+                      <th scope="col">Pts</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let fila of grupo.tabla">
+                      <th scope="row">{{ nombreEquipo(fila.id) }}</th>
+                      <td>{{ fila.pj }}</td>
+                      <td>{{ fila.pg }}</td>
+                      <td>{{ fila.pe }}</td>
+                      <td>{{ fila.pp }}</td>
+                      <td>{{ fila.gf }}</td>
+                      <td>{{ fila.gc }}</td>
+                      <td>{{ fila.dg > 0 ? '+' : '' }}{{ fila.dg }}</td>
+                      <td><strong>{{ fila.puntos }}</strong></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+      </ng-container>
+    </main>
+  </div>
+</div>

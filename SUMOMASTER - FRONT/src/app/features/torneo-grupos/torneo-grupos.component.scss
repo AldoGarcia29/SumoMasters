@@ -1,0 +1,221 @@
+@use '../../shared/styles/admin-page';
+
+.grupos-page {
+  display: grid;
+  gap: 1.25rem;
+  padding: 1.75rem 2rem 3rem;
+}
+
+.grupos-cabecera,
+.grupo-card__header,
+.partido-fila,
+.grupos-resumen dl > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.grupos-cabecera,
+.partido-fila {
+  flex-wrap: wrap;
+}
+
+.grupos-identidad,
+.equipo-card {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.grupos-identidad h2,
+.grupos-config h3,
+.grupo-card h3 {
+  margin: 0;
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+}
+
+.grupos-identidad p {
+  margin: 0.2rem 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.grupos-icono,
+.equipo-card__inicial {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: none;
+  color: var(--color-primary);
+  background: #f1e9ff;
+  border-radius: 0.65rem;
+}
+
+.grupos-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 18rem);
+  align-items: start;
+  gap: 1.25rem;
+}
+
+.grupos-panel {
+  min-width: 0;
+  padding: 1.25rem;
+}
+
+.grupos-pestanas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1.15rem;
+
+  button {
+    padding: 0.65rem 0.9rem;
+    color: var(--color-text-muted);
+    background: transparent;
+    border: 0;
+    border-radius: var(--radius-sm);
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover,
+    &.activa {
+      color: var(--color-primary);
+      background: #f1e9ff;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+  }
+}
+
+.grupos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  gap: 0.85rem;
+}
+
+.equipos-lista,
+.partidos-lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.grupo-card,
+.equipo-card {
+  padding: 0.9rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.grupo-card {
+  min-width: 0;
+}
+
+.partidos-lista {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+
+.partido-fila {
+  padding: 0.65rem 0.75rem;
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+}
+
+.partido-equipos {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.partido-versus {
+  margin: 0 0.3rem;
+  color: var(--color-text-muted);
+}
+
+.grupos-config {
+  display: grid;
+  gap: 1rem;
+}
+
+.grupos-cantidad {
+  margin: 0;
+
+  small {
+    color: var(--color-text-muted);
+    font-size: 0.78rem;
+  }
+}
+
+.grupos-resumen,
+.grupos-nota,
+.grupos-vacio {
+  margin: 0;
+  padding: 0.85rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+}
+
+.grupos-resumen,
+.grupos-vacio {
+  background: var(--color-bg);
+}
+
+.grupos-resumen h4 {
+  margin: 0 0 0.65rem;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.grupos-resumen dl {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.grupos-resumen dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+.grupos-nota {
+  color: var(--color-primary);
+  background: #f1e9ff;
+  line-height: 1.5;
+}
+
+.grupos-vacio {
+  color: var(--color-text-muted);
+  border: 1px dashed var(--color-border);
+}
+
+.grupos-volver {
+  text-decoration: none;
+}
+
+@media (max-width: 900px) {
+  .grupos-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .grupos-page {
+    padding: 1.25rem;
+  }
+}

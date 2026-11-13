@@ -1,43 +1,51 @@
-import {
-  IsArray,
-  IsDateString,
-  IsEnum,
-  IsMongoId,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  MaxLength,
-  Min,
-} from 'class-validator';
-import { EstadoTorneo } from '../enums/estado-torneo.enum';
+  import {
+    IsArray,
+    IsDateString,
+    IsEnum,
+    IsMongoId,
+    IsNotEmpty,
+    IsOptional,
+    IsString,
+    MaxLength,
+    Min,
+  } from 'class-validator';
+  import { EstadoTorneo } from '../enums/estado-torneo.enum';
 
-export class CreateTorneoDto {
-  @IsString()
-  @IsNotEmpty({ message: 'El nombre del torneo es obligatorio' })
-  @MaxLength(120)
-  nombre: string;
+  export class CreateTorneoDto {
+    @IsString()
+    @IsNotEmpty({ message: 'El nombre del torneo es obligatorio' })
+    @MaxLength(120)
+    nombre: string;
 
-  @IsDateString({}, { message: 'La fecha no es válida' })
-  fecha: string;
+    @IsDateString({}, { message: 'La fecha no es válida' })
+    fecha: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(500)
-  descripcion?: string;
+    @IsOptional()
+    @IsString()
+    @MaxLength(500)
+    descripcion?: string;
 
-  @IsMongoId({ message: 'Selecciona una categoría válida' })
-  categoria: string;
+    @IsMongoId({ message: 'Selecciona una categoría válida' })
+    categoria: string;
 
-  @IsOptional()
-  @IsEnum(EstadoTorneo, { message: 'Estado no válido' })
-  estado?: EstadoTorneo;
+    @IsOptional()
+    @IsEnum(EstadoTorneo, { message: 'Estado no válido' })
+    estado?: EstadoTorneo;
 
-  @IsOptional()
+    @IsOptional()
+    @IsArray()
+    @IsMongoId({ each: true, message: 'Uno de los robots seleccionados no es válido' })
+    robotsInscritos?: string[];
+
+      @IsOptional()
   @IsArray()
-  @IsMongoId({ each: true, message: 'Uno de los robots seleccionados no es válido' })
-  robotsInscritos?: string[];
+  @IsMongoId({
+    each: true,
+    message: 'Uno de los equipos seleccionados no es válido',
+  })
+  equiposInscritos?: string[];
 
-  @IsOptional()
-  @Min(2)
-  tamanioBloque?: number;
-}
+    @IsOptional()
+    @Min(2)
+    tamanioBloque?: number;
+  }

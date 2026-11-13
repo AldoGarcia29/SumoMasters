@@ -1674,3 +1674,21 @@ a:focus-visible {
     grid-template-columns: 1fr;
   }
 }
+
+.proyeccion-torneo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #f8f5ff;
+  font-size: 0.9rem;
+}
+
+.proyeccion-torneo select {
+  max-width: 16rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #59437a;
+  border-radius: 0.5rem;
+  background: #201731;
+  color: inherit;
+  font: inherit;
+}
