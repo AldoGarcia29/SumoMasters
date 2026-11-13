@@ -82,9 +82,9 @@ export class LiveCombatesComponent implements OnInit, OnDestroy {
   pagina = 0;
   readonly porPagina = 4;
 
-  vistaProyeccion: 'arena' | 'lista' | 'bloques' = 'arena';
-  readonly opcionesDojos = [1, 2, 3, 4];
-  dojosSeleccionados = [1, 2, 3, 4];
+  vistaProyeccion: 'arena' | 'bloques' = 'arena';
+  readonly opcionesDojos = [1, 2, 3, 4, 5];
+  dojosSeleccionados = [1, 2, 3, 4, 5];
   dojosPantalla: DojoPantalla[] = [];
 
   private ultimoAvance = Date.now();
@@ -660,10 +660,10 @@ export class LiveCombatesComponent implements OnInit, OnDestroy {
   }
 
   private numeroDojo(valor: string): number | null {
-    // Acepta "1", "Dojo 1" o "Dojo #1".
+    // Acepta "1" a "5", "Dojo 1" a "Dojo 5", o "Dojo #5".
     const coincidencia = normalizar(
       (valor || '').trim(),
-    ).match(/^(?:dojo\s*#?\s*)?0*([1-4])$/);
+    ).match(/^(?:dojo\s*#?\s*)?0*([1-5])$/);
 
     return coincidencia ? Number(coincidencia[1]) : null;
   }

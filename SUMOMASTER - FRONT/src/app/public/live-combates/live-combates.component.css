@@ -1578,3 +1578,99 @@ a:focus-visible {
  .bloques-proyeccion__grid { grid-template-columns:1fr; }
  .bloque-proyectado__foto { width:48px; height:48px; flex-basis:48px; }
 }
+
+/* ================================================
+   PROYECCIÓN DE CINCO DOJOS — SUMO MASTERS
+   Mantiene cada dojo y su cola independiente.
+   ================================================ */
+
+/* 3 paneles arriba y 2 paneles centrados abajo. */
+.arena.arena--cinco {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  min-height: 0;
+}
+
+.arena.arena--cinco > .panel-dojo {
+  grid-column: span 2;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+.arena.arena--cinco > .panel-dojo:nth-child(4) {
+  grid-column: 2 / span 2;
+}
+
+.arena.arena--cinco > .panel-dojo:nth-child(5) {
+  grid-column: 4 / span 2;
+}
+
+/* Más espacio útil para el combate en cada panel. */
+.arena.arena--cinco .panel-dojo__cabecera {
+  padding: 7px 12px;
+}
+
+.arena.arena--cinco .panel-dojo__cabecera h2 {
+  font-size: clamp(16px, 1.4vw, 24px);
+  letter-spacing: 1px;
+}
+
+.arena.arena--cinco .contenido-dojo {
+  padding: 7px 10px;
+}
+
+.arena.arena--cinco .combate-meta {
+  margin-bottom: 6px;
+}
+
+.arena.arena--cinco .duelo {
+  gap: 6px;
+}
+
+.arena.arena--cinco .foto {
+  width: clamp(45px, 5.2vw, 85px);
+  height: clamp(45px, 5.2vw, 85px);
+}
+
+.arena.arena--cinco .robot__nombre strong {
+  font-size: clamp(13px, 1.15vw, 20px);
+  overflow-wrap: anywhere;
+}
+
+.arena.arena--cinco .duelo > .vs {
+  font-size: clamp(21px, 2vw, 34px);
+}
+
+.arena.arena--cinco .proximo {
+  padding: 6px 9px;
+}
+
+.arena.arena--cinco .proximo strong {
+  font-size: clamp(11px, .95vw, 16px);
+}
+
+/* Evita que una proyección de 5 dojos corte el contenido
+   en pantallas estrechas; habilita desplazamiento. */
+@media (max-width: 900px) {
+  .arena.arena--cinco {
+    flex: none;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: none;
+    grid-auto-rows: minmax(260px, auto);
+  }
+
+  .arena.arena--cinco > .panel-dojo,
+  .arena.arena--cinco > .panel-dojo:nth-child(4),
+  .arena.arena--cinco > .panel-dojo:nth-child(5) {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .arena.arena--cinco {
+    grid-template-columns: 1fr;
+  }
+}

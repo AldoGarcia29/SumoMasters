@@ -112,7 +112,6 @@
         Vista inicial
         <select [(ngModel)]="vistaProyeccion">
           <option value="arena">Arena dividida</option>
-          <option value="lista">Lista de llamados</option>
           <option value="bloques">Bloques / Grupos</option>
         </select>
       </label>
@@ -135,7 +134,7 @@
 
     <p class="aviso" *ngIf="data && sinDojo">
       {{ sinDojo }} combates pendientes o activos no tienen
-      un dojo del 1 al 4 reconocido. Asígnalos para incluirlos
+      un dojo del 1 al 5 reconocido. Asígnalos para incluirlos
       en la proyección.
     </p>
   </div>
@@ -401,7 +400,7 @@
     </footer>
   </ng-container>
 
-  <!-- Proyección: dos vistas con el mismo estado. -->
+  <!-- Proyección: arena dividida o bloques, con el mismo estado. -->
   <ng-container *ngIf="modoProyeccion">
     <nav
       class="barra-proyeccion"
@@ -415,16 +414,6 @@
         (click)="vistaProyeccion = 'arena'"
       >
         ▦ Arena
-      </button>
-
-      <button
-        type="button"
-        class="boton"
-        [class.activo]="vistaProyeccion === 'lista'"
-        [attr.aria-pressed]="vistaProyeccion === 'lista'"
-        (click)="vistaProyeccion = 'lista'"
-      >
-        ☷ Lista de llamados
       </button>
 
       <button
@@ -488,6 +477,7 @@
       [class.arena--uno]="dojosPantalla.length === 1"
       [class.arena--dos]="dojosPantalla.length === 2"
       [class.arena--tres]="dojosPantalla.length === 3"
+      [class.arena--cinco]="dojosPantalla.length === 5"
       *ngIf="vistaProyeccion === 'arena'"
       aria-label="Combates por dojo"
     >
@@ -578,79 +568,6 @@
       </article>
     </section>
 
-    <!-- Vista de lista de llamados. -->
-    <section
-      class="lista-llamados"
-      *ngIf="vistaProyeccion === 'lista'"
-      aria-label="En línea y siguiente por dojo"
-    >
-      <div class="lista-titulos">
-        <span>DOJO</span>
-        <span>EN LÍNEA</span>
-        <span>SIGUIENTE · PREPÁRENSE</span>
-      </div>
 
-      <article
-        class="fila-llamado"
-        *ngFor="let d of dojosPantalla; trackBy: trackDojo"
-        [class.celebrando]="d.etapa === 'resultado'"
-        [class.saliendo]="d.etapa === 'salida'"
-        [class.entrando]="d.etapa === 'entrada'"
-      >
-        <h2>
-          DOJO <strong>{{ d.numero }}</strong>
-        </h2>
-
-        <div class="llamado-actual">
-          <ng-container
-            *ngIf="d.actual as c; else esperaLista"
-          >
-            <span class="etiqueta-llamado">
-              {{
-                terminado(c)
-                  ? c.empate
-                    ? "EMPATE"
-                    : "RESULTADO CONFIRMADO"
-                  : c.estado === "En curso"
-                    ? "● EN CURSO"
-                    : "EN LÍNEA"
-              }}
-            </span>
-
-            <ng-container
-              *ngTemplateOutlet="
-                duelo;
-                context: { $implicit: c }
-              "
-            ></ng-container>
-          </ng-container>
-
-          <ng-template #esperaLista>
-            <p>Esperando próximo combate</p>
-          </ng-template>
-        </div>
-
-        <div class="llamado-siguiente">
-          <ng-container
-            *ngIf="d.siguiente as c; else esperaSiguiente"
-          >
-            <span class="etiqueta-llamado">
-              SIGUIENTE · COMBATE #{{ c.numero }}
-            </span>
-
-            <ng-container
-              *ngTemplateOutlet="
-                duelo;
-                context: { $implicit: c }
-              "
-            ></ng-container>
-          </ng-container>
-
-          <ng-template #esperaSiguiente>
-            <p>Por anunciar</p>
-          </ng-template>
-        </div>
-      </article>
-    </section>
   </ng-container>
 </main>
