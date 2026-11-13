@@ -358,6 +358,11 @@ export class TorneosComponent implements OnInit {
 
   esTorneoRoboSoccer(torneo: Torneo): boolean {
   const categoria = torneo.categoria;
+
+  if (categoria == null) {
+    return false;
+  }
+
   const tipoCombate = typeof categoria === 'string'
     ? this.categorias().find((item) => item._id === categoria)?.tipoCombate
     : categoria.tipoCombate;
