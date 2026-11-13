@@ -3,6 +3,7 @@ export enum TipoCombate {
   SUMO_AUTONOMO = 'Sumo Autónomo',
   SUMO_RC = 'Sumo RC',
   ROBO_SOCCER_RC = 'Robo Soccer RC',
+  SEGUILINEAS = 'Seguilineas',
 }
 
 export enum EstadoCategoria {

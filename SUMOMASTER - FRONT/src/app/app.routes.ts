@@ -150,6 +150,20 @@ export const routes: Routes = [
       ),
   },
 
+  // SEGUILINEAS
+  {
+    path: 'live/seguilineas/:id',
+    data: { soloLectura: true },
+    loadComponent: () =>
+      import('./features/seguilineas/seguilineas-panel.component').then((m) => m.SeguilineasPanelComponent),
+  },
+  {
+    path: 'staff/seguilineas/:id',
+    canActivate: [authGuard, ADMIN_Y_STAFF],
+    loadComponent: () =>
+      import('./features/seguilineas/seguilineas-panel.component').then((m) => m.SeguilineasPanelComponent),
+  },
+
   // =========================
   // SELECCION DE TORNEO PARA STAFF
   // =========================

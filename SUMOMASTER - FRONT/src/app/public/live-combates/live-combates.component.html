@@ -600,4 +600,17 @@
 
 
   </ng-container>
+
+  <!-- News ticker: fijo abajo, estado rotativo cada 30 s -->
+  <footer class="ticker" *ngIf="ticker$ | async as t" [attr.data-tipo]="t.tipo" aria-live="off">
+    <span class="ticker__etiqueta">{{ t.etiqueta }}</span>
+    <div class="ticker__ventana">
+      <div class="ticker__pista" [style.animationDuration.s]="t.duracionS">
+        <span class="ticker__item" *ngFor="let it of t.pista; trackBy: trackTicker">
+          <img *ngIf="it.logo" [src]="it.logo" alt="Patrocinador UTEQ" />
+          <ng-container *ngIf="it.texto">{{ it.texto }}</ng-container>
+        </span>
+      </div>
+    </div>
+  </footer>
 </main>

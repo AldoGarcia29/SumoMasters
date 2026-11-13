@@ -13,6 +13,7 @@ import { RankingModule } from './ranking/ranking.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PublicModule } from './public/public.module';
+import { SeguilineasModule } from './seguilineas/seguilineas.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { PublicModule } from './public/public.module';
     CombatesModule,
     RankingModule,
     PublicModule,
+    SeguilineasModule,
   ],
   controllers: [AppController],
   providers: [AppService],

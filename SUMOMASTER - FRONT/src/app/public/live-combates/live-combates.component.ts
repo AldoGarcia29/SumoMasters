@@ -1,10 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
+  BehaviorSubject,
   EMPTY,
+  Observable,
   Subscription,
+  combineLatest,
   catchError,
   distinctUntilChanged,
   exhaustMap,
@@ -27,6 +30,15 @@ import {
 } from '../models/live.model';
 import { PublicApiService } from '../services/public-api.service';
 import { RoboSoccerProyeccionComponent } from './robo-soccer-proyeccion.component';
+import { RankingSeguilineas, formatearTiempo } from '../../core/models/seguilineas.model';
+import { SeguilineasService } from '../../core/services/seguilineas.service';
+
+const TICKER_MS = 30_000;
+const LOGO_PATROCINADOR = '/image_75528b.png';
+
+type TickerTipo = 'recientes' | 'top3' | 'patrocinador';
+interface TickerItem { texto?: string; logo?: string; }
+interface TickerVista { tipo: TickerTipo; etiqueta: string; pista: TickerItem[]; duracionS: number; }
 
 
 interface DojoPantalla {
@@ -95,6 +107,46 @@ export class LiveCombatesComponent implements OnInit, OnDestroy {
   private readonly subs = new Subscription();
   private readonly fotosFallidas = new Set<string>();
 
+  private readonly seguilineasApi = inject(SeguilineasService);
+  private readonly seguilineas$ = new BehaviorSubject<RankingSeguilineas | null>(null);
+
+  /** Emite un nuevo estado del ticker cada 30 s (y re-emite el mismo estado si cambian los datos). */
+  readonly ticker$: Observable<TickerVista> = combineLatest([
+    timer(0, TICKER_MS),
+    this.seguilineas$.pipe(distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b))),
+  ]).pipe(
+    map(([tick, s]) => {
+      const ciclo = this.cicloTicker(s);
+      return ciclo[tick % ciclo.length];
+    }),
+  );
+
+  trackTicker = (i: number): number => i;
+
+  private cicloTicker(s: RankingSeguilineas | null): TickerVista[] {
+    const vistas: TickerVista[] = [];
+    const medallas = ['🥇', '🥈', '🥉'];
+
+    if (s?.recientes.length) {
+      vistas.push(this.armarVista('recientes', 'ÚLTIMOS TIEMPOS',
+        s.recientes.map((r) => ({ texto: `⏱ ${r.nombre} · ${formatearTiempo(r.tiempoMs)}` }))));
+    }
+    if (s?.top3.length) {
+      vistas.push(this.armarVista('top3', `TOP 3 · ${s.nombre.toUpperCase()}`,
+        s.top3.map((f, i) => ({ texto: `${medallas[i]} ${f.nombre} · ${formatearTiempo(f.mejorTiempoMs)}` }))));
+    }
+    // Siempre parte del ciclo; es el único estado cuando no hay datos.
+    vistas.push(this.armarVista('patrocinador', 'PATROCINADOR', [{ logo: LOGO_PATROCINADOR }]));
+    return vistas;
+  }
+
+  /** Repite los items hasta cubrir el ancho y duplica la pista para un bucle sin saltos (-50 %). */
+  private armarVista(tipo: TickerTipo, etiqueta: string, items: TickerItem[]): TickerVista {
+    let base = items;
+    while (base.length < 6) base = [...base, ...items];
+    return { tipo, etiqueta, pista: [...base, ...base], duracionS: Math.max(20, base.length * 5) };
+  }
+
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
@@ -103,6 +155,12 @@ export class LiveCombatesComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.subs.add(
+      timer(0, 10_000)
+        .pipe(exhaustMap(() => this.seguilineasApi.activo().pipe(catchError(() => of(null)))))
+        .subscribe((s) => this.seguilineas$.next(s)),
+    );
+
     this.subs.add(
       fromEvent(document, 'fullscreenchange').subscribe(() => {
         if (!document.fullscreenElement) {
