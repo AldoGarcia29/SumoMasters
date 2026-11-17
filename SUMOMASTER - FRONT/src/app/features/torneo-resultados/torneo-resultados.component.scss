@@ -1,0 +1,555 @@
+@use '../../shared/styles/admin-page';
+
+/* Layout autónomo de Staff: no depende de estilos globales de otras pantallas. */
+:host { display: block; min-width: 0; }
+.resultados-page:has(.staff-compact) { min-width: 0; padding: 20px; box-sizing: border-box; }
+.resultados-page:has(.staff-compact) *, .resultados-page:has(.staff-compact) *::before, .resultados-page:has(.staff-compact) *::after { box-sizing: border-box; }
+.staff-compact { display: grid; width: 100%; max-width: 1500px; margin: 0 auto; align-items: stretch; min-width: 0; }
+.staff-compact > .panel { display: flex; flex-direction: column; min-width: 0; min-height: 0; margin: 0; }
+.staff-compact__heading { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.staff-pill { display: inline-flex; align-items: center; border-radius: 999px; padding: 5px 13px; white-space: nowrap; }
+.staff-compact__dojo { margin: 6px 0 14px; }
+.staff-compact__tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-radius: 15px; margin: 12px 0 14px; }
+.staff-compact__tabs button { min-width: 0; border: 0; border-radius: 11px; cursor: pointer; line-height: 1.25; }
+.staff-compact__items { display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; min-height: 0; padding-right: 5px; }
+.staff-fight { display: flex; flex-direction: column; flex: 0 0 auto; width: 100%; min-width: 0; text-align: left; cursor: pointer; gap: 9px; }
+.staff-fight__top { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
+.staff-fight__top strong { min-width: 0; overflow-wrap: anywhere; }
+.staff-fight__top small { flex: 0 0 auto; padding: 4px 9px; border-radius: 999px; }
+.staff-fight__robots { display: flex; align-items: center; gap: 8px; min-width: 0; width: 100%; }
+.staff-fight__robots img { flex: 0 0 auto; object-fit: cover; }
+.staff-fight__robots strong { min-width: 0; flex: 1 1 0; overflow-wrap: anywhere; font-size: .9rem; line-height: 1.25; }
+.staff-fight__robots em { flex: 0 0 auto; font-style: normal; font-weight: 800; }
+.staff-fight__robots > span { flex: 0 0 auto; }
+.staff-compact__detail { justify-content: flex-start; gap: 12px; }
+.staff-compact__detail h2 { text-align: center; margin: 0; }
+.staff-compact__meta { text-align: center; margin: 0 0 4px; }
+.staff-versus { display: grid; align-items: center; gap: 10px; min-width: 0; }
+.staff-versus .staff-robot-choice { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; width: 100%; min-width: 0; border: 2px solid; border-radius: 17px; cursor: pointer; text-align: center; }
+.staff-versus .staff-robot-choice:disabled { cursor: default; opacity: 1; }
+.staff-versus .staff-robot-choice strong { overflow-wrap: anywhere; line-height: 1.2; }
+.staff-versus .staff-robot-choice img { max-width: 100%; object-fit: cover; border-radius: 10px; }
+.staff-versus > b { text-align: center; }
+.staff-form { display: flex; flex-direction: column; gap: 13px; min-width: 0; margin-top: auto; }
+.staff-form .field { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.staff-form select { display: block; width: 100%; min-width: 0; border-radius: 12px; padding: 10px 14px; }
+.staff-hint { margin: 0; }
+.staff-save { width: 100%; border: 0; border-radius: 13px; font-weight: 800; padding: 12px; cursor: pointer; }
+.staff-empty { margin: auto; text-align: center; padding: 35px 10px; }
+.staff-modal-backdrop { position: fixed; inset: 0; z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.staff-modal { width: min(100%, 500px); max-height: calc(100dvh - 32px); overflow-y: auto; padding: 24px; border-radius: 22px; box-shadow: 0 25px 90px #0008; text-align: center; }
+.staff-modal__symbol { display: grid; place-items: center; width: 55px; height: 55px; border-radius: 50%; margin: 0 auto 12px; font-size: 1.6rem; }
+.staff-modal__summary { padding: 15px; border-radius: 12px; margin: 14px 0; }
+.staff-modal__actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.staff-modal__actions button { border: 1px solid transparent; border-radius: 12px; padding: 10px; font-weight: 700; cursor: pointer; }
+@media (max-width: 1000px) {
+  .staff-compact { grid-template-columns: minmax(0, 1fr); }
+  .staff-compact__items { max-height: 350px; }
+}
+@media (max-width: 600px) {
+  .resultados-page:has(.staff-compact) { padding: 10px; }
+  .staff-compact { gap: 12px; }
+  .staff-compact .panel { padding: 14px; border-radius: 16px; }
+  .staff-compact__heading { font-size: 1.1rem; }
+  .staff-compact__tabs { gap: 3px; padding: 4px; }
+  .staff-compact__tabs button { padding: 9px 2px; min-height: 42px; font-size: .75rem; }
+  .staff-compact__items { max-height: 290px; gap: 8px; }
+  .staff-fight { padding: 11px; min-height: 0; gap: 8px; }
+  .staff-fight__top { font-size: .82rem; }
+  .staff-fight__top small { font-size: .7rem; }
+  .staff-fight__robots { gap: 5px; }
+  .staff-fight__robots img { width: 34px; height: 34px; }
+  .staff-fight__robots strong { font-size: .76rem; }
+  .staff-fight__robots em { font-size: .75rem; }
+  .staff-versus { grid-template-columns: minmax(0,1fr) 24px minmax(0,1fr); gap: 5px; }
+  .staff-versus .staff-robot-choice { min-height: 135px; padding: 10px 5px; }
+  .staff-versus .staff-robot-choice img { width: 72px; height: 65px; }
+  .staff-versus .staff-robot-choice strong { font-size: .85rem; }
+  .staff-versus > b { font-size: .9rem; }
+  .staff-modal { padding: 18px; }
+}
+
+
+/* ==========================================
+   UTEQ 2026 - DISEÑO TECNOLÓGICO STAFF
+   ========================================== */
+
+.resultados-page:has(.staff-compact) {
+  --color-text: #f1f9ff;
+  --color-text-muted: #b9d1e5;
+  --color-border: #285578;
+
+  background:
+    radial-gradient(
+      ellipse at 15% 0%,
+      rgba(0, 214, 255, .14),
+      transparent 50%
+    ),
+    #071324;
+
+  min-height: calc(100dvh - 80px);
+  color: #f1f9ff;
+}
+
+.resultados-page:has(.staff-compact) .panel--header,
+.resultados-page:has(.staff-compact) .staff-compact .panel {
+  background: linear-gradient(160deg, #102b49, #0b1c31);
+  color: #f1f9ff;
+  border: 1px solid #2b5b7c;
+  box-shadow: 0 14px 34px rgba(0, 5, 15, .22);
+}
+
+.resultados-page:has(.staff-compact) .panel--header__info h2 {
+  font-size: clamp(1.5rem, 2.3vw, 2.25rem);
+  color: #f7fdff;
+}
+
+.resultados-page:has(.staff-compact) .panel--header__info p {
+  font-size: 1.05rem;
+  color: #c5dbea;
+}
+
+.resultados-page:has(.staff-compact) .panel--header__icon {
+  background: #143f59;
+  color: #42e0ff;
+}
+
+/* CONTENEDORES */
+
+.staff-compact {
+  gap: 20px;
+  grid-template-columns:
+    minmax(310px, 1fr)
+    minmax(390px, 1.17fr);
+}
+
+.staff-compact .panel {
+  padding: clamp(18px, 2vw, 28px);
+  border-radius: 20px;
+}
+
+.staff-compact__heading {
+  font-size: clamp(1.25rem, 1.7vw, 1.65rem);
+  color: #ffffff;
+}
+
+.staff-pill {
+  background: #124c62;
+  color: #75eeff;
+  border: 1px solid #25c8e8;
+  font-size: .9rem;
+  font-weight: 800;
+}
+
+.staff-compact__dojo,
+.staff-compact__meta {
+  color: #c5d9e9;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* PESTAÑAS */
+
+.staff-compact__tabs {
+  background: #091d33;
+  border: 1px solid #285775;
+  padding: 6px;
+  gap: 6px;
+}
+
+.staff-compact__tabs button {
+  color: #cfe3f5;
+  font-size: clamp(.92rem, 1.1vw, 1.06rem);
+  font-weight: 750;
+  padding: 13px 8px;
+  min-height: 48px;
+}
+
+.staff-compact__tabs button.active {
+  background: #0bc7ea;
+  color: #06182b;
+  box-shadow: 0 3px 16px #00ccef40;
+}
+
+/* LISTA DE COMBATES */
+
+.staff-compact__items {
+  gap: 12px;
+  max-height: calc(100dvh - 300px);
+}
+
+.staff-fight {
+  background: #102a46;
+  border: 1px solid #2e607d;
+  color: #f5fbff;
+  padding: 16px;
+  border-radius: 14px;
+  min-height: 100px;
+}
+
+.staff-fight:hover {
+  border-color: #35d9ff;
+  background: #173c5d;
+}
+
+.staff-fight.selected {
+  background: #164566;
+  border: 2px solid #33d8ff;
+}
+
+.staff-fight__top {
+  font-size: 1rem;
+}
+
+.staff-fight__top small {
+  background: #164f38;
+  color: #9dffd1;
+  font-size: .85rem;
+}
+
+.staff-fight__robots {
+  font-size: clamp(.95rem, 1.25vw, 1.12rem);
+  gap: 10px;
+}
+
+.staff-fight__robots img {
+  width: 48px;
+  height: 48px;
+  border-radius: 9px;
+}
+
+.staff-fight__robots em {
+  color: #80dfff;
+}
+
+/* DETALLE DEL COMBATE */
+
+.staff-compact__detail h2 {
+  color: #ffffff;
+  font-size: clamp(1.35rem, 2vw, 2rem);
+}
+
+.staff-versus {
+  grid-template-columns:
+    minmax(0, 1fr)
+    38px
+    minmax(0, 1fr);
+
+  gap: 12px;
+}
+
+.staff-versus .staff-robot-choice {
+  background: #102844;
+  border-color: #316686;
+  color: #f6fbff;
+  min-height: 180px;
+  padding: 16px 10px;
+}
+
+.staff-versus .staff-robot-choice:first-child {
+  border-color: #238dec;
+}
+
+.staff-versus .staff-robot-choice:last-child {
+  border-color: #fc5779;
+}
+
+.staff-versus .staff-robot-choice:not(:disabled):hover {
+  border-color: #49e2ff;
+  background: #17435f;
+}
+
+.staff-versus .staff-robot-choice.winner {
+  background: #144935;
+  border-color: #52ed9a;
+  color: #e6ffef;
+}
+
+.staff-versus .staff-robot-choice.loser {
+  background: #4d2030;
+  border-color: #ff718d;
+  color: #ffe2e8;
+}
+
+.staff-versus .staff-robot-choice small {
+  color: #9fffc9;
+}
+
+.staff-versus strong {
+  font-size: clamp(1.02rem, 1.35vw, 1.25rem);
+}
+
+.staff-versus > b {
+  color: #ffcf55;
+  font-size: 1.3rem;
+  font-weight: 900;
+}
+
+.staff-versus img {
+  height: 92px;
+  width: 115px;
+}
+
+/* SELECCIÓN DEL GANADOR */
+
+.staff-winners label {
+  background: #102b49;
+  border-color: #336080;
+  color: #eff9ff;
+  font-size: 1rem;
+  min-height: 56px;
+  padding: 14px;
+}
+
+.staff-winners label:has(input:checked) {
+  background: #174d3a;
+  border-color: #5cf2a3;
+  color: #ffffff;
+}
+
+.staff-draw,
+.staff-hint {
+  color: #c5dbea;
+  font-size: 1rem;
+}
+
+/* FORMULARIO */
+
+.staff-form .field {
+  color: #e6f2ff;
+  font-size: 1rem;
+}
+
+.staff-form select,
+.staff-form .field input {
+  background: #0a2037;
+  border: 1px solid #3c6b88;
+  color: #f7fcff;
+  min-height: 50px;
+  font-size: 1rem;
+}
+
+.staff-form select:focus-visible,
+.staff-form input:focus-visible {
+  outline: 3px solid #ffce4d;
+  outline-offset: 2px;
+}
+
+/* GUARDAR RESULTADO */
+
+.staff-save {
+  background: linear-gradient(110deg, #00c7ea, #44e4ff);
+  color: #041b2c;
+  min-height: 54px;
+  font-size: 1.13rem;
+  box-shadow: 0 6px 24px #00d8ff33;
+}
+
+.staff-save:focus-visible {
+  outline: 3px solid #ffd34f;
+  outline-offset: 3px;
+}
+
+.staff-empty,
+.staff-readonly {
+  color: #c9ddec;
+  font-size: 1rem;
+}
+
+/* CONFIRMACIÓN DE REGISTRO */
+
+.staff-modal-backdrop {
+  background: rgba(2, 8, 18, .83);
+}
+
+.staff-modal {
+  background: linear-gradient(155deg, #133555, #0a1d33);
+  color: #f5fbff;
+  border: 1px solid #42bedf;
+  max-width: 500px;
+}
+
+.staff-modal__symbol {
+  background: #15495b;
+  color: #4ce9ff;
+}
+
+.staff-modal h2 {
+  font-size: clamp(1.4rem, 2.5vw, 1.8rem);
+}
+
+.staff-modal > p,
+.staff-modal__summary span {
+  color: #c8ddee;
+}
+
+.staff-modal__summary {
+  background: #0b263f;
+  border: 1px solid #295773;
+}
+
+.staff-modal__warning {
+  color: #ffe09b !important;
+}
+
+.staff-modal__actions button {
+  min-height: 52px;
+  font-size: 1rem;
+}
+
+.staff-modal__cancel {
+  background: #173551;
+  border-color: #386581 !important;
+  color: #f1fbff;
+}
+
+.staff-modal__confirm {
+  background: #14d0ee;
+  color: #051e30;
+  border-color: #14d0ee !important;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 950px) {
+  .staff-compact {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .staff-compact {
+    grid-template-columns: 1fr;
+  }
+
+  .staff-compact__items {
+    max-height: 360px;
+  }
+}
+
+@media (max-width: 460px) {
+  .staff-compact .panel {
+    padding: 15px;
+  }
+
+  .staff-versus {
+    gap: 6px;
+    grid-template-columns:
+      minmax(0, 1fr)
+      26px
+      minmax(0, 1fr);
+  }
+
+  .staff-versus .staff-robot-choice {
+    min-height: 155px;
+    padding: 10px 4px;
+  }
+
+  .staff-versus img {
+    height: 65px;
+    width: 75px;
+  }
+
+  .staff-winners {
+    grid-template-columns: 1fr;
+  }
+}
+/* Ajustes finales para móviles: prevalecen sobre reglas antiguas. */
+@media (max-width: 1000px) { .staff-compact { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 600px) {
+ .staff-compact__items { max-height: 290px; }
+ .staff-fight__robots img { width: 34px; height: 34px; }
+ .staff-versus { grid-template-columns: minmax(0,1fr) 24px minmax(0,1fr); }
+ .staff-versus .staff-robot-choice { min-height: 135px; padding: 10px 5px; }
+ .staff-versus img { width: 72px; height: 65px; }
+}
+
+/* Correcciones específicas Staff: selección visible, pestañas y confirmación móvil */
+.staff-compact .staff-compact__tabs button:not(.active) {
+  background: #1b4565 !important;
+  color: #f5fbff !important;
+  border: 1px solid #356988 !important;
+  opacity: 1 !important;
+}
+.staff-compact .staff-compact__tabs button.active {
+  background: #13c9e9 !important;
+  color: #06283c !important;
+  border: 1px solid #38e0fb !important;
+}
+.staff-compact .staff-versus button.staff-robot-choice.winner,
+.staff-compact .staff-versus button.staff-robot-choice.winner:first-child,
+.staff-compact .staff-versus button.staff-robot-choice.winner:last-child {
+  background: #124a34 !important;
+  border: 3px solid #4df29a !important;
+  color: #edfff4 !important;
+  box-shadow: 0 0 0 2px #34d98533;
+}
+.staff-compact .staff-versus button.staff-robot-choice.loser,
+.staff-compact .staff-versus button.staff-robot-choice.loser:first-child,
+.staff-compact .staff-versus button.staff-robot-choice.loser:last-child {
+  background: #492331 !important;
+  border: 2px solid #ff6c88 !important;
+  color: #fff0f3 !important;
+}
+.staff-modal__summary { display: flex !important; flex-direction: column; gap: 0; text-align: left; min-width: 0; }
+.staff-modal__summary-row { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 12px 3px; min-width: 0; }
+.staff-modal__summary-row + .staff-modal__summary-row { border-top: 1px solid #34617e; }
+.staff-modal__summary-row span { font-size: .85rem; color: #b8d6e9; }
+.staff-modal__summary-row strong { display: block; font-size: 1rem; line-height: 1.4; color: #f8fdff; overflow-wrap: anywhere; width: 100%; }
+.staff-modal__summary-row:first-child strong { color: #79f5ae; }
+.staff-modal__actions { display: grid !important; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.staff-modal__actions button { min-width: 0; width: 100%; white-space: normal; line-height: 1.25; padding: 12px 8px; }
+@media(max-width:480px) {
+  .staff-modal { width: min(100%, 420px); padding: 20px 16px; }
+  .staff-modal__actions { gap: 8px; }
+  .staff-modal__actions button { font-size: .9rem; }
+  .staff-compact .staff-compact__tabs button { font-size: .76rem; padding: 10px 3px; overflow-wrap: anywhere; }
+}
+
+/* Ajuste del layout principal: el sidebar conserva su ancho y el contenido
+   utiliza exclusivamente el espacio disponible a su derecha. */
+:host { display: block; width: 100%; min-width: 0; }
+.app-shell { width: 100%; min-width: 0; overflow-x: clip; }
+.app-shell__main { min-width: 0; width: 0; flex: 1 1 0%; }
+.resultados-page:has(.staff-compact) { width: 100%; min-width: 0; flex: 1 1 auto; overflow-x: clip; }
+.staff-compact { width: 100%; min-width: 0; grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr); }
+.staff-compact > .panel { min-width: 0; overflow: hidden; }
+.staff-compact__tabs { min-width: 0; }
+.staff-fight__robots { min-width: 0; }
+.staff-fight__robots strong { overflow-wrap: anywhere; }
+/* La distribución se calcula según el ancho restante después del sidebar,
+   no solo según el ancho total de la ventana. */
+@media (max-width: 1300px) {
+  .staff-compact { grid-template-columns: minmax(0, 1fr); }
+  .staff-compact__items { max-height: 370px; }
+}
+@media (max-width: 720px) {
+  .resultados-page:has(.staff-compact) { padding: 12px; }
+  .staff-compact { gap: 14px; }
+  .staff-compact__items { max-height: 290px; }
+}
+
+/* Navegación de regreso visible en el tema oscuro del Staff. */
+.resultados-page:has(.staff-compact) .panel--footer-actions .staff-back-link {
+  color: #67dcf5 !important;
+  background: #173a57 !important;
+  border: 1px solid #39718e !important;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.resultados-page:has(.staff-compact) .panel--footer-actions .staff-back-link:hover {
+  background: #225477 !important;
+  color: #ffffff !important;
+}
+
+/* Único ajuste: separar «Volver a torneos» del formulario de resultados. */
+.resultados-page:has(.staff-compact) .panel--footer-actions {
+  margin-top: 36px;
+}
+@media (max-width: 720px) {
+  .resultados-page:has(.staff-compact) .panel--footer-actions {
+    margin-top: 48px;
+  }
+}

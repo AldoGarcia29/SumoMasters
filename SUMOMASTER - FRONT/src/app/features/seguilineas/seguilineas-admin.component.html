@@ -1,0 +1,201 @@
+<div class="app-shell">
+  <app-sidebar
+    [isOpen]="sidebarOpen()"
+    (closeRequested)="sidebarOpen.set(false)"
+  />
+  <div
+    class="app-shell__backdrop"
+    *ngIf="sidebarOpen()"
+    (click)="sidebarOpen.set(false)"
+  ></div>
+
+  <div class="app-shell__main">
+    <app-topbar
+      title="Seguilineas"
+      subtitle="Dashboard › Seguilineas"
+      [notificationCount]="0"
+      (menuToggle)="toggleSidebar()"
+    />
+
+    <main class="sl-admin">
+      <p class="msg msg--ok" *ngIf="mensaje()">{{ mensaje() }}</p>
+      <p class="msg msg--error" *ngIf="error()">{{ error() }}</p>
+
+      <section class="panel" *ngIf="esAdmin()">
+        <h2>Nuevo torneo de Seguilineas</h2>
+        <p class="hint">
+          Solo se registran tiempos: gana el mejor tiempo. Sin enfrentamientos
+          ni grupos.
+        </p>
+        <form class="fila" (ngSubmit)="crear()">
+          <input
+            name="nombre"
+            [(ngModel)]="nuevo.nombre"
+            placeholder="Nombre del torneo"
+            required
+          />
+          <input name="fecha" type="date" [(ngModel)]="nuevo.fecha" required />
+          <input
+            name="desc"
+            [(ngModel)]="nuevo.descripcion"
+            placeholder="Descripción (opcional)"
+          />
+          <button class="btn" [disabled]="!nuevo.nombre.trim() || !nuevo.fecha">
+            Crear torneo
+          </button>
+        </form>
+      </section>
+
+      <section class="panel">
+        <h2>{{ esAdmin() ? "Torneos" : "Mis torneos asignados" }}</h2>
+        <p class="hint" *ngIf="!torneos().length">
+          No hay torneos de Seguilineas{{
+            esAdmin() ? " todavía." : " asignados a ti."
+          }}
+        </p>
+        <table *ngIf="torneos().length">
+          <tr>
+            <th>Torneo</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+            <th></th>
+          </tr>
+          <tr
+            *ngFor="let t of torneos()"
+            [class.sel]="seleccionado()?._id === t._id"
+          >
+            <td>{{ t.nombre }}</td>
+            <td>{{ t.fecha | date: "dd/MM/yyyy" : "UTC" }}</td>
+            <td>{{ t.estado }}</td>
+            <td class="acciones">
+              <a class="btn" [routerLink]="['/staff/seguilineas', t._id]"
+                >Registrar tiempos</a
+              >
+              <a
+                class="btn btn--sec"
+                [routerLink]="['/live/seguilineas', t._id]"
+                >Vista pública</a
+              >
+              <button
+                class="btn btn--sec"
+                *ngIf="esAdmin()"
+                type="button"
+                (click)="seleccionar(t)"
+              >
+                Gestionar
+              </button>
+            </td>
+          </tr>
+        </table>
+      </section>
+
+      <section class="panel" *ngIf="esAdmin() && seleccionado() as t">
+        <h2>Gestionar: {{ t.nombre }}</h2>
+
+        <h3>Datos del torneo</h3>
+        <form class="fila" (ngSubmit)="guardarEdicion()">
+          <input
+            name="enombre"
+            [(ngModel)]="edicion.nombre"
+            placeholder="Nombre"
+            required
+          />
+          <input
+            name="efecha"
+            type="date"
+            [(ngModel)]="edicion.fecha"
+            required
+          />
+          <input
+            name="edesc"
+            [(ngModel)]="edicion.descripcion"
+            placeholder="Descripción"
+          />
+          <select name="eestado" [(ngModel)]="edicion.estado">
+            <option *ngFor="let e of estadosEditables()" [value]="e">{{ e }}</option>
+          </select>
+          <button
+            class="btn"
+            [disabled]="!edicion.nombre.trim() || !edicion.fecha"
+          >
+            Guardar cambios
+          </button>
+        </form>
+        <div class="fila fila--sep">
+          <button
+            class="btn btn--sec"
+            type="button"
+            (click)="finalizar()"
+            [disabled]="yaFinalizado()"
+          >
+            Finalizar torneo
+          </button>
+          <button
+            class="btn btn--peligro"
+            type="button"
+            (click)="eliminarTorneo()"
+          >
+            Eliminar torneo
+          </button>
+        </div>
+
+        <ng-container *ngIf="podioActual().length">
+          <h3>{{ yaFinalizado() ? "Podio final" : "Podio actual" }}</h3>
+          <ol class="lista">
+            <li *ngFor="let f of podioActual()">
+              {{ f.nombre }} · {{ fmt(f.mejorTiempoMs) }}
+            </li>
+          </ol>
+        </ng-container>
+
+        <h3>Staff asignado</h3>
+        <p class="hint" *ngIf="!staff().length">
+          No hay usuarios STAFF activos.
+        </p>
+        <div class="checks">
+          <label *ngFor="let u of staff()">
+            <input
+              type="checkbox"
+              [checked]="staffSel().includes(u.id)"
+              (change)="toggleStaff(u.id, $any($event.target).checked)"
+            />
+            {{ u.name }} <small>({{ u.username }})</small>
+          </label>
+        </div>
+        <button class="btn" type="button" (click)="guardarStaff()">
+          Guardar staff
+        </button>
+
+        <h3>Robots inscritos ({{ detalle()?.ranking?.length ?? 0 }})</h3>
+        <div class="fila">
+          <select [(ngModel)]="robotId" name="robot">
+            <option value="">Selecciona un robot…</option>
+            <option *ngFor="let r of robotsDisponibles()" [value]="r._id">
+              {{ r.nombre }}
+            </option>
+          </select>
+          <button
+            class="btn"
+            type="button"
+            [disabled]="!robotId"
+            (click)="inscribir()"
+          >
+            Inscribir
+          </button>
+        </div>
+        <ul class="lista" *ngIf="detalle()?.ranking?.length">
+          <li *ngFor="let f of detalle()!.ranking">
+            #{{ f.ordenLlegada }} · {{ f.nombre }}
+            <button
+              class="link"
+              type="button"
+              (click)="quitarRobot(f.robotId, f.nombre)"
+            >
+              Quitar
+            </button>
+          </li>
+        </ul>
+      </section>
+    </main>
+  </div>
+</div>

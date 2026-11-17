@@ -1,0 +1,174 @@
+<div class="app-shell">
+  <app-sidebar [isOpen]="sidebarOpen()" (closeRequested)="closeSidebar()" />
+  <div class="app-shell__backdrop" *ngIf="sidebarOpen()" (click)="closeSidebar()"></div>
+
+  <div class="app-shell__main">
+    <app-topbar
+      title="Combate extra"
+      subtitle="Dashboard › Combates › Combate extra"
+      [notificationCount]="0"
+      (menuToggle)="toggleSidebar()"
+    />
+
+    <main class="extra-page">
+      <section class="panel panel--header">
+        <div class="panel--header__info">
+          <div>
+            <h2>Combate extra con selección manual</h2>
+            <p>
+              Elige cualquier par de robots, aunque no estén en el mismo bloque.
+              El combate queda dentro del torneo, pero no afecta la fase de
+              grupos, el ranking ni el cuadro eliminatorio.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <label class="field extra-torneo">
+          Torneo
+          <select [value]="torneoId()" (change)="seleccionarTorneo($any($event.target).value)">
+            <option value="" disabled>Selecciona un torneo…</option>
+            <option *ngFor="let t of torneos()" [value]="t._id" [selected]="t._id === torneoId()">
+              {{ t.nombre }}
+            </option>
+          </select>
+        </label>
+      </section>
+
+      <p class="table__loading" *ngIf="loading()">Cargando robots…</p>
+
+      <ng-container *ngIf="!loading()">
+        <section class="picker-grid">
+          <!-- ROBOT 1 / ROBOT 2 -->
+          <div class="panel picker" *ngFor="let lado of [1, 2]">
+            <h3 class="picker__title">Robot {{ lado }}</h3>
+
+            <ng-container *ngIf="(lado === 1 ? robot1() : robot2()) as elegido; else sinElegir">
+              <div class="picker__selected">
+                <div>
+                  <strong>{{ elegido.nombre }}</strong>
+                  <small>
+                    {{ equipoNombre(elegido) || '—' }}
+                    <ng-container *ngIf="categoriaNombre(elegido)"> · {{ categoriaNombre(elegido) }}</ng-container>
+                  </small>
+                  <span class="badge" [class]="estadoRobotBadge(elegido.estado)">{{ elegido.estado }}</span>
+                </div>
+                <button type="button" class="btn btn--ghost btn--sm" (click)="quitar(lado === 1 ? 1 : 2)">
+                  Cambiar
+                </button>
+              </div>
+              <p class="info-box info-box--warning" *ngIf="elegido.estado !== EstadoRobot.ACTIVO">
+                Este robot está en estado «{{ elegido.estado }}». Puedes usarlo igual si es lo que necesitas.
+              </p>
+            </ng-container>
+
+            <ng-template #sinElegir>
+              <div class="search-input">
+                <input
+                  type="text"
+                  placeholder="Buscar por robot, equipo o categoría…"
+                  [value]="lado === 1 ? busqueda1() : busqueda2()"
+                  (input)="(lado === 1 ? busqueda1 : busqueda2).set($any($event.target).value)"
+                />
+              </div>
+              <ul class="picker__list">
+                <li *ngFor="let r of (lado === 1 ? lista1() : lista2())">
+                  <button type="button" class="picker__item" (click)="elegir(lado === 1 ? 1 : 2, r)">
+                    <span class="picker__name">{{ r.nombre }}</span>
+                    <span class="picker__meta">
+                      {{ equipoNombre(r) || '—' }}
+                      <ng-container *ngIf="categoriaNombre(r)"> · {{ categoriaNombre(r) }}</ng-container>
+                    </span>
+                    <span class="badge" [class]="estadoRobotBadge(r.estado)">{{ r.estado }}</span>
+                  </button>
+                </li>
+                <li class="table__empty" *ngIf="(lado === 1 ? lista1() : lista2()).length === 0">
+                  No hay robots que coincidan.
+                </li>
+              </ul>
+            </ng-template>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="extra-form">
+            <label class="field">
+              Dojo (opcional)
+              <select [value]="dojoId()" (change)="dojoId.set($any($event.target).value)">
+                <option value="">Sin asignar</option>
+                <option *ngFor="let d of dojos()" [value]="d._id">{{ d.nombre }} ({{ d.estado }})</option>
+              </select>
+            </label>
+
+            <label class="field">
+              Horario (opcional)
+              <input type="datetime-local" [value]="horario()" (input)="horario.set($any($event.target).value)" />
+            </label>
+
+            <label class="field extra-form__wide">
+              Observaciones (opcional)
+              <textarea
+                rows="2"
+                maxlength="500"
+                [value]="observaciones()"
+                (input)="observaciones.set($any($event.target).value)"
+                placeholder="Ej. Revancha, exhibición, desempate…"
+              ></textarea>
+            </label>
+          </div>
+
+          <p class="panel__error" *ngIf="error()">{{ error() }}</p>
+          <p class="panel__success" *ngIf="creado() as c">
+            Combate extra #{{ c.numero }} creado ({{ c.robot1?.nombre }} vs {{ c.robot2?.nombre }}).
+            <a class="link" [routerLink]="['/torneos', torneoId(), 'resultados']">Ir a resultados</a>
+          </p>
+
+          <div class="extra-actions">
+            <button
+              type="button"
+              class="btn btn--ghost"
+              (click)="intercambiar()"
+              [disabled]="!robot1() && !robot2()"
+            >
+              Intercambiar robots
+            </button>
+            <button type="button" class="btn btn--primary" [disabled]="!puedeCrear()" (click)="crear()">
+              {{ saving() ? 'Creando…' : 'Crear combate extra' }}
+            </button>
+          </div>
+        </section>
+
+        <section class="panel panel--table" *ngIf="torneoId()">
+          <h3 class="picker__title extra-existing__title">Combates extra de este torneo</h3>
+          <p class="table__loading" *ngIf="loadingExtras()">Cargando…</p>
+          <div class="table-wrapper" *ngIf="!loadingExtras()">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Enfrentamiento</th>
+                  <th>Dojo</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let c of extras()">
+                  <td>{{ c.numero }}</td>
+                  <td>{{ c.robot1?.nombre }} <span class="table__vs">vs</span> {{ c.robot2?.nombre }}</td>
+                  <td>{{ c.dojo?.nombre || '—' }}</td>
+                  <td>
+                    <span class="badge" [class]="estadoCombateBadge(c.estado)">{{ c.estado }}</span>
+                  </td>
+                </tr>
+                <tr *ngIf="extras().length === 0">
+                  <td colspan="4" class="table__empty">Todavía no hay combates extra en este torneo.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </ng-container>
+    </main>
+  </div>
+</div>

@@ -1,0 +1,166 @@
+<section class="sl" *ngIf="data() as d">
+  <header class="sl__head">
+    <div>
+      <h1>{{ d.nombre }}</h1>
+      <p class="sl__sub">
+        Seguilineas ·
+        <span class="chip" [class.chip--fin]="finalizado()">{{ d.estado }}</span>
+        <span class="chip chip--live" *ngIf="soloLectura && !finalizado()">● En vivo</span>
+      </p>
+    </div>
+    <div class="sl__head-actions">
+      <a class="btn btn--sec" *ngIf="soloLectura" routerLink="/live">← Torneos</a>
+      <a class="btn btn--sec" *ngIf="!soloLectura" routerLink="/seguilineas">← Volver</a>
+      <button
+        class="btn btn--warn"
+        type="button"
+        *ngIf="puedeRegistrar()"
+        [disabled]="ocupado() || !d.hayRegistros"
+        (click)="finalizar()"
+      >
+        Finalizar torneo
+      </button>
+    </div>
+  </header>
+
+  <p class="sl__error" *ngIf="error()">{{ error() }}</p>
+
+  <!-- Siguiente en pista -->
+  <div class="sl__next" *ngIf="d.siguiente && !finalizado()">
+    <span class="sl__next-label">Siguiente</span>
+    <strong>#{{ d.siguiente.ordenLlegada }} · {{ d.siguiente.nombre }}</strong>
+  </div>
+
+  <!-- Podio -->
+  <div class="sl__podio" *ngIf="podio().length">
+    <h2>{{ finalizado() ? 'Podio final' : 'Podio provisional' }}</h2>
+    <ol>
+      <li *ngFor="let p of podio(); let i = index" [class]="'pos-' + (i + 1)">
+        <span class="medalla">{{ ['🥇', '🥈', '🥉'][i] }}</span>
+        <span class="nombre">{{ p.nombre }}</span>
+        <span class="tiempo">{{ fmt(p.mejorTiempoMs) }}</span>
+      </li>
+    </ol>
+  </div>
+
+  <!-- Registro (solo staff) -->
+  <form *ngIf="puedeRegistrar()" class="sl__form" (ngSubmit)="registrar()">
+    <select [(ngModel)]="robotId" name="robot" required>
+      <option value="" disabled>Robot…</option>
+      <option *ngFor="let c of d.cola" [value]="c.robotId">
+        #{{ c.ordenLlegada }} {{ c.nombre }}
+        {{ c.estadoRegistro ? '(' + resultado(c.estadoRegistro, c.mejorTiempoMs) + ')' : '' }}
+      </option>
+    </select>
+    <input type="number" min="0" [(ngModel)]="min" name="min" placeholder="min" />
+    <input type="number" min="0" max="59" [(ngModel)]="seg" name="seg" placeholder="seg" />
+    <input type="number" min="0" max="999" [(ngModel)]="ms" name="ms" placeholder="ms" />
+    <button class="btn" [disabled]="ocupado() || !robotId || !tiempoMs">Registrar tiempo</button>
+    <button class="btn btn--sec" type="button" [disabled]="ocupado() || !robotId" (click)="registrar('DNF')">DNF</button>
+    <button class="btn btn--danger" type="button" [disabled]="ocupado() || !robotId" (click)="registrar('DESCALIFICADO')">Descalificar</button>
+  </form>
+  <p class="sl__hint" *ngIf="puedeRegistrar()">
+    Solo se conserva el mejor tiempo de cada robot. Un nuevo tiempo más lento se rechaza;
+    si fue un error de captura usa ✎ para corregirlo.
+  </p>
+
+  <div class="sl__cols">
+    <!-- Clasificación -->
+    <div class="sl__col">
+      <h2>Clasificación</h2>
+      <div class="sl__scroll">
+        <table>
+          <tr>
+            <th>#</th>
+            <th>Robot</th>
+            <th>Resultado</th>
+            <th>Turno</th>
+            <th *ngIf="puedeEditar()"></th>
+          </tr>
+          <tr *ngFor="let f of d.ranking; trackBy: trackFila">
+            <td>{{ f.posicion }}</td>
+            <td>
+              {{ f.nombre }}
+              <span class="chip chip--tie" *ngIf="f.empatado" title="Mismo tiempo que otro robot">empate</span>
+            </td>
+            <td
+              [class.res--dnf]="f.estadoRegistro === 'DNF'"
+              [class.res--dq]="f.estadoRegistro === 'DESCALIFICADO'"
+              [class.res--wait]="!f.estadoRegistro"
+            >
+              {{ resultado(f.estadoRegistro, f.mejorTiempoMs) }}
+              <small
+                class="audit"
+                *ngIf="f.auditoria && puedeEditar()"
+                [title]="(f.auditoria.editadoPor || 'Alguien') + ' · ' + (f.auditoria.editadoEn | date: 'dd/MM HH:mm')"
+              >
+                ✎ {{ etiquetaAccion(f.auditoria.accion) }}
+                <ng-container *ngIf="f.auditoria.valorAnterior?.tiempoMs">
+                  (antes {{ fmt(f.auditoria.valorAnterior!.tiempoMs!) }})
+                </ng-container>
+              </small>
+            </td>
+            <td>
+              <span class="chip" [class.chip--next]="f.estadoTurno === 'SIGUIENTE'" [class.chip--done]="f.estadoTurno === 'CORRIO'">
+                {{ f.estadoTurno === 'CORRIO' ? 'Corrió' : f.estadoTurno === 'SIGUIENTE' ? 'Siguiente' : 'En espera' }}
+              </span>
+            </td>
+            <td class="acciones" *ngIf="puedeEditar()">
+              <ng-container *ngIf="f.estadoRegistro">
+                <button type="button" title="Editar resultado" [disabled]="ocupado()" (click)="editar(f)">✎</button>
+                <button type="button" title="Eliminar resultado" [disabled]="ocupado()" (click)="borrar(f)">✕</button>
+              </ng-container>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Desempate manual -->
+      <div class="sl__empate" *ngIf="puedeEditar() && d.hayEmpates">
+        <h3>Desempate</h3>
+        <p class="sl__hint">
+          Hay robots con exactamente el mismo tiempo. Ordénalos con las flechas
+          (solo se pueden mover entre empatados); el orden queda guardado como podio.
+        </p>
+        <ul>
+          <li *ngFor="let f of validos(); let i = index">
+            {{ i + 1 }}. {{ f.nombre }} · {{ fmt(f.mejorTiempoMs) }}
+            <ng-container *ngIf="f.empatado">
+              <button type="button" [disabled]="ocupado() || !puedeMoverEmpate(i, -1)" (click)="moverEmpate(i, -1)">▲</button>
+              <button type="button" [disabled]="ocupado() || !puedeMoverEmpate(i, 1)" (click)="moverEmpate(i, 1)">▼</button>
+            </ng-container>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Cola de turnos -->
+    <div class="sl__col">
+      <h2>Orden de salida</h2>
+      <ol class="sl__cola">
+        <li *ngFor="let c of d.cola; let i = index" [class.cola--sig]="c.estadoTurno === 'SIGUIENTE'" [class.cola--done]="c.estadoTurno === 'CORRIO'">
+          <span class="cola__n">{{ c.ordenLlegada }}</span>
+          <span class="cola__nombre">{{ c.nombre }}</span>
+          <span class="cola__res" *ngIf="c.estadoRegistro">{{ resultado(c.estadoRegistro, c.mejorTiempoMs) }}</span>
+          <span class="cola__ctrl" *ngIf="puedeRegistrar()">
+            <button type="button" title="Subir" [disabled]="ocupado() || i === 0" (click)="mover(c, -1)">▲</button>
+            <button type="button" title="Bajar" [disabled]="ocupado() || i === d.cola.length - 1" (click)="mover(c, 1)">▼</button>
+            <button type="button" *ngIf="c.estadoTurno !== 'SIGUIENTE'" [disabled]="ocupado()" (click)="turno(c, 'SIGUIENTE')">Siguiente</button>
+            <button type="button" *ngIf="c.estadoTurno !== 'EN_ESPERA'" [disabled]="ocupado()" (click)="turno(c, 'EN_ESPERA')">En espera</button>
+          </span>
+        </li>
+      </ol>
+      <p class="sl__hint" *ngIf="!d.cola.length">Aún no hay robots inscritos.</p>
+
+      <h2 *ngIf="d.recientes.length">Últimos resultados</h2>
+      <ul class="sl__recientes" *ngIf="d.recientes.length">
+        <li *ngFor="let r of d.recientes">
+          <span>{{ r.nombre }}</span>
+          <strong>{{ resultado(r.estadoRegistro, r.tiempoMs) }}</strong>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+<p class="sl__error sl__error--solo" *ngIf="!data() && error()">{{ error() }}</p>
+<p class="sl__hint sl__hint--solo" *ngIf="!data() && !error()">Cargando torneo…</p>

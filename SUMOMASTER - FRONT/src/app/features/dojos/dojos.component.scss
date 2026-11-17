@@ -1,0 +1,14 @@
+@use '../../shared/styles/admin-page';
+
+.dojos-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.75rem 2rem 3rem;
+}
+
+@media (max-width: 720px) {
+  .dojos-page {
+    padding: 1.25rem;
+  }
+}

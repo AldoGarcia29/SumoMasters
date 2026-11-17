@@ -1,0 +1,280 @@
+<div class="app-shell">
+  <app-sidebar
+    [isOpen]="sidebarOpen()"
+    (closeRequested)="closeSidebar()"
+  />
+
+  <div
+    class="app-shell__backdrop"
+    *ngIf="sidebarOpen()"
+    (click)="closeSidebar()"
+  ></div>
+
+  <div class="app-shell__main">
+    <app-topbar
+      title="Cuadro eliminatorio"
+      [subtitle]="'Torneos › ' + (torneo()?.nombre ?? '') + ' › Eliminatorias'"
+      [notificationCount]="3"
+      (menuToggle)="toggleSidebar()"
+    />
+
+    <main class="clasificados-page">
+      <section class="panel clasificados-header">
+        <div>
+          <h2>{{ torneo()?.nombre ?? 'Torneo' }}</h2>
+          <p>
+            Revisa las posiciones por bloque y configura
+            los cruces iniciales del torneo.
+          </p>
+        </div>
+
+        <a
+          class="btn btn--ghost"
+          [routerLink]="['/torneos', torneoId, 'ranking']"
+        >
+          ← Volver a posiciones
+        </a>
+      </section>
+
+      <p class="panel__error" *ngIf="errorMessage()">
+        {{ errorMessage() }}
+      </p>
+
+      <p class="panel__success" *ngIf="successMessage()">
+        {{ successMessage() }}
+      </p>
+
+      <section class="panel" *ngIf="loading()">
+        Cargando posiciones y cuadro…
+      </section>
+
+      <ng-container *ngIf="!loading()">
+        <section class="bloques-grid">
+          <article
+            class="panel bloque-card"
+            *ngFor="let tabla of tablas()"
+          >
+            <div class="bloque-card__header">
+              <h3>{{ tabla.bloqueNombre }}</h3>
+              <span class="badge badge--info">
+                Posiciones
+              </span>
+            </div>
+
+            <ol class="clasificados-list">
+              <li
+                class="clasificado"
+                *ngFor="let robot of tabla.posiciones"
+              >
+                <span class="clasificado__position">
+                  {{ robot.posicion }}
+                </span>
+
+                <div class="clasificado__robot">
+                  <strong>{{ robot.robotNombre }}</strong>
+                </div>
+
+                <div class="clasificado__stats">
+                  <strong>{{ robot.puntos }} pts</strong>
+                  <span>
+                    {{ robot.victorias }} V ·
+                    {{ robot.empates }} E ·
+                    {{ robot.derrotas }} D
+                  </span>
+                </div>
+              </li>
+            </ol>
+
+            <p
+              class="table__empty"
+              *ngIf="tabla.posiciones.length === 0"
+            >
+              Sin resultados registrados.
+            </p>
+          </article>
+        </section>
+
+        <section class="panel">
+          <div class="section-header">
+            <div>
+              <h3>
+                {{ faseGenerada()
+                  ? 'Cuadro confirmado'
+                  : 'Configurar cruces' }}
+              </h3>
+              <p>
+                Elige los participantes conforme a las
+                posiciones y al reglamento de este torneo.
+              </p>
+            </div>
+          </div>
+
+          <label class="field" *ngIf="!faseGenerada()">
+            <span>Fase inicial</span>
+
+            <select
+              [value]="faseInicial()"
+              [disabled]="!isAdmin() || generating()"
+              (change)="cambiarFase($any($event.target).value)"
+            >
+              <option
+                *ngFor="let opcion of fasesIniciales"
+                [value]="opcion.fase"
+                [disabled]="opcion.robots > candidatos().length"
+              >
+                {{ opcion.fase }} —
+                {{ opcion.robots }} robots,
+                {{ opcion.combates }} combates
+              </option>
+            </select>
+          </label>
+
+          <p *ngIf="faseGenerada()">
+            Fase inicial: <strong>{{ faseInicial() }}</strong>
+          </p>
+
+          <div class="info-box">
+            Los ganadores de los combates 1 y 2 avanzarán
+            al mismo cruce; después los de 3 y 4, y así
+            sucesivamente. Revisa el orden antes de confirmar.
+          </div>
+
+          <div class="cruces-grid">
+            <article
+              class="cruce-card"
+              *ngFor="let cruce of cruces(); let i = index"
+            >
+              <strong class="cruce-card__number">
+                Combate {{ i + 1 }}
+              </strong>
+
+              <label class="field">
+                <span>Robot 1</span>
+
+                <select
+                  [value]="cruce.robot1Id"
+                  [disabled]="
+                    !isAdmin() ||
+                    faseGenerada() ||
+                    generating() ||
+                    !gruposTerminados()
+                  "
+                  (change)="seleccionar(
+                    i,
+                    'robot1Id',
+                    $any($event.target).value
+                  )"
+                >
+                  <option value="">Selecciona un robot</option>
+
+                  <optgroup
+                    *ngFor="let tabla of tablas()"
+                    [label]="tabla.bloqueNombre"
+                  >
+                    <option
+                      *ngFor="let robot of tabla.posiciones"
+                      [value]="robot.robotId"
+                      [disabled]="ocupado(
+                        robot.robotId,
+                        cruce.robot1Id
+                      )"
+                    >
+                      {{ etiqueta(robot) }}
+                    </option>
+                  </optgroup>
+                </select>
+              </label>
+
+              <span class="cruce-card__vs">VS</span>
+
+              <label class="field">
+                <span>Robot 2</span>
+
+                <select
+                  [value]="cruce.robot2Id"
+                  [disabled]="
+                    !isAdmin() ||
+                    faseGenerada() ||
+                    generating() ||
+                    !gruposTerminados()
+                  "
+                  (change)="seleccionar(
+                    i,
+                    'robot2Id',
+                    $any($event.target).value
+                  )"
+                >
+                  <option value="">Selecciona un robot</option>
+
+                  <optgroup
+                    *ngFor="let tabla of tablas()"
+                    [label]="tabla.bloqueNombre"
+                  >
+                    <option
+                      *ngFor="let robot of tabla.posiciones"
+                      [value]="robot.robotId"
+                      [disabled]="ocupado(
+                        robot.robotId,
+                        cruce.robot2Id
+                      )"
+                    >
+                      {{ etiqueta(robot) }}
+                    </option>
+                  </optgroup>
+                </select>
+              </label>
+            </article>
+          </div>
+
+          <p
+            class="info-box"
+            *ngIf="!faseGenerada() && validacion()"
+          >
+            {{ validacion() }}
+          </p>
+
+          <p class="info-box" *ngIf="!isAdmin()">
+            Solo el administrador puede configurar y
+            confirmar los cruces iniciales.
+          </p>
+        </section>
+
+        <div class="footer-actions">
+          <a
+            class="btn btn--ghost"
+            [routerLink]="['/torneos', torneoId, 'ranking']"
+          >
+            ← Volver a posiciones
+          </a>
+
+          <div class="footer-actions__right">
+            <a
+              *ngIf="faseGenerada()"
+              class="btn btn--primary"
+              [routerLink]="[
+                '/torneos',
+                torneoId,
+                'enfrentamientos'
+              ]"
+              [queryParams]="{ fase: faseInicial() }"
+            >
+              Ver enfrentamientos →
+            </a>
+
+            <button
+              *ngIf="isAdmin() && !faseGenerada()"
+              type="button"
+              class="btn btn--primary"
+              [disabled]="!puedeGenerar()"
+              (click)="generarFaseEliminatoria()"
+            >
+              {{ generating()
+                ? 'Confirmando…'
+                : 'Confirmar cuadro eliminatorio' }}
+            </button>
+          </div>
+        </div>
+      </ng-container>
+    </main>
+  </div>
+</div>

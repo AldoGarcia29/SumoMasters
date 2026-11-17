@@ -1,0 +1,106 @@
+@use '../../shared/styles/admin-page';
+
+.torneos {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.75rem 2rem 3rem;
+}
+
+.table__trophy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  flex: none;
+  color: var(--color-primary);
+  background: #f1e9ff;
+  border-radius: 0.5rem;
+}
+
+.robot-picker {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.4rem;
+  max-height: 10rem;
+  padding: 0.75rem;
+  overflow-y: auto;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.robot-picker__item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  font-weight: 400;
+  color: var(--color-text);
+}
+
+.robot-picker__empty {
+  margin: 0;
+  padding: 0.75rem;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.robot-picker__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.45rem;
+}
+
+.robot-picker__header > span {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.robot-picker__select-all {
+  padding: 0.35rem 0.65rem;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: #f1e9ff;
+  border: 1px solid #ddccff;
+  border-radius: 0.4rem;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.robot-picker__select-all:hover {
+  background: #e8dcff;
+  border-color: var(--color-primary);
+}
+
+.robot-picker__select-all:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+@media (max-width: 720px) {
+  .torneos {
+    padding: 1.25rem;
+  }
+
+  .robot-picker {
+    grid-template-columns: 1fr;
+  }
+
+  .robot-picker__header {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+}

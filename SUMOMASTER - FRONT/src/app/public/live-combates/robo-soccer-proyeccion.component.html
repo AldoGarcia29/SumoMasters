@@ -1,0 +1,65 @@
+<section class="soccer" aria-label="Proyección de Robo Soccer">
+  <header class="soccer-barra">
+    <h2>Robo Soccer <span *ngIf="torneo() as actual">· {{ actual.nombre }}</span></h2>
+
+    <label>
+      Partidos visibles
+      <select #cantidadVisible (change)="cambiarCantidad(cantidadVisible.value)">
+        <option *ngFor="let opcion of cantidades" [value]="opcion">
+          {{ opcion }}
+        </option>
+      </select>
+    </label>
+  </header>
+
+  <p *ngIf="aviso()" class="soccer-aviso" role="status">{{ aviso() }}</p>
+
+  <div class="soccer-grid" *ngIf="partidos().length" [attr.data-cantidad]="cantidad()">
+    <article class="soccer-tarjeta" *ngFor="let tarjeta of tarjetas()">
+      <header class="soccer-tarjeta__barra">
+        <strong>{{ tarjeta.partido?.fase ?? 'Partido ' + (tarjeta.indice + 1) }}</strong>
+
+        <select
+          #partidoElegido
+          [attr.aria-label]="'Elegir partido para la tarjeta ' + (tarjeta.indice + 1)"
+          (change)="elegirPartido(tarjeta.indice, partidoElegido.value)"
+        >
+          <option value="" [selected]="!tarjeta.partido">Elegir partido</option>
+          <option
+            *ngFor="let partido of partidos()"
+            [value]="partido.id"
+            [selected]="tarjeta.partido?.id === partido.id"
+          >
+            {{ partido.fase }} · {{ partido.local }} vs. {{ partido.visitante }}
+          </option>
+        </select>
+      </header>
+
+      <div class="soccer-enfrentamiento" *ngIf="tarjeta.partido as partido; else vacia">
+  <ng-container *ngIf="partido.resultado as goles; else pendiente">
+    <strong class="soccer-local" [class.soccer-ganador]="goles.golesLocal > goles.golesVisitante">
+      {{ partido.local }}
+      <small *ngIf="goles.golesLocal > goles.golesVisitante">Ganador</small>
+    </strong>
+
+    <strong class="soccer-marcador">{{ goles.golesLocal }}–{{ goles.golesVisitante }}</strong>
+
+    <strong class="soccer-visitante" [class.soccer-ganador]="goles.golesVisitante > goles.golesLocal">
+      {{ partido.visitante }}
+      <small *ngIf="goles.golesVisitante > goles.golesLocal">Ganador</small>
+    </strong>
+  </ng-container>
+
+  <ng-template #pendiente>
+    <strong class="soccer-local">{{ partido.local }}</strong>
+    <strong class="soccer-marcador">VS</strong>
+    <strong class="soccer-visitante">{{ partido.visitante }}</strong>
+  </ng-template>
+</div>
+
+      <ng-template #vacia>
+        <div class="soccer-espera">Selecciona un partido para proyectar</div>
+      </ng-template>
+    </article>
+  </div>
+</section>

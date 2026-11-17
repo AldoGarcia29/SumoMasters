@@ -1,0 +1,133 @@
+<section class="branding">
+  <div class="branding__glow" aria-hidden="true"></div>
+
+  <div class="branding__header">
+    <div class="branding__logo">
+      <svg viewBox="0 0 48 48" width="40" height="40" aria-hidden="true">
+        <polygon
+          points="24,2 44,13 44,35 24,46 4,35 4,13"
+          fill="url(#logoGradient)"
+        />
+        <defs>
+          <linearGradient id="logoGradient" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#a78bfa" />
+            <stop offset="1" stop-color="#6d28d9" />
+          </linearGradient>
+        </defs>
+        <circle cx="24" cy="18" r="6" fill="#f5f3ff" />
+        <path
+          d="M12 38c1.5-7 6-11 12-11s10.5 4 12 11"
+          fill="none"
+          stroke="#f5f3ff"
+          stroke-width="4"
+          stroke-linecap="round"
+        />
+      </svg>
+      <span class="branding__logo-text">SUMO<br />MASTERS</span>
+    </div>
+
+    <p class="branding__tagline">
+      Plataforma para la gestión de torneos de robots de combate sumo.
+    </p>
+  </div>
+
+  <div class="branding__illustration" aria-hidden="true">
+    <svg viewBox="0 0 320 220" class="robot-svg">
+      <ellipse cx="160" cy="185" rx="120" ry="14" class="robot-svg__shadow" />
+
+      <!-- ruedas -->
+      <circle cx="70" cy="150" r="26" class="robot-svg__wheel" />
+      <circle cx="70" cy="150" r="10" class="robot-svg__hub" />
+      <circle cx="250" cy="150" r="26" class="robot-svg__wheel" />
+      <circle cx="250" cy="150" r="10" class="robot-svg__hub" />
+
+      <!-- chasis -->
+      <rect x="55" y="95" width="210" height="60" rx="14" class="robot-svg__body" />
+      <rect x="55" y="95" width="210" height="16" rx="8" class="robot-svg__body-top" />
+
+      <!-- pala frontal -->
+      <path d="M55 150 L20 165 L20 178 L55 155 Z" class="robot-svg__blade" />
+
+      <!-- luces -->
+      <circle cx="95" cy="122" r="6" class="robot-svg__light robot-svg__light--a" />
+      <circle cx="120" cy="122" r="6" class="robot-svg__light robot-svg__light--b" />
+      <circle cx="200" cy="122" r="6" class="robot-svg__light robot-svg__light--b" />
+      <circle cx="225" cy="122" r="6" class="robot-svg__light robot-svg__light--a" />
+
+      <!-- antena -->
+      <line x1="160" y1="95" x2="160" y2="70" class="robot-svg__antenna" />
+      <circle cx="160" cy="65" r="6" class="robot-svg__antenna-tip" />
+    </svg>
+  </div>
+
+  <div class="branding__features">
+    <div class="branding__feature" *ngFor="let feature of features">
+      <div class="branding__feature-icon">
+        <svg
+          *ngIf="feature.icon === 'trophy'"
+          viewBox="0 0 24 24"
+          width="20"
+          height="20"
+        >
+          <path
+            d="M7 4h10v3a5 5 0 0 1-5 5 5 5 0 0 1-5-5V4Z"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+          />
+          <path
+            d="M7 5H4v1a4 4 0 0 0 4 4M17 5h3v1a4 4 0 0 1-4 4"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+          />
+          <path
+            d="M12 12v3m-3 3h6m-6 0-1 2h8l-1-2"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+          />
+        </svg>
+        <svg
+          *ngIf="feature.icon === 'users'"
+          viewBox="0 0 24 24"
+          width="20"
+          height="20"
+        >
+          <circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.6" />
+          <path
+            d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+          />
+          <path
+            d="M15.5 6a3 3 0 0 1 0 5.9M21 20c0-2.8-2-5.1-4.7-5.8"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+          />
+        </svg>
+        <svg
+          *ngIf="feature.icon === 'chart'"
+          viewBox="0 0 24 24"
+          width="20"
+          height="20"
+        >
+          <path
+            d="M4 20V10m7 10V4m7 16v-7"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+          />
+        </svg>
+      </div>
+      <p class="branding__feature-title">{{ feature.title }}</p>
+      <p class="branding__feature-description">{{ feature.description }}</p>
+    </div>
+  </div>
+</section>

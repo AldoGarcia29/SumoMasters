@@ -1,0 +1,772 @@
+:host {
+  display: block;
+  color: #25213b;
+}
+
+/* Contenido de la página */
+.clasificados-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 28px 32px 36px;
+  min-width: 0;
+}
+
+/* Paneles */
+.panel {
+  min-width: 0;
+  padding: 24px;
+  background: #fff;
+  border: 1px solid #e8e2f6;
+  border-radius: 20px;
+  box-shadow: 0 2px 5px rgb(55 35 105 / 3%);
+}
+
+.clasificados-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+
+  h2 {
+    margin: 0 0 8px;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  p {
+    margin: 0;
+    color: #79738d;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+
+  h3 {
+    margin: 0 0 7px;
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 0;
+    color: #79738d;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+}
+
+/* Botones */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 11px 18px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+
+  &:focus-visible {
+    outline: 3px solid #c4b5fd;
+    outline-offset: 3px;
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+.btn--primary {
+  color: #fff;
+  background: linear-gradient(120deg, #a178f5, #7637e7);
+  box-shadow: 0 4px 12px rgb(124 58 237 / 15%);
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(120deg, #9265eb, #682bd6);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgb(124 58 237 / 22%);
+  }
+}
+
+.btn--ghost {
+  color: #554377;
+  background: #faf8ff;
+  border-color: #e8e2f6;
+
+  &:hover:not(:disabled) {
+    color: #7637e7;
+    background: #f1eaff;
+    border-color: #d8c8f8;
+  }
+}
+
+/* Tablas de posiciones por bloque */
+.bloques-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.bloque-card {
+  padding: 20px;
+}
+
+.bloque-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eee9f7;
+
+  h3 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+  }
+}
+
+.clasificados-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.clasificado {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0;
+  border-bottom: 1px solid #f0ecf8;
+
+  &:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+}
+
+.clasificado__position {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  color: #7c3aed;
+  background: #f2ebff;
+  border-radius: 11px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.clasificado__robot {
+  min-width: 0;
+
+  strong {
+    display: block;
+    color: #302744;
+    font-size: 14px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+}
+
+.clasificado__stats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+
+  strong {
+    color: #6f35cf;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  span {
+    color: #888198;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+}
+
+/* Etiquetas */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 11px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.badge--info {
+  color: #2861dc;
+  background: #e3edff;
+}
+
+.badge--success {
+  color: #19834e;
+  background: #dcf6e7;
+}
+
+.badge--neutral {
+  color: #746d83;
+  background: #f2f0f6;
+}
+
+/* Formularios */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-width: 0;
+  margin-bottom: 20px;
+
+  > span {
+    color: #514762;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  select {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+    padding: 11px 38px 11px 13px;
+    color: #392d50;
+    background-color: #faf8ff;
+    border: 1px solid #e4dcf5;
+    border-radius: 11px;
+    font: inherit;
+    font-size: 13px;
+    line-height: 1.5;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    transition:
+      border-color 160ms ease,
+      box-shadow 160ms ease;
+
+    &:hover:not(:disabled) {
+      border-color: #b99ae9;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: #9663ec;
+      box-shadow: 0 0 0 3px rgb(150 99 236 / 12%);
+    }
+
+    &:disabled {
+      color: #766e85;
+      background-color: #f5f3f9;
+      cursor: not-allowed;
+      opacity: 1;
+    }
+
+    option,
+    optgroup {
+      color: #392d50;
+      background: #fff;
+    }
+
+    option:disabled {
+      color: #aaa3b7;
+    }
+  }
+}
+
+/* Selector de fase */
+.section-header + .field {
+  max-width: 420px;
+}
+
+/* Tarjetas de cruces */
+.cruces-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 22px;
+}
+
+.cruce-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 20px;
+  background: #fdfcff;
+  border: 1px solid #e8dff7;
+  border-radius: 16px;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+
+  &:focus-within {
+    border-color: #b492ed;
+    box-shadow: 0 4px 16px rgb(124 58 237 / 7%);
+  }
+
+  .field {
+    margin-bottom: 0;
+  }
+}
+
+.cruce-card__number {
+  display: block;
+  margin-bottom: 19px;
+  padding-bottom: 13px;
+  color: #6f35cf;
+  border-bottom: 1px solid #ece4f8;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.cruce-card__vs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 15px 0;
+  color: #9a79c9;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1px;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e8dff4;
+  }
+}
+
+/* Mensajes */
+.info-box {
+  margin: 16px 0 0;
+  padding: 15px 17px;
+  color: #7950ba;
+  background: #f2ebff;
+  border: 1px solid #e9ddfb;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.panel__error,
+.panel__success {
+  margin: 0;
+  padding: 15px 18px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.panel__error {
+  color: #b43d50;
+  background: #fff0f2;
+  border-color: #f8d8df;
+}
+
+.panel__success {
+  color: #18754b;
+  background: #dcfce9;
+  border-color: #c7efd9;
+}
+
+.table__empty {
+  margin: 0;
+  padding: 22px 0;
+  color: #91899f;
+  font-size: 13px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+/* Acciones */
+.footer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-top: 4px;
+}
+
+.footer-actions__right {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Pantallas medianas */
+@media (max-width: 1200px) {
+  .bloques-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .clasificados-page {
+    padding: 24px;
+  }
+}
+
+/* Tabletas y ventanas estrechas */
+@media (max-width: 900px) {
+  .clasificados-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .cruces-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .panel {
+    padding: 20px;
+  }
+}
+
+/* Celulares */
+@media (max-width: 600px) {
+  .clasificados-page {
+    gap: 16px;
+    padding: 16px 12px 24px;
+  }
+
+  .panel {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .clasificados-header h2 {
+    font-size: 20px;
+  }
+
+  .bloques-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .section-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .cruces-grid {
+    gap: 16px;
+  }
+
+  .cruce-card {
+    padding: 16px;
+  }
+
+  .clasificado {
+    grid-template-columns: 30px minmax(0, 1fr) auto;
+    gap: 9px;
+  }
+
+  .clasificado__position {
+    width: 30px;
+    height: 30px;
+  }
+
+  .footer-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .footer-actions__right {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .footer-actions .btn {
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .field select,
+  .cruce-card {
+    transition: none;
+  }
+
+  .btn:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* Estructura: reserva el espacio del sidebar fijo.
+   Ajusta 260px si el sidebar de tu proyecto usa otra medida. */
+:host {
+  --sidebar-width: 260px;
+
+  display: block;
+  min-height: 100vh;
+  background: #f5f2fc;
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.app-shell__main {
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 100vh;
+  margin-left: var(--sidebar-width);
+}
+
+.app-shell__backdrop {
+  display: none;
+}
+
+.clasificados-page {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px;
+  gap: 20px;
+}
+
+.panel {
+  padding: 22px;
+  border-radius: 16px;
+}
+
+/* Posiciones compactas */
+.bloques-grid {
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(100%, 240px), 1fr)
+  );
+  gap: 16px;
+}
+
+.bloque-card {
+  padding: 16px;
+}
+
+.bloque-card__header {
+  padding-bottom: 12px;
+}
+
+.clasificado {
+  padding: 12px 0;
+  gap: 10px;
+}
+
+/* Cada combate en una fila:
+   Robot 1 — VS — Robot 2 */
+.cruces-grid {
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.cruce-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 42px minmax(0, 1fr);
+  align-items: end;
+  gap: 12px;
+  padding: 16px 18px;
+  background: #fdfcff;
+  border-radius: 14px;
+
+  .field {
+    min-width: 0;
+    margin: 0;
+    gap: 7px;
+  }
+
+  .field select {
+    min-height: 44px;
+    font-size: 13px;
+  }
+}
+
+.cruce-card__number {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding-bottom: 10px;
+  font-size: 13px;
+}
+
+.cruce-card__vs {
+  align-self: end;
+  height: 44px;
+  margin: 0;
+  gap: 0;
+  color: #8b5cc7;
+
+  &::before,
+  &::after {
+    display: none;
+  }
+}
+
+.info-box {
+  padding: 12px 15px;
+  font-size: 13px;
+}
+
+/* Acciones alineadas con el contenido */
+.footer-actions {
+  padding: 16px 0 4px;
+  border-top: 1px solid #e8e2f6;
+}
+
+/* En móvil, el sidebar funciona como menú superpuesto.
+   Usa el mismo breakpoint que las demás páginas del proyecto. */
+@media (max-width: 1024px) {
+  .app-shell__main {
+    margin-left: 0;
+  }
+
+  .app-shell__backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgb(20 12 40 / 45%);
+  }
+
+  .clasificados-page {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .clasificados-page {
+    padding: 14px;
+    gap: 16px;
+  }
+
+  .panel {
+    padding: 16px;
+  }
+
+  .cruce-card {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .cruce-card__number {
+    grid-column: auto;
+  }
+
+  .cruce-card__vs {
+    height: 24px;
+    align-self: center;
+  }
+
+  .footer-actions,
+  .footer-actions__right {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+
+/* Corrige el espacio vertical que reserva el sidebar */
+:host {
+  --sidebar-width: 260px;
+
+  display: block;
+  min-height: 100vh;
+  background: #f5f2fc;
+}
+
+.app-shell {
+  display: block;
+  min-height: 100vh;
+}
+
+/* Saca el componente sidebar del flujo del documento */
+.app-shell > app-sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--sidebar-width);
+  z-index: 50;
+}
+
+/* El contenido comienza arriba, junto al menú */
+.app-shell__main {
+  display: flex;
+  flex-direction: column;
+  width: auto;
+  min-width: 0;
+  min-height: 100vh;
+  margin: 0 0 0 var(--sidebar-width);
+  padding: 0;
+}
+
+.app-shell__main > app-topbar {
+  display: block;
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+.clasificados-page {
+  flex: 1;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+@media (max-width: 1024px) {
+  .app-shell__main {
+    margin-left: 0;
+  }
+
+  /* El menú móvil conserva su apertura mediante isOpen */
+  .app-shell > app-sidebar {
+    width: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .clasificados-page {
+    padding: 14px;
+  }
+}

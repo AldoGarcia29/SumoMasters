@@ -1,0 +1,38 @@
+:host { display: block; }
+
+.t { border-collapse: collapse; width: 100%; font-size: 0.9rem; background: #fff; }
+.t th, .t td { border: 1px solid #e5e7eb; padding: 0.35rem 0.55rem; text-align: left; }
+.t thead th { background: #6d28d9; color: #fff; font-weight: 600; }
+.t .titulo { text-align: center; letter-spacing: 0.05em; }
+
+.grupos { display: grid; gap: 0.5rem; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); margin: 0.5rem 0 1rem; }
+.seed { width: 2.2rem; color: #6b7280; font-variant-numeric: tabular-nums; }
+.grupo small { margin-left: 0.25rem; color: #6b7280; }
+
+.rondas { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); align-items: start; }
+.ronda tr.alt td { background: #f5f3ff; }
+.ronda td.hora { background: #fff !important; text-align: center; vertical-align: middle; font-weight: 600; width: 4rem; font-variant-numeric: tabular-nums; }
+.ronda td.dojo { text-align: center; width: 4.5rem; white-space: nowrap; }
+
+.duelo { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; }
+.vs { font-size: 0.7rem; color: #6b7280; text-transform: uppercase; }
+.r.gana { color: #16a34a; font-weight: 700; }
+.r.pierde { opacity: 0.5; text-decoration: line-through; }
+.r.tbd { color: #6b7280; font-style: italic; }
+.resalta { background: #fff3c4; border-radius: 4px; padding: 0 2px; }
+tr.resalta td { background: #fff3c4 !important; }
+.vivo::before { content: ''; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: #dc2626; animation: pulso 1s infinite; }
+@keyframes pulso { 50% { opacity: 0.25; } }
+
+.finales { margin: 1.5rem 0 0.5rem; padding: 0.3rem 0.75rem; background: #6d28d9; color: #fff; font-size: 0.95rem; letter-spacing: 0.08em; border-radius: 6px; }
+.llaves-scroll { overflow-x: auto; }
+.llaves { display: grid; gap: 0.6rem; min-width: min-content; }
+.etapa { display: flex; flex-direction: column; min-width: 150px; }
+.etapa h3 { margin: 0 0 0.4rem; font-size: 0.8rem; text-align: center; color: #6b7280; text-transform: uppercase; }
+.etapa-col { display: flex; flex: 1; flex-direction: column; justify-content: space-around; gap: 0.5rem; }
+.llave { display: flex; flex-direction: column; gap: 0.1rem; padding: 0.35rem 0.5rem; border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; font-size: 0.85rem; }
+.hora-llave { font-size: 0.7rem; color: #6b7280; font-variant-numeric: tabular-nums; }
+.campeon { padding: 1rem 0.5rem; text-align: center; font-weight: 700; color: #6b7280; border: 2px dashed #d1d5db; border-radius: 8px; }
+.campeon.listo { color: #16a34a; border: 2px solid #16a34a; }
+.tercero { margin-top: 0.75rem; padding: 0.5rem 0.75rem; border: 1px solid #e5e7eb; border-radius: 6px; }
+.tercero h3 { margin: 0 0 0.25rem; font-size: 0.8rem; color: #6b7280; text-transform: uppercase; }

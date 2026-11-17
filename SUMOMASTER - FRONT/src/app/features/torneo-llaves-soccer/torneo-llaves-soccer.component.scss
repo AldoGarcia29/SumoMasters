@@ -1,0 +1,105 @@
+@use '../../shared/styles/admin-page';
+
+.llaves-page {
+  display: grid;
+  gap: 1.25rem;
+  padding: 1.75rem 2rem 3rem;
+}
+
+.llaves-panel {
+  min-width: 0;
+  padding: 1.25rem;
+}
+
+.llaves-panel h2,
+.cuadro-columna h3,
+.cruce h3 {
+  margin: 0 0 .75rem;
+  color: var(--color-text);
+}
+
+fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.ronda-selector {
+  max-width: 18rem;
+}
+
+.cruces-grid,
+.podio {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: .85rem;
+}
+
+.cruce,
+.podio > div {
+  padding: .85rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.guardar-cruces {
+  margin-top: 1rem;
+}
+
+.cuadro {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding: .25rem .15rem .75rem;
+}
+
+.cuadro-columna {
+  flex: 1 0 15rem;
+  display: grid;
+  align-content: start;
+  gap: .75rem;
+}
+
+.equipo-boton {
+  display: flex;
+  justify-content: space-between;
+  gap: .5rem;
+  width: 100%;
+  padding: .65rem;
+  color: var(--color-text);
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.equipo-boton + .equipo-boton {
+  margin-top: .4rem;
+}
+
+.equipo-boton:disabled {
+  cursor: default;
+}
+
+.equipo-boton:not(:disabled):hover,
+.equipo-boton.ganador {
+  color: var(--color-primary);
+  background: #f1e9ff;
+  border-color: var(--color-primary);
+}
+
+.podio dd {
+  margin: .3rem 0 0;
+  font-weight: 700;
+}
+
+@media (max-width: 720px) {
+  .llaves-page {
+    padding: 1.25rem;
+  }
+}

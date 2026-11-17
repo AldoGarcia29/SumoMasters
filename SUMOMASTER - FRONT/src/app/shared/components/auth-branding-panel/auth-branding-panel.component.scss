@@ -1,0 +1,177 @@
+.branding {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 2rem;
+  height: 100%;
+  padding: 2.75rem 2.5rem;
+  overflow: hidden;
+  color: #ede9fe;
+  background:
+    radial-gradient(120% 90% at 15% 100%, rgba(168, 85, 247, 0.35), transparent 60%),
+    linear-gradient(160deg, #1b0f33 0%, #150a26 55%, #0d0716 100%);
+}
+
+.branding__glow {
+  position: absolute;
+  inset: auto -20% -30% -10%;
+  height: 60%;
+  background: radial-gradient(closest-side, rgba(147, 51, 234, 0.45), transparent 70%);
+  filter: blur(10px);
+  pointer-events: none;
+}
+
+.branding__header {
+  position: relative;
+  z-index: 1;
+}
+
+.branding__logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.branding__logo-text {
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  color: #fff;
+}
+
+.branding__tagline {
+  max-width: 22rem;
+  margin: 1.25rem 0 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #c4b5fd;
+}
+
+.branding__illustration {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+
+.robot-svg {
+  width: min(100%, 320px);
+  filter: drop-shadow(0 0 22px rgba(168, 85, 247, 0.45));
+}
+
+.robot-svg__shadow {
+  fill: rgba(0, 0, 0, 0.35);
+}
+
+.robot-svg__wheel {
+  fill: #0d0716;
+  stroke: #7c3aed;
+  stroke-width: 3;
+}
+
+.robot-svg__hub {
+  fill: #a855f7;
+}
+
+.robot-svg__body {
+  fill: #1e1235;
+  stroke: #7c3aed;
+  stroke-width: 2;
+}
+
+.robot-svg__body-top {
+  fill: #7c3aed;
+}
+
+.robot-svg__blade {
+  fill: #4c1d95;
+  stroke: #a855f7;
+  stroke-width: 1.5;
+}
+
+.robot-svg__light {
+  fill: #d8b4fe;
+}
+
+.robot-svg__light--a {
+  animation: pulse 1.8s ease-in-out infinite;
+}
+
+.robot-svg__light--b {
+  animation: pulse 1.8s ease-in-out infinite 0.4s;
+}
+
+.robot-svg__antenna {
+  stroke: #a855f7;
+  stroke-width: 2;
+}
+
+.robot-svg__antenna-tip {
+  fill: #f0abfc;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.branding__features {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.branding__feature {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  text-align: center;
+}
+
+.branding__feature-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  color: #d8b4fe;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  border-radius: 0.65rem;
+  background: rgba(124, 58, 237, 0.15);
+}
+
+.branding__feature-title {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.branding__feature-description {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: #a78bfa;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .robot-svg__light--a,
+  .robot-svg__light--b,
+  .robot-svg__antenna-tip {
+    animation: none;
+  }
+}

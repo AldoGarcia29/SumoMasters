@@ -1,0 +1,161 @@
+import { extractErrorMessage } from '../../core/utils/error-message.util';
+import { CommonModule } from '@angular/common';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { SidebarComponent } from '../../shared/components/sidebar/sidebar.component';
+import { TopbarComponent } from '../../shared/components/topbar/topbar.component';
+import { RobotChipComponent } from '../../shared/components/robot-chip/robot-chip.component';
+import { TorneoService } from '../../core/services/torneo.service';
+import { BloqueService } from '../../core/services/bloque.service';
+import { TorneoFlowCacheService } from '../../core/services/torneo-flow-cache.service';
+import { Torneo } from '../../core/models/torneo.model';
+import { Bloque } from '../../core/models/bloque.model';
+
+@Component({
+  selector: 'app-torneo-bloques',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    RouterLink,
+    SidebarComponent,
+    TopbarComponent,
+    RobotChipComponent,
+  ],
+  templateUrl: './torneo-bloques.component.html',
+  styleUrl: './torneo-bloques.component.scss',
+})
+export class TorneoBloquesComponent implements OnInit {
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly torneoService = inject(TorneoService);
+  private readonly bloqueService = inject(BloqueService);
+  private readonly flowCache = inject(TorneoFlowCacheService);
+  private readonly fb = inject(FormBuilder);
+
+  readonly sidebarOpen = signal(false);
+  toggleSidebar(): void {
+    this.sidebarOpen.update((v) => !v);
+  }
+  closeSidebar(): void {
+    this.sidebarOpen.set(false);
+  }
+
+  readonly torneoId = this.route.snapshot.paramMap.get('id') ?? '';
+  readonly torneo = signal<Torneo | null>(null);
+  readonly bloques = signal<Bloque[]>([]);
+  readonly activeTab = signal<'vista' | 'lista'>('vista');
+
+  readonly loading = signal(false);
+  readonly generating = signal(false);
+  readonly errorMessage = signal<string | null>(null);
+
+  readonly totalRobots = computed(() =>
+    this.bloques().reduce((acc, b) => acc + b.robots.length, 0),
+  );
+
+  readonly form = this.fb.nonNullable.group({
+  cantidadBloques: [
+    3,
+    [Validators.required, Validators.min(1)],
+  ],
+});
+
+  ngOnInit(): void {
+    this.torneoService.findOne(this.torneoId).subscribe({
+      next: (torneo) => {
+        this.torneo.set(torneo);
+      },
+    });
+
+    // Si ya teníamos bloques en caché para este torneo (de una visita
+    // anterior en esta misma sesión), los mostramos de inmediato en vez de
+    // esperar la red — y de todas formas refrescamos en segundo plano.
+    const cacheados = this.flowCache.getBloques(this.torneoId);
+    if (cacheados && cacheados.length > 0) {
+      this.bloques.set(cacheados);
+    }
+
+    this.loadBloques();
+  }
+
+  loadBloques(): void {
+    this.loading.set(true);
+    this.bloqueService.findByTorneo(this.torneoId).subscribe({
+      next: (data) => {
+        this.loading.set(false);
+        if (data.length > 0) {
+          this.bloques.set(data);
+          this.flowCache.setBloques(this.torneoId, data);
+        }
+        // Si vuelve vacío pero ya teníamos algo en pantalla (de caché),
+        // no lo pisamos — probablemente es la misma inconsistencia de
+        // lectura que venimos blindando en todo el flujo.
+      },
+      error: () => {
+        this.loading.set(false);
+      },
+    });
+  }
+
+  setTab(tab: 'vista' | 'lista'): void {
+    this.activeTab.set(tab);
+  }
+
+  generar(): void {
+  if (this.generating()) return;
+
+  const { cantidadBloques } = this.form.getRawValue();
+  const total = this.torneo()?.robotsInscritos?.length ?? 0;
+
+  this.errorMessage.set(null);
+
+  if (
+    !Number.isInteger(cantidadBloques) ||
+    cantidadBloques < 1 ||
+    cantidadBloques > total
+  ) {
+    this.errorMessage.set(
+      `La cantidad de bloques debe ser un entero entre 1 y ${total}.`,
+    );
+    return;
+  }
+
+  this.generating.set(true);
+
+  this.bloqueService
+    .generar(this.torneoId, { cantidadBloques })
+    .subscribe({
+      next: (bloques) => {
+        this.bloques.set(bloques);
+        this.flowCache.setBloques(this.torneoId, bloques);
+        this.generating.set(false);
+      },
+      error: (err) => {
+        this.generating.set(false);
+        this.errorMessage.set(
+          extractErrorMessage(
+            err,
+            'No se pudieron generar los bloques.',
+          ),
+        );
+      },
+    });
+}
+
+  todosLosRobots(): { robot: Bloque['robots'][number]; bloqueNombre: string }[] {
+    return this.bloques().flatMap((bloque) =>
+      bloque.robots.map((robot) => ({ robot, bloqueNombre: bloque.nombre })),
+    );
+  }
+
+  continuar(): void {
+    // Pasamos los bloques recién generados directamente por el estado de
+    // navegación, para que la siguiente pantalla los muestre de inmediato
+    // sin depender de una nueva consulta de red que podría demorar o fallar.
+    this.router.navigate(['/torneos', this.torneoId, 'enfrentamientos'], {
+      state: { bloques: this.bloques() },
+    });
+  }
+}
