@@ -372,7 +372,8 @@ export class SeguilineasService implements OnModuleInit {
           },
         },
       ],
-      { new: true },
+      // Mongoose 9 exige declarar explícitamente los updates tipo pipeline
+      { new: true, updatePipeline: true },
     );
     if (!t)
       throw new ConflictException(
