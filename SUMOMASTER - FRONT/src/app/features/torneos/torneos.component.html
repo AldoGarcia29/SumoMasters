@@ -113,7 +113,7 @@
                 <th>Categoría</th>
                 <th>Estado</th>
                 <th>Participantes</th>
-                <th class="table__actions-head">
+                <th class="table__actions-head table__actions-head--torneos">
                   Acciones
                 </th>
               </tr>
@@ -203,28 +203,25 @@
                 <!-- ACCIONES -->
                 <!-- ========================= -->
 
-                <td class="table__actions">
+                <td class="table__actions table__actions--torneos">
 
-                  <!--
-                    ADMIN y STAFF pueden ingresar
-                    al módulo operativo del torneo.
-                  -->
                   <a
                     *appCan="'manage'"
-                    class="btn btn--primary btn--sm"
+                    class="btn btn--primary btn--sm table__action-label"
                     [routerLink]="esTorneoSeguilineas(torneo) ? ['/seguilineas'] : ['/torneos', torneo._id, 'resultados']"
-                    title="Ingresar al torneo"
+                    title="Resultados"
                   >
-                    Ingresar
+                    Resultados
                   </a>
 
-                  <!-- Solo ADMIN -->
-                  <a
-                    *appCan="'admin'"
-                    [routerLink]="esTorneoSeguilineas(torneo) ? ['/seguilineas'] : ['/torneos', torneo._id, esTorneoRoboSoccer(torneo) ? 'grupos' : 'bloques']"
-                    aria-label="Gestionar fases"
-                    title="Gestionar fases"
-                  >
+                  <!-- Seguilineas ya se abre desde Resultados; evitar dos acciones idénticas. -->
+                  <ng-container *appCan="'admin'">
+                    <a
+                      *ngIf="!esTorneoSeguilineas(torneo)"
+                      [routerLink]="esTorneoRoboSoccer(torneo) ? ['/torneos', torneo._id, 'grupos'] : ['/torneos', torneo._id, 'bloques']"
+                      aria-label="Fases/Bloques"
+                      title="Fases/Bloques"
+                    >
                     <svg
                       viewBox="0 0 24 24"
                       width="16"
@@ -274,14 +271,15 @@
                         stroke-width="1.6"
                       />
                     </svg>
-                  </a>
+                    </a>
+                  </ng-container>
 
                   <!-- Solo ADMIN -->
                   <button
                     *appCan="'admin'"
                     type="button"
                     aria-label="Editar"
-                    title="Editar torneo"
+                    title="Editar"
                     (click)="openEditModal(torneo)"
                   >
                     <svg
@@ -303,7 +301,7 @@
                   <button
                     type="button"
                     aria-label="Ver"
-                    title="Ver torneo"
+                    title="Ver"
                     (click)="openViewModal(torneo)"
                   >
                     <svg
@@ -335,7 +333,7 @@
                     type="button"
                     class="table__actions-danger"
                     aria-label="Eliminar"
-                    title="Eliminar torneo"
+                    title="Eliminar"
                     (click)="askDelete(torneo)"
                   >
                     <svg

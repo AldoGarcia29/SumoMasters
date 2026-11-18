@@ -7,6 +7,25 @@
   padding: 1.75rem 2rem 3rem;
 }
 
+.table__actions-head--torneos {
+  min-width: 16rem;
+  text-align: right;
+}
+
+.table__actions--torneos {
+  min-width: 16rem;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.45rem;
+}
+
+.table__actions--torneos .table__action-label {
+  width: auto;
+  min-width: 6rem;
+  flex: 0 0 auto;
+  padding-inline: 0.65rem;
+}
+
 .table__trophy {
   display: flex;
   align-items: center;
