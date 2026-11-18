@@ -66,3 +66,27 @@
     font-size: 24px;
   }
 }
+
+
+.ticker[data-tipo="patrocinador"] .ticker__etiqueta {
+  padding-inline: clamp(10px, 1.8vw, 26px);
+  font-size: clamp(12px, 1.5vw, 24px);
+}
+
+.ticker[data-tipo="patrocinador"] .ticker__item {
+  padding-inline: clamp(14px, 3vw, 44px);
+}
+
+.ticker[data-tipo="patrocinador"] .ticker__item img {
+  box-sizing: border-box;
+  height: calc(var(--ticker-h, 112px) - 10px);
+  width: auto;
+  padding: 0;
+  object-fit: contain;
+}
+
+.ticker[data-tipo="patrocinador"] .ticker__item img[src$="/uteq.png"] {
+  width: calc((var(--ticker-h, 112px) - 10px) * 2);
+  object-fit: cover;
+  object-position: center;
+}

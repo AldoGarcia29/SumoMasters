@@ -24,6 +24,7 @@ export interface RefResultado {
 export interface ItemBarra {
   texto?: string;
   logo?: string;
+  nombreLogo?: string;
 }
 
 const clave = (torneoId: string, robotId: string): string =>
