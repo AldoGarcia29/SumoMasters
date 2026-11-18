@@ -103,3 +103,218 @@ fieldset {
     padding: 1.25rem;
   }
 }
+
+.llaves-acciones,
+.proyeccion-llaves__barra,
+.proyeccion-llaves__acciones {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .75rem;
+}
+
+.llaves-acciones,
+.proyeccion-llaves__barra {
+  justify-content: space-between;
+}
+
+.proyeccion-llaves {
+  box-sizing: border-box;
+  position: fixed;
+  z-index: 1100;
+  inset: 0;
+  overflow: auto;
+  padding: clamp(1rem, 4vw, 4rem);
+  color: #f5ecff;
+  color-scheme: dark;
+  background:
+    radial-gradient(ellipse at 0 65%, #163c6a, transparent 55%),
+    radial-gradient(ellipse at 100% 75%, #461934, transparent 50%),
+    #100d1d;
+}
+
+.proyeccion-llaves__barra {
+  margin-bottom: 1.25rem;
+}
+
+.proyeccion-llaves__barra p {
+  margin: 0;
+  color: #d6bdfe;
+}
+
+.proyeccion-llaves__barra h1 {
+  margin: .25rem 0 0;
+  font-size: clamp(1.8rem, 5vw, 4rem);
+  line-height: 1.1;
+}
+
+.proyeccion-llaves__acciones button,
+.proyeccion-llaves .ronda-selector select {
+  padding: .65rem 1rem;
+  border: 1px solid #9974ce;
+  border-radius: 999px;
+  background: #25183a;
+  color: #f5ecff;
+  font: inherit;
+}
+
+.proyeccion-llaves__acciones button:first-child:not(:disabled) {
+  background: #5832a0;
+}
+
+.proyeccion-llaves button:not(:disabled) {
+  cursor: pointer;
+}
+
+.proyeccion-llaves button:disabled {
+  opacity: .65;
+}
+
+.proyeccion-llaves button:focus-visible,
+.proyeccion-llaves select:focus-visible {
+  outline: 2px solid #f4dfff;
+  outline-offset: 2px;
+}
+
+.proyeccion-llaves .ronda-selector span,
+.proyeccion-llaves .cuadro-columna h3 {
+  color: #e3c9ff;
+}
+
+.proyeccion-llaves__error {
+  color: #ffb5c8;
+}
+
+.proyeccion-llaves .cuadro {
+  margin-top: 1rem;
+  scroll-snap-type: x proximity;
+}
+
+.proyeccion-llaves .cuadro-columna {
+  flex-basis: 12rem;
+  scroll-snap-align: start;
+}
+
+.proyeccion-llaves .cuadro-columna h3 {
+  margin: 0;
+}
+
+.proyeccion-llaves .cruce {
+  padding: .5rem;
+  border: 1px solid #9c73dd55;
+  border-radius: 1.4rem;
+  background: linear-gradient(125deg, #142a4a, #28152e 80%);
+}
+
+.proyeccion-llaves .equipo-boton {
+  justify-content: center;
+  border-color: #71c9ff55;
+  border-radius: 999px;
+  background: #0e1728;
+  color: #a6ddff;
+  text-align: center;
+}
+
+.proyeccion-llaves .equipo-boton + .equipo-boton {
+  border-color: #ff9ab166;
+  color: #ffc1ce;
+}
+
+.proyeccion-llaves .equipo-boton:not(:disabled):hover {
+  outline: 1px solid #f4dfff;
+}
+
+.proyeccion-llaves .equipo-boton.ganador {
+  border-color: #ffce6b;
+  color: #fff0b2;
+  background: radial-gradient(ellipse at bottom, #794219, #211320 75%);
+  box-shadow: 0 0 .85rem #ffbf4455;
+  opacity: 1;
+}
+
+.podio-proyeccion {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-areas: "segundo primero tercero";
+  align-items: end;
+  gap: clamp(.5rem, 3vw, 2rem);
+  max-width: 68rem;
+  margin: clamp(2rem, 7vh, 6rem) auto 0;
+  padding: 0;
+  list-style: none;
+}
+
+.podio-proyeccion--dos {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-areas: "segundo primero";
+  max-width: 45rem;
+}
+
+.podio-proyeccion li {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: .85rem;
+  min-height: 11rem;
+  padding: 1rem .5rem;
+  border: 1px solid var(--metal);
+  border-radius: 48% 48% 1.5rem 1.5rem / 18% 18% 1.5rem 1.5rem;
+  background:
+    radial-gradient(ellipse at 50% 100%, var(--halo), transparent 78%),
+    #171026;
+  color: var(--metal);
+  box-shadow: 0 0 2.5rem var(--halo);
+  text-align: center;
+  overflow-wrap: anywhere;
+  animation: revelar-puesto .65s ease-out both;
+}
+
+.podio-proyeccion strong {
+  font-size: clamp(1.05rem, 4vw, 3.5rem);
+  line-height: 1.1;
+}
+
+.podio-proyeccion span {
+  font-size: clamp(.75rem, 1.6vw, 1.2rem);
+  font-weight: 800;
+}
+
+.podio-proyeccion .podio-proyeccion__primero {
+  --metal: #ffe396;
+  --halo: #c77b2770;
+  grid-area: primero;
+  min-height: clamp(14rem, 43vh, 24rem);
+  animation-delay: .75s;
+}
+
+.podio-proyeccion .podio-proyeccion__segundo {
+  --metal: #d7e9ff;
+  --halo: #6687b15c;
+  grid-area: segundo;
+  min-height: clamp(12rem, 34vh, 20rem);
+  animation-delay: .4s;
+}
+
+.podio-proyeccion .podio-proyeccion__tercero {
+  --metal: #ffc5a0;
+  --halo: #b85c3f63;
+  grid-area: tercero;
+}
+
+@keyframes revelar-puesto {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .podio-proyeccion li {
+    animation: none;
+  }
+}
