@@ -18,6 +18,9 @@ import { TorneoResumen } from '../models/live.model';
 import { PublicApiService } from '../services/public-api.service';
 import { TorneoSeguilineas } from '../../core/models/seguilineas.model';
 import { SeguilineasService } from '../../core/services/seguilineas.service';
+import { EventoConfigService } from '../../core/services/evento-config.service';
+import { EventoConfig } from '../../core/models/evento-config.model';
+import { Title } from '@angular/platform-browser';
 
 const POLL_MS = 5_000;
 
@@ -39,14 +42,31 @@ export class TorneosPublicosComponent implements OnInit, OnDestroy {
   horaActual = new Date();
   ultimaActualizacion: Date | null = null;
   segundosDesdeActualizacion = 0;
+  eventoConfig: EventoConfig | null = null;
+  eventoConfigError: string | null = null;
 
   private readonly subs = new Subscription();
   private readonly seguilineasApi = inject(SeguilineasService);
+  private readonly eventoConfigService = inject(EventoConfigService);
+  private readonly title = inject(Title);
   seguilineas: TorneoSeguilineas[] = [];
 
   constructor(private readonly api: PublicApiService) {}
 
   ngOnInit(): void {
+    this.subs.add(
+      this.eventoConfigService.obtener().subscribe({
+        next: (config) => {
+          this.eventoConfig = config;
+          this.title.setTitle(`${config.nombreEvento} | En vivo`);
+          this.eventoConfigError = null;
+        },
+        error: () => {
+          this.eventoConfigError = 'No se pudo cargar la identidad del evento.';
+        },
+      }),
+    );
+
     this.subs.add(
       this.seguilineasApi.listar().subscribe({ next: (l) => (this.seguilineas = l), error: () => {} }),
     );
@@ -100,6 +120,11 @@ export class TorneosPublicosComponent implements OnInit, OnDestroy {
       (torneo) =>
         torneo.combatesEnCurso > 0 || torneo.estado === 'En progreso',
     );
+  }
+
+  get torneoDestacado(): TorneoResumen | null {
+    const id = this.eventoConfig?.torneoEnVivoId;
+    return id ? this.lista?.find((torneo) => torneo.id === id) ?? null : null;
   }
 
   get torneosFinalizados(): TorneoResumen[] {

@@ -21,6 +21,41 @@
   color: var(--color-text-muted);
 }
 
+.event-config-form {
+  display: grid;
+  gap: 0.9rem;
+
+  label {
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  input {
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    color: var(--color-text);
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font: inherit;
+  }
+
+  .btn {
+    justify-self: start;
+  }
+}
+
+.optional {
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.event-error {
+  margin: 0.7rem 0 0;
+  color: #b42318;
+  font-size: 0.82rem;
+}
+
 .profile-row {
   display: flex;
   align-items: center;

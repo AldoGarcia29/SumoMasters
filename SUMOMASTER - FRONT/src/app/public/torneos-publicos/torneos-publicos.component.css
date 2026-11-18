@@ -62,6 +62,41 @@
   max-width: 620px;
 }
 
+.torneo-destacado {
+  display: flex;
+  max-width: 17rem;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 1rem;
+  color: #fff;
+  text-decoration: none;
+  background: #ffffff18;
+  border: 1px solid #ffffff35;
+  border-radius: 1rem;
+  backdrop-filter: blur(8px);
+  transition: background-color 0.18s ease, transform 0.18s ease;
+}
+
+.torneo-destacado:hover {
+  background: #ffffff28;
+  transform: translateY(-2px);
+}
+
+.torneo-destacado span {
+  color: #d6c3f2;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.torneo-destacado strong {
+  font-size: 1.05rem;
+}
+
+.torneo-destacado small {
+  color: #e5daef;
+}
+
 .eyebrow {
   margin: 0 0 0.55rem;
   color: #a487d1;

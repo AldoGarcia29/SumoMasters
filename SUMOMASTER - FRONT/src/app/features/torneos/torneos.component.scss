@@ -8,15 +8,35 @@
 }
 
 .table__actions-head--torneos {
-  min-width: 16rem;
+  min-width: 29rem;
   text-align: right;
 }
 
 .table__actions--torneos {
-  min-width: 16rem;
+  min-width: 29rem;
   align-items: center;
   flex-wrap: nowrap;
   gap: 0.45rem;
+}
+
+.table__action-featured {
+  min-width: 7rem;
+  color: var(--color-primary-dark);
+  background: #f1e9ff;
+  white-space: nowrap;
+}
+
+.table__action-featured--active {
+  color: #166534;
+  background: #dcfce7;
+  cursor: default;
+}
+
+.featured-error {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  color: #b42318;
+  font-size: 0.82rem;
 }
 
 .table__actions--torneos .table__action-label {

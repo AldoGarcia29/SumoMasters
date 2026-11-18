@@ -11,6 +11,7 @@ import { SidebarComponent } from '../../shared/components/sidebar/sidebar.compon
 import { TopbarComponent } from '../../shared/components/topbar/topbar.component';
 import { TorneoService } from '../../core/services/torneo.service';
 import { SeguilineasService } from '../../core/services/seguilineas.service';
+import { EventoConfigService } from '../../core/services/evento-config.service';
 import { CategoriaService } from '../../core/services/categoria.service';
 import { RobotService } from '../../core/services/robot.service';
 import { EstadoTorneo, Torneo } from '../../core/models/torneo.model';
@@ -41,6 +42,7 @@ export class TorneosComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly seguilineasApi = inject(SeguilineasService);
+  private readonly eventoConfigService = inject(EventoConfigService);
 
   readonly EstadoTorneo = EstadoTorneo;
 
@@ -60,6 +62,10 @@ export class TorneosComponent implements OnInit {
   readonly equiposDisponibles = signal<Equipo[]>([]);
   readonly loading = signal(false);
   readonly errorMessage = signal<string | null>(null);
+  readonly featuredTournamentId = signal<string | null>(null);
+  readonly featuredTournamentBusyId = signal<string | null>(null);
+  readonly featuredTournamentLoading = signal(true);
+  readonly featuredTournamentError = signal<string | null>(null);
   readonly page = signal(1);
 
   readonly activeTab = signal<TabFilter>('todos');
@@ -128,6 +134,18 @@ export class TorneosComponent implements OnInit {
   ngOnInit(): void {
     this.categoriaService.findAll().subscribe({ next: (data) => this.categorias.set(data) });
     this.loadTorneos();
+    this.eventoConfigService.obtener().subscribe({
+      next: (config) => {
+        this.featuredTournamentId.set(config.torneoEnVivoId);
+        this.featuredTournamentLoading.set(false);
+      },
+      error: (err) => {
+        this.featuredTournamentError.set(
+          extractErrorMessage(err, 'No se pudo consultar el torneo destacado.'),
+        );
+        this.featuredTournamentLoading.set(false);
+      },
+    });
 
     this.form.controls.categoria.valueChanges.pipe(
       switchMap((categoriaId) => {
@@ -183,6 +201,26 @@ export class TorneosComponent implements OnInit {
   setTab(tab: TabFilter): void {
     this.activeTab.set(tab);
     this.page.set(1);
+  }
+
+  mostrarEnLive(torneo: Torneo): void {
+    if (this.featuredTournamentBusyId()) return;
+    this.featuredTournamentBusyId.set(torneo._id);
+    this.featuredTournamentError.set(null);
+    this.eventoConfigService
+      .actualizar({ torneoEnVivoId: torneo._id })
+      .subscribe({
+        next: (config) => {
+          this.featuredTournamentId.set(config.torneoEnVivoId);
+          this.featuredTournamentBusyId.set(null);
+        },
+        error: (err) => {
+          this.featuredTournamentBusyId.set(null);
+          this.featuredTournamentError.set(
+            extractErrorMessage(err, 'No se pudo establecer el torneo destacado.'),
+          );
+        },
+      });
   }
 
   goToPage(page: number): void {

@@ -30,6 +30,41 @@
         <button type="button" class="btn btn--ghost" (click)="cerrarSesion()">Cerrar sesión</button>
       </section>
 
+      <section class="panel">
+        <h3>Identidad del evento</h3>
+        <p class="section-hint">Este nombre y lema se muestran en las pantallas públicas.</p>
+
+        <p class="section-hint" *ngIf="eventoLoading()">Cargando configuración del evento…</p>
+        <form *ngIf="!eventoLoading()" class="event-config-form" (ngSubmit)="guardarEvento()">
+          <label>
+            <span class="pref-title">Nombre del evento</span>
+            <input
+              type="text"
+              name="nombreEvento"
+              [(ngModel)]="eventoForm.nombreEvento"
+              maxlength="120"
+              required
+              autocomplete="off"
+            />
+          </label>
+          <label>
+            <span class="pref-title">Lema o subtítulo <span class="optional">(opcional)</span></span>
+            <input
+              type="text"
+              name="lema"
+              [(ngModel)]="eventoForm.lema"
+              maxlength="240"
+              autocomplete="off"
+            />
+          </label>
+          <button type="submit" class="btn btn--primary" [disabled]="eventoSaving() || !eventoForm.nombreEvento.trim()">
+            {{ eventoSaving() ? 'Guardando…' : 'Guardar evento' }}
+          </button>
+        </form>
+        <p class="saved-hint" *ngIf="eventoSaved()">Configuración del evento guardada.</p>
+        <p class="event-error" *ngIf="eventoError()">{{ eventoError() }}</p>
+      </section>
+
       <!-- Preferencias -->
       <section class="panel">
         <h3>Preferencias</h3>

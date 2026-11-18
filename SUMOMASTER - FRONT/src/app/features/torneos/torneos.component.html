@@ -99,6 +99,7 @@
       <!-- ========================= -->
 
       <section class="panel panel--table">
+        <p class="featured-error" *ngIf="featuredTournamentError()">{{ featuredTournamentError() }}</p>
 
         <div class="table-wrapper">
 
@@ -204,6 +205,19 @@
                 <!-- ========================= -->
 
                 <td class="table__actions table__actions--torneos">
+
+                  <button
+                    *appCan="'admin'"
+                    type="button"
+                    class="btn btn--sm table__action-label table__action-featured"
+                    [class.table__action-featured--active]="featuredTournamentId() === torneo._id"
+                    [attr.aria-pressed]="featuredTournamentId() === torneo._id"
+                    [disabled]="featuredTournamentLoading() || featuredTournamentBusyId() !== null || torneo.publico === false || featuredTournamentId() === torneo._id"
+                    [title]="torneo.publico === false ? 'Solo los torneos públicos pueden mostrarse en /live' : featuredTournamentId() === torneo._id ? 'Torneo mostrado en /live' : 'Mostrar en /live'"
+                    (click)="mostrarEnLive(torneo)"
+                  >
+                    {{ featuredTournamentBusyId() === torneo._id ? 'Guardando…' : torneo.publico === false ? 'No público' : featuredTournamentId() === torneo._id ? 'En /live' : 'Mostrar en /live' }}
+                  </button>
 
                   <a
                     *appCan="'manage'"

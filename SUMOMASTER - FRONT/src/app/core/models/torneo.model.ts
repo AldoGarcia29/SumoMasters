@@ -12,6 +12,7 @@ export interface Torneo {
   _id: string;
   nombre: string;
   fecha: string;
+  publico?: boolean;
   descripcion?: string;
   categoria: Categoria | string;
   estado: EstadoTorneo;

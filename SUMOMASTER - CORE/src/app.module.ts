@@ -14,6 +14,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PublicModule } from './public/public.module';
 import { SeguilineasModule } from './seguilineas/seguilineas.module';
+import { EventoModule } from './evento/evento.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { SeguilineasModule } from './seguilineas/seguilineas.module';
     RankingModule,
     PublicModule,
     SeguilineasModule,
+    EventoModule,
   ],
   controllers: [AppController],
   providers: [AppService],
