@@ -1700,13 +1700,154 @@ a:focus-visible {
 @media (max-width: 600px) { :host { --ticker-h: 48px; } }
 
 
-.arena.arena--cinco .robot__nombre strong {
-  font-size: 40px;
+/* Arena — división de pantalla */
+.arena,
+.arena.arena--cinco {
+  gap: 16px;
+  grid-template-rows: repeat(2, minmax(340px, 1fr));
+}
+
+.arena.arena--uno,
+.arena.arena--dos {
+  grid-template-rows: minmax(360px, 1fr);
+}
+
+.arena .panel-dojo__cabecera {
+  padding: 10px 16px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.arena .panel-dojo__cabecera h2 {
+  font-size: clamp(22px, 1.85vw, 36px);
+}
+
+.arena .panel-dojo__cabecera > span {
+  font-size: clamp(12px, 0.9vw, 17px);
+}
+
+.arena .contenido-dojo {
+  padding: 12px 14px;
+}
+
+.arena .combate-meta {
+  margin-bottom: 8px;
+  font-size: clamp(13px, 1.05vw, 20px);
+}
+
+.arena .duelo {
+  gap: clamp(8px, 1vw, 18px);
+}
+
+.arena .robot .foto {
+  width: clamp(68px, 6.5vw, 130px);
+  height: clamp(68px, 6.5vw, 130px);
+}
+
+.arena .robot__nombre strong {
+  font-size: clamp(20px, 2.1vw, 40px);
+  line-height: 1.1;
   overflow-wrap: anywhere;
+}
+
+.arena .robot__nombre .numero {
+  font-size: clamp(13px, 1.05vw, 20px);
+}
+
+.arena .duelo > .vs {
+  font-size: clamp(28px, 2.6vw, 50px);
+}
+
+.arena .proximo {
+  padding: 8px 12px;
+}
+
+.arena .proximo > span {
+  font-size: clamp(10px, 0.75vw, 14px);
+}
+
+.arena .proximo strong {
+  font-size: clamp(15px, 1.35vw, 25px);
+}
+
+.arena .espera-dojo {
+  font-size: clamp(17px, 1.25vw, 24px);
+}
+
+.arena .espera-dojo > span {
+  font-size: clamp(42px, 3.3vw, 64px);
+}
+
+.arena .resultado {
+  font-size: clamp(16px, 1.4vw, 26px);
+}
+
+.arena .resultado small {
+  font-size: clamp(12px, 0.85vw, 16px);
+}
+
+/* Bloques / Grupos */
+.bloques-proyeccion__encabezado h2 {
+  font-size: clamp(24px, 2.4vw, 44px);
+}
+
+.bloques-proyeccion__encabezado span {
+  font-size: clamp(15px, 1.25vw, 23px);
+}
+
+.bloques-proyeccion__grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 390px), 1fr));
+  gap: 20px;
+}
+
+.bloque-proyectado__titulo {
+  padding: 18px 20px;
+}
+
+.bloque-proyectado__titulo h3 {
+  font-size: clamp(22px, 1.85vw, 34px);
+}
+
+.bloque-proyectado__titulo span {
+  font-size: clamp(13px, 0.95vw, 18px);
+}
+
+.bloque-proyectado__robots {
+  gap: 10px;
+  padding: 14px;
+}
+
+.bloque-proyectado__robot {
+  gap: 14px;
+  padding: 10px 12px;
+}
+
+.bloque-proyectado__foto {
+  --tamano-foto: clamp(56px, 4.5vw, 88px);
+  width: var(--tamano-foto);
+  height: var(--tamano-foto);
+  flex-basis: var(--tamano-foto);
+}
+
+.bloque-proyectado__identidad small {
+  font-size: clamp(13px, 1vw, 19px);
 }
 
 .bloque-proyectado__identidad strong {
   color: #fff;
-  font-size: 35px;
+  font-size: clamp(19px, 1.85vw, 35px);
+  line-height: 1.12;
   overflow-wrap: anywhere;
+}
+
+/* Deja crecer las tarjetas en pantallas estrechas. */
+@media (max-width: 900px) {
+  .arena,
+  .arena.arena--uno,
+  .arena.arena--dos,
+  .arena.arena--cinco {
+    flex: none;
+    grid-template-rows: none;
+    grid-auto-rows: minmax(310px, auto);
+  }
 }
