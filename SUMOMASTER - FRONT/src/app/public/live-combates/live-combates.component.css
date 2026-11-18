@@ -1701,12 +1701,12 @@ a:focus-visible {
 
 
 .arena.arena--cinco .robot__nombre strong {
-  font-size: 30px;
+  font-size: 40px;
   overflow-wrap: anywhere;
 }
 
 .bloque-proyectado__identidad strong {
   color: #fff;
-  font-size: 50px;
+  font-size: 35px;
   overflow-wrap: anywhere;
 }
