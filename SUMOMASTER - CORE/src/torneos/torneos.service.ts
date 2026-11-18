@@ -224,7 +224,11 @@ export class TorneosService {
       if (!torneo) {
         throw new NotFoundException('Torneo no encontrado');
       }
-      if (robotsInscritos !== undefined || dto.equiposInscritos !== undefined) {
+      if (
+        robotsInscritos !== undefined ||
+        dto.equiposInscritos !== undefined ||
+        dto.visibleEnLive !== undefined
+      ) {
         this.invalidatePublicData(id);
       }
 

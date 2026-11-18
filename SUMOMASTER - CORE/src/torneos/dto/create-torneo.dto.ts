@@ -1,5 +1,6 @@
   import {
     IsArray,
+    IsBoolean,
     IsDateString,
     IsEnum,
     IsMongoId,
@@ -31,6 +32,10 @@
     @IsOptional()
     @IsEnum(EstadoTorneo, { message: 'Estado no válido' })
     estado?: EstadoTorneo;
+
+    @IsOptional()
+    @IsBoolean()
+    visibleEnLive?: boolean;
 
     @IsOptional()
     @IsArray()

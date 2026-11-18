@@ -1,6 +1,5 @@
 import { Transform } from 'class-transformer';
 import {
-  IsMongoId,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -20,8 +19,4 @@ export class UpdateEventoConfigDto {
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @MaxLength(240)
   lema?: string;
-
-  @IsOptional()
-  @IsMongoId()
-  torneoEnVivoId?: string | null;
 }

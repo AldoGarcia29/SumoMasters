@@ -12,8 +12,8 @@ import { TopbarComponent } from '../../shared/components/topbar/topbar.component
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { DataStateComponent } from '../../shared/components/data-state/data-state.component';
 import { TorneoService } from '../../core/services/torneo.service';
+import { AuthService } from '../../core/services/auth.service';
 import { SeguilineasService } from '../../core/services/seguilineas.service';
-import { EventoConfigService } from '../../core/services/evento-config.service';
 import { CategoriaService } from '../../core/services/categoria.service';
 import { RobotService } from '../../core/services/robot.service';
 import { EstadoTorneo, Torneo } from '../../core/models/torneo.model';
@@ -37,6 +37,7 @@ const PAGE_SIZE = 6;
 })
 export class TorneosComponent implements OnInit {
   private readonly torneoService = inject(TorneoService);
+  private readonly authService = inject(AuthService);
   private readonly categoriaService = inject(CategoriaService);
   private readonly robotService = inject(RobotService);
   private readonly equipoService = inject(EquipoService);
@@ -44,11 +45,11 @@ export class TorneosComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly seguilineasApi = inject(SeguilineasService);
-  private readonly eventoConfigService = inject(EventoConfigService);
 
   readonly EstadoTorneo = EstadoTorneo;
 
   readonly sidebarOpen = signal(false);
+  readonly isAdmin = this.authService.isAdmin;
   toggleSidebar(): void {
     this.sidebarOpen.update((v) => !v);
   }
@@ -64,10 +65,8 @@ export class TorneosComponent implements OnInit {
   readonly equiposDisponibles = signal<Equipo[]>([]);
   readonly loading = signal(true);
   readonly errorMessage = signal<string | null>(null);
-  readonly featuredTournamentId = signal<string | null>(null);
-  readonly featuredTournamentBusyId = signal<string | null>(null);
-  readonly featuredTournamentLoading = signal(true);
-  readonly featuredTournamentError = signal<string | null>(null);
+  readonly visibleTournamentBusyId = signal<string | null>(null);
+  readonly visibleTournamentError = signal<string | null>(null);
   readonly page = signal(1);
 
   readonly activeTab = signal<TabFilter>('todos');
@@ -136,19 +135,6 @@ export class TorneosComponent implements OnInit {
   ngOnInit(): void {
     this.categoriaService.findAll().subscribe({ next: (data) => this.categorias.set(data) });
     this.loadTorneos();
-    this.eventoConfigService.obtener().subscribe({
-      next: (config) => {
-        this.featuredTournamentId.set(config.torneoEnVivoId);
-        this.featuredTournamentLoading.set(false);
-      },
-      error: (err) => {
-        this.featuredTournamentError.set(
-          extractErrorMessage(err, 'No se pudo consultar el torneo destacado.'),
-        );
-        this.featuredTournamentLoading.set(false);
-      },
-    });
-
     this.form.controls.categoria.valueChanges.pipe(
       switchMap((categoriaId) => {
         this.form.controls.robotsInscritos.setValue([]);
@@ -205,24 +191,43 @@ export class TorneosComponent implements OnInit {
     this.page.set(1);
   }
 
-  mostrarEnLive(torneo: Torneo): void {
-    if (this.featuredTournamentBusyId()) return;
-    this.featuredTournamentBusyId.set(torneo._id);
-    this.featuredTournamentError.set(null);
-    this.eventoConfigService
-      .actualizar({ torneoEnVivoId: torneo._id })
-      .subscribe({
-        next: (config) => {
-          this.featuredTournamentId.set(config.torneoEnVivoId);
-          this.featuredTournamentBusyId.set(null);
-        },
-        error: (err) => {
-          this.featuredTournamentBusyId.set(null);
-          this.featuredTournamentError.set(
-            extractErrorMessage(err, 'No se pudo establecer el torneo destacado.'),
-          );
-        },
-      });
+  cambiarVisibleEnLive(torneo: Torneo, visibleEnLive: boolean): void {
+    if (this.visibleTournamentBusyId() || torneo.publico === false) return;
+
+    const visibleAnterior = torneo.visibleEnLive === true;
+    this.visibleTournamentBusyId.set(torneo._id);
+    this.visibleTournamentError.set(null);
+    this.torneos.update((torneos) =>
+      torneos.map((item) =>
+        item._id === torneo._id ? { ...item, visibleEnLive } : item,
+      ),
+    );
+
+    this.torneoService.update(torneo._id, { visibleEnLive }).subscribe({
+      next: (actualizado) => {
+        this.torneos.update((torneos) =>
+          torneos.map((item) =>
+            item._id === actualizado._id
+              ? { ...item, visibleEnLive: actualizado.visibleEnLive === true }
+              : item,
+          ),
+        );
+        this.visibleTournamentBusyId.set(null);
+      },
+      error: (err) => {
+        this.torneos.update((torneos) =>
+          torneos.map((item) =>
+            item._id === torneo._id
+              ? { ...item, visibleEnLive: visibleAnterior }
+              : item,
+          ),
+        );
+        this.visibleTournamentBusyId.set(null);
+        this.visibleTournamentError.set(
+          extractErrorMessage(err, 'No se pudo actualizar la visibilidad en /live.'),
+        );
+      },
+    });
   }
 
   goToPage(page: number): void {

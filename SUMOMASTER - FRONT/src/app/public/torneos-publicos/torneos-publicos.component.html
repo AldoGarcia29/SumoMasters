@@ -17,15 +17,6 @@
         <b>{{ torneosEnVivo.length ? "TORNEOS EN VIVO" : "COBERTURA EN DIRECTO" }}</b>
         <span>{{ horaActual | date: "EEEE d 'de' MMMM · HH:mm:ss" }}</span>
       </div>
-      <a
-        class="torneo-destacado"
-        *ngIf="torneoDestacado as destacado"
-        [routerLink]="['/live', destacado.id]"
-      >
-        <span>TORNEO DESTACADO</span>
-        <strong>{{ destacado.nombre }}</strong>
-        <small>Ver cobertura en vivo →</small>
-      </a>
     </div>
     <div class="hero-kpis">
       <div><strong>{{ lista?.length ?? "—" }}</strong><span>Torneos públicos</span></div>

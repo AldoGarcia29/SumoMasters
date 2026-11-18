@@ -98,7 +98,7 @@
       <!-- ========================= -->
 
       <section class="panel panel--table">
-        <p class="featured-error" *ngIf="featuredTournamentError()">{{ featuredTournamentError() }}</p>
+        <p class="live-visibility-error" *ngIf="visibleTournamentError()">{{ visibleTournamentError() }}</p>
 
         <app-data-state
           *ngIf="loading()"
@@ -131,6 +131,7 @@
                 <th>Categoría</th>
                 <th>Estado</th>
                 <th>Participantes</th>
+                <th class="table__visibility-head">Visible en /live</th>
                 <th class="table__actions-head table__actions-head--torneos">
                   Acciones
                 </th>
@@ -217,24 +218,39 @@
   </ng-template>
 </td>
 
+                <td class="table__visibility">
+                  <label class="live-visibility" *appCan="'admin'">
+                    <input
+                      type="checkbox"
+                      [checked]="torneo.visibleEnLive === true"
+                      [disabled]="torneo.publico === false || visibleTournamentBusyId() !== null"
+                      [attr.aria-label]="'Mostrar ' + torneo.nombre + ' en /live'"
+                      [attr.aria-busy]="visibleTournamentBusyId() === torneo._id ? 'true' : null"
+                      (change)="cambiarVisibleEnLive(torneo, $any($event.target).checked)"
+                    />
+                    <span class="live-visibility__indicator" aria-hidden="true"></span>
+                    <span class="live-visibility__label">
+                      {{
+                        visibleTournamentBusyId() === torneo._id
+                          ? 'Guardando…'
+                          : torneo.publico === false
+                            ? 'No público'
+                            : torneo.visibleEnLive === true
+                              ? 'Activo'
+                              : 'Oculto'
+                      }}
+                    </span>
+                  </label>
+                  <span *ngIf="!isAdmin()" class="live-visibility__label">
+                    {{ torneo.visibleEnLive === true ? 'Activo' : 'Oculto' }}
+                  </span>
+                </td>
+
                 <!-- ========================= -->
                 <!-- ACCIONES -->
                 <!-- ========================= -->
 
                 <td class="table__actions table__actions--torneos">
-
-                  <button
-                    *appCan="'admin'"
-                    type="button"
-                    class="btn btn--sm table__action-label table__action-featured"
-                    [class.table__action-featured--active]="featuredTournamentId() === torneo._id"
-                    [attr.aria-pressed]="featuredTournamentId() === torneo._id"
-                    [disabled]="featuredTournamentLoading() || featuredTournamentBusyId() !== null || torneo.publico === false || featuredTournamentId() === torneo._id"
-                    [title]="torneo.publico === false ? 'Solo los torneos públicos pueden mostrarse en /live' : featuredTournamentId() === torneo._id ? 'Torneo mostrado en /live' : 'Mostrar en /live'"
-                    (click)="mostrarEnLive(torneo)"
-                  >
-                    {{ featuredTournamentBusyId() === torneo._id ? 'Guardando…' : torneo.publico === false ? 'No público' : featuredTournamentId() === torneo._id ? 'En /live' : 'Mostrar en /live' }}
-                  </button>
 
                   <a
                     *appCan="'manage'"

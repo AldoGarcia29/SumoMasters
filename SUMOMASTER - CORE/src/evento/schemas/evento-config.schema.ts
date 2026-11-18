@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Types } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
 
 export type EventoConfigDocument = HydratedDocument<EventoConfig>;
 
@@ -13,9 +13,6 @@ export class EventoConfig {
 
   @Prop({ trim: true, default: '' })
   lema: string;
-
-  @Prop({ type: Types.ObjectId, ref: 'Torneo', default: null })
-  torneoEnVivoId: Types.ObjectId | null;
 }
 
 export const EventoConfigSchema = SchemaFactory.createForClass(EventoConfig);

@@ -124,11 +124,6 @@ export class TorneosPublicosComponent implements OnInit, OnDestroy {
     );
   }
 
-  get torneoDestacado(): TorneoResumen | null {
-    const id = this.eventoConfig?.torneoEnVivoId;
-    return id ? this.lista?.find((torneo) => torneo.id === id) ?? null : null;
-  }
-
   get torneosFinalizados(): TorneoResumen[] {
     return (this.lista ?? []).filter(
       (torneo) => torneo.estado === 'Finalizado',
