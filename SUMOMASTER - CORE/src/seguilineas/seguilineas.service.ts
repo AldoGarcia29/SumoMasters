@@ -738,6 +738,24 @@ export class SeguilineasService implements OnModuleInit {
     return t ? this.ranking(String(t._id)) : null;
   }
 
+  /**
+   * Todos los torneos de Seguilineas en progreso (con su ranking), del más
+   * reciente al más antiguo. Alimenta la barra de patrocinadores. El primer
+   * tiempo registrado pasa el torneo a "En progreso" y finalizarlo lo saca.
+   */
+  async activos() {
+    const torneos = await this.model
+      .find({ estado: EstadoTorneo.EN_PROGRESO })
+      .sort({ fecha: -1 })
+      .select('_id')
+      .lean();
+    const rankings = await Promise.allSettled(
+      torneos.map((t) => this.ranking(String(t._id))),
+    );
+    // Si un torneo se elimina entre las dos consultas, simplemente se omite.
+    return rankings.flatMap((r) => (r.status === 'fulfilled' ? [r.value] : []));
+  }
+
   async ranking(id: string) {
     const t: any = await this.model
       .findById(this.oid(id))

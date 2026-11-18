@@ -173,6 +173,12 @@ export class SeguilineasController {
     return this.service.activo();
   }
 
+  @Public()
+  @Get('activos')
+  activos() {
+    return this.service.activos();
+  }
+
   // SSE: declarar antes de las rutas ':id/...'
   @Public()
   @Sse('stream/activo')

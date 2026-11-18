@@ -102,6 +102,9 @@ export class SeguilineasService {
     this.http.get<RankingSeguilineas>(`${this.url}/${id}/ranking`);
   activo = (): Observable<RankingSeguilineas | null> =>
     this.http.get<RankingSeguilineas | null>(`${this.url}/activo`);
+  /** Todos los torneos en progreso con su ranking (barra de patrocinadores). */
+  activos = (): Observable<RankingSeguilineas[]> =>
+    this.http.get<RankingSeguilineas[]>(`${this.url}/activos`);
 
   /**
    * Ranking en tiempo real por SSE (`GET :id/stream`). Si la conexión falla
