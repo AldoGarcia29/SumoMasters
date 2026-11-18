@@ -59,46 +59,49 @@
             </label>
 
             <div class="cruces-grid">
-              <article class="cruce" *ngFor="let cruce of cruces(); let i = index">
-                <h3>Cruce {{ i + 1 }}</h3>
+  <article
+    class="cruce"
+    *ngFor="let cruce of cruces(); let i = index; trackBy: identificarCruceInicial"
+  >
+    <h3>Cruce {{ i + 1 }}</h3>
 
-                <label class="field">
-                  <span>Local</span>
-                  <select
-                    #local
-                    [value]="cruce.localId ?? ''"
-                    (change)="asignar(i, 'localId', local.value)"
-                  >
-                    <option value="">Por definir</option>
-                    <option
-                      *ngFor="let equipo of actual.equiposInscritos"
-                      [value]="equipoId(equipo)"
-                      [disabled]="ocupado(equipoId(equipo), i, 'localId')"
-                    >
-                      {{ nombre(equipoId(equipo)) }}
-                    </option>
-                  </select>
-                </label>
+    <label class="field">
+      <span>Local</span>
+      <select
+        [ngModel]="cruce.localId ?? ''"
+        [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="asignar(i, 'localId', $event)"
+      >
+        <option value="">Por definir</option>
+        <option
+          *ngFor="let equipo of actual.equiposInscritos"
+          [value]="equipoId(equipo)"
+          [disabled]="ocupado(equipoId(equipo), i, 'localId')"
+        >
+          {{ nombre(equipoId(equipo)) }}
+        </option>
+      </select>
+    </label>
 
-                <label class="field">
-                  <span>Visitante</span>
-                  <select
-                    #visitante
-                    [value]="cruce.visitanteId ?? ''"
-                    (change)="asignar(i, 'visitanteId', visitante.value)"
-                  >
-                    <option value="">Por definir</option>
-                    <option
-                      *ngFor="let equipo of actual.equiposInscritos"
-                      [value]="equipoId(equipo)"
-                      [disabled]="ocupado(equipoId(equipo), i, 'visitanteId')"
-                    >
-                      {{ nombre(equipoId(equipo)) }}
-                    </option>
-                  </select>
-                </label>
-              </article>
-            </div>
+    <label class="field">
+      <span>Visitante</span>
+      <select
+        [ngModel]="cruce.visitanteId ?? ''"
+        [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="asignar(i, 'visitanteId', $event)"
+      >
+        <option value="">Por definir</option>
+        <option
+          *ngFor="let equipo of actual.equiposInscritos"
+          [value]="equipoId(equipo)"
+          [disabled]="ocupado(equipoId(equipo), i, 'visitanteId')"
+        >
+          {{ nombre(equipoId(equipo)) }}
+        </option>
+      </select>
+    </label>
+  </article>
+</div>
 
             <button
               type="button"

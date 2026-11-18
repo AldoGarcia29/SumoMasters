@@ -15,6 +15,7 @@ import { TorneoService } from '../../core/services/torneo.service';
 import { extractErrorMessage } from '../../core/utils/error-message.util';
 import { SidebarComponent } from '../../shared/components/sidebar/sidebar.component';
 import { TopbarComponent } from '../../shared/components/topbar/topbar.component';
+import { FormsModule } from '@angular/forms';
 
 const RONDAS = {
   DIECISEISAVOS: { nombre: 'Dieciseisavos', cruces: 16 },
@@ -27,7 +28,7 @@ const RONDAS = {
 @Component({
   selector: 'app-torneo-llaves-soccer',
   standalone: true,
-  imports: [CommonModule, RouterLink, SidebarComponent, TopbarComponent],
+  imports: [CommonModule,  FormsModule, RouterLink, SidebarComponent, TopbarComponent],
   templateUrl: './torneo-llaves-soccer.component.html',
   styleUrl: './torneo-llaves-soccer.component.scss',
 })
@@ -72,6 +73,10 @@ abrirProyeccion(): void {
 cerrarProyeccion(): void {
   this.mostrandoPodio.set(false);
   this.modoProyeccion.set(false);
+}
+
+identificarCruceInicial(indice: number): number {
+  return indice;
 }
 
   ngOnInit(): void {
