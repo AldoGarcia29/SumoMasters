@@ -451,3 +451,65 @@
     animation: none;
   }
 }
+
+:host {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.soccer {
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+}
+
+.soccer-barra h2 {
+  font-size: clamp(1.25rem, 1.7vw, 2rem);
+}
+
+.soccer-barra label {
+  font-size: clamp(1rem, 1.15vw, 1.35rem);
+}
+
+.soccer-grid[data-cantidad="1"] {
+  flex: 1 0 auto;
+}
+
+.soccer-grid[data-cantidad="1"] .soccer-tarjeta {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+}
+
+.soccer-grid[data-cantidad="1"] .soccer-tarjeta__barra {
+  padding: 0.85rem clamp(0.75rem, 2vw, 2rem);
+  font-size: clamp(1rem, 1.4vw, 1.65rem);
+}
+
+.soccer-grid[data-cantidad="1"] .soccer-enfrentamiento {
+  flex: 1 0 auto;
+  min-height: clamp(18rem, 44dvh, 34rem);
+  gap: clamp(0.35rem, 2vw, 2rem);
+}
+
+.soccer-grid[data-cantidad="1"] .soccer-equipo strong {
+  font-size: clamp(1.15rem, 4.2vw, 5.5rem);
+}
+
+.soccer-grid[data-cantidad="1"] .soccer-reloj {
+  min-inline-size: clamp(4.25rem, 14vw, 17rem);
+  min-block-size: clamp(4.25rem, 14vw, 17rem);
+}
+
+.soccer-grid[data-cantidad="1"] :is(.soccer-reloj__goles, .soccer-reloj__vs) {
+  font-size: clamp(1.35rem, 5vw, 6.5rem);
+}
+
+.soccer-grid[data-cantidad="1"] .soccer-en-vivo {
+  font-size: clamp(0.7rem, 1.1vw, 1.25rem);
+}
+
+.programa--proyeccion app-robo-soccer-proyeccion {
+  flex: 1 0 auto;
+}
