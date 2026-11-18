@@ -104,13 +104,7 @@ export class LiveCombatesComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.subs.add(
-      fromEvent(document, 'fullscreenchange').subscribe(() => {
-        if (!document.fullscreenElement) {
-          this.modoProyeccion = false;
-        }
-      }),
-    );
+    
 
     this.subs.add(
       this.api.getTorneos().subscribe({

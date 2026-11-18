@@ -172,3 +172,9 @@
   letter-spacing: .06em;
   text-transform: uppercase;
 }
+
+.soccer-marcador__estado {
+  display: block;
+  font-size: 0.8rem;
+  text-shadow: none;
+}

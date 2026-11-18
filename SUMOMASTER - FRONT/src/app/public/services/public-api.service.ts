@@ -9,6 +9,7 @@ import {
   TorneoResumen,
 } from '../models/live.model';
 import { RobotFicha } from '../../core/models/robot-ficha.model';
+import type { Torneo } from '../../core/models/torneo.model';
 
 @Injectable({ providedIn: 'root' })
 export class PublicApiService {
@@ -34,4 +35,10 @@ export class PublicApiService {
       `${this.base}/torneos/${torneoId}/robots/${robotId}/ficha`,
     );
   }
+
+  getRoboSoccer(id: string) {
+  return this.http.get<Pick<Torneo, 'nombre' | 'equiposInscritos' | 'gruposRoboSoccer'>>(
+    `${this.base}/torneos/${id}/robo-soccer`,
+  );
+}
 }

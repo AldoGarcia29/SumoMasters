@@ -1,11 +1,25 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, DestroyRef, inject, Input, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  Input,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { catchError, exhaustMap, of, ReplaySubject, switchMap, timer } from 'rxjs';
+import {
+  catchError,
+  exhaustMap,
+  of,
+  ReplaySubject,
+  switchMap,
+  timer,
+} from 'rxjs';
 
-import { TipoCombate } from '../../core/models/categoria.model';
-import { TorneoService } from '../../core/services/torneo.service';
 import type { Torneo } from '../../core/models/torneo.model';
+import { PublicApiService } from '../services/public-api.service';
+
 @Component({
   selector: 'app-robo-soccer-proyeccion',
   standalone: true,
@@ -14,7 +28,7 @@ import type { Torneo } from '../../core/models/torneo.model';
   styleUrl: './robo-soccer-proyeccion.component.css',
 })
 export class RoboSoccerProyeccionComponent {
-  private readonly servicio = inject(TorneoService);
+  private readonly servicio = inject(PublicApiService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly torneoId$ = new ReplaySubject<string>(1);
 
@@ -27,8 +41,10 @@ export class RoboSoccerProyeccionComponent {
   readonly cantidad = signal(1);
   readonly seleccion = signal<string[]>(Array.from({ length: 6 }, () => ''));
   readonly aviso = signal('');
-  readonly torneo = signal<Torneo | null>(null);
-  
+
+  readonly torneo = signal<
+    Pick<Torneo, 'nombre' | 'equiposInscritos' | 'gruposRoboSoccer'> | null
+  >(null);
 
   readonly partidos = computed(() => {
     const torneo = this.torneo();
@@ -36,7 +52,9 @@ export class RoboSoccerProyeccionComponent {
 
     const nombres = new Map<string, string>();
     for (const equipo of torneo.equiposInscritos ?? []) {
-      if (typeof equipo !== 'string') nombres.set(equipo._id, equipo.nombre);
+      if (typeof equipo !== 'string') {
+        nombres.set(equipo._id, equipo.nombre);
+      }
     }
 
     return (torneo.gruposRoboSoccer ?? []).flatMap((grupo) =>
@@ -46,54 +64,58 @@ export class RoboSoccerProyeccionComponent {
         local: nombres.get(partido.localId) ?? 'Equipo local',
         visitante: nombres.get(partido.visitanteId) ?? 'Equipo visitante',
         resultado: partido.resultado,
+        marcador: partido.resultado ?? partido.marcadorEnVivo,
       })),
     );
   });
 
   readonly tarjetas = computed(() => {
-    const partidos = new Map(this.partidos().map((partido) => [partido.id, partido]));
+    const partidosPorId = new Map(
+      this.partidos().map((partido) => [partido.id, partido]),
+    );
 
     return this.seleccion().slice(0, this.cantidad()).map((id, indice) => ({
       indice,
-      partido: partidos.get(id) ?? null,
+      partido: partidosPorId.get(id) ?? null,
     }));
   });
 
   constructor() {
-    this.torneoId$.pipe(
-      switchMap((id) => {
-        this.torneo.set(null);
-        this.seleccion.set(this.seleccion().map(() => ''));
-        this.aviso.set('Cargando partidos…');
+    this.torneoId$
+      .pipe(
+        switchMap((id) => {
+          this.torneo.set(null);
+          this.seleccion.update((actual) => actual.map(() => ''));
+          this.aviso.set('Cargando partidos…');
 
-        return timer(0, 5000).pipe(
-          exhaustMap(() =>
-            this.servicio.findOne(id).pipe(catchError(() => of(null))),
-          ),
+          return timer(0, 2000).pipe(
+            exhaustMap(() =>
+              this.servicio.getRoboSoccer(id).pipe(
+                catchError(() => of(null)),
+              ),
+            ),
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((torneo) => {
+        if (!torneo) {
+          this.aviso.set('No se pudo actualizar la proyección. Reintentando…');
+          return;
+        }
+
+        this.torneo.set(torneo);
+        this.aviso.set(
+          this.partidos().length ? '' : 'Genera los grupos para proyectar partidos.',
         );
-      }),
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe((torneo) => {
-      if (!torneo) {
-        this.aviso.set('No se pudo actualizar la proyección. Reintentando…');
-        return;
-      }
-
-      const categoria = torneo.categoria;
-      if (typeof categoria === 'string' || categoria?.tipoCombate !== TipoCombate.ROBO_SOCCER_RC) {
-        this.torneo.set(null);
-        this.aviso.set('Selecciona un torneo de Robo Soccer RC.');
-        return;
-      }
-
-      this.torneo.set(torneo);
-      this.aviso.set(this.partidos().length ? '' : 'Genera los grupos para proyectar partidos.');
-    });
+      });
   }
 
   cambiarCantidad(valor: string): void {
     const cantidad = Number(valor);
-    if (this.cantidades.includes(cantidad)) this.cantidad.set(cantidad);
+    if (this.cantidades.includes(cantidad)) {
+      this.cantidad.set(cantidad);
+    }
   }
 
   elegirPartido(indice: number, id: string): void {

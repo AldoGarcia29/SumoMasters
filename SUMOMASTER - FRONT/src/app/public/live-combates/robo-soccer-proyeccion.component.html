@@ -42,7 +42,12 @@
       <small *ngIf="goles.golesLocal > goles.golesVisitante">Ganador</small>
     </strong>
 
-    <strong class="soccer-marcador">{{ goles.golesLocal }}–{{ goles.golesVisitante }}</strong>
+    <strong class="soccer-marcador">
+  {{ partido.marcador
+    ? partido.marcador.golesLocal + '–' + partido.marcador.golesVisitante
+    : 'VS' }}
+  <small *ngIf="partido.marcador" class="soccer-marcador__estado">En vivo</small>
+</strong>
 
     <strong class="soccer-visitante" [class.soccer-ganador]="goles.golesVisitante > goles.golesLocal">
       {{ partido.visitante }}

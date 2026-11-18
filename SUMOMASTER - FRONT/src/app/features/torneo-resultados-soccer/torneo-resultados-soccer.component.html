@@ -13,6 +13,9 @@
     <main class="resultados-page">
       <p *ngIf="cargando()" role="status">Cargando partidos…</p>
       <p *ngIf="error()" class="panel__error" role="alert">{{ error() }}</p>
+      <p *ngIf="errorMarcador()" class="panel__error" role="alert">
+  {{ errorMarcador() }}
+</p>
 
       <ng-container *ngIf="torneo() as actual">
         <section class="panel panel--header">
@@ -30,7 +33,7 @@
   [routerLink]="['/torneos', actual._id, 'grupos', 'llaves']"
 >
   Ir a llaves →
-</a>
+</a>f
         </section>
 
         <p *ngIf="errorGuardado()" class="panel__error" role="alert">{{ errorGuardado() }}</p>
@@ -39,7 +42,7 @@
           Genera los grupos para registrar sus partidos.
         </p>
 
-        <section class="panel grupo-panel" *ngFor="let grupo of grupos()">
+        <section class="panel grupo-panel" *ngFor="let grupo of grupos(); trackBy: identificarGrupo">
           <h2>{{ grupo.nombre }}</h2>
 
           <div class="grupo-layout">
@@ -58,22 +61,30 @@
                 </div>
 
                 <form
-                  class="marcador"
-                  *ngIf="!partido.resultado"
-                  (submit)="$event.preventDefault(); guardar(grupo.numero, partido, local.valueAsNumber, visita.valueAsNumber)"
-                >
-                  <label class="field">
-                    <span>Goles de {{ nombreEquipo(partido.localId) }}</span>
-                    <input #local type="number" min="0" step="1" required />
-                  </label>
-                  <label class="field">
-                    <span>Goles de {{ nombreEquipo(partido.visitanteId) }}</span>
-                    <input #visita type="number" min="0" step="1" required />
-                  </label>
-                  <button class="btn btn--primary" type="submit" [disabled]="guardando()">
-                    Guardar resultado
-                  </button>
-                </form>
+  class="marcador"
+  *ngIf="!partido.resultado"
+  (input)="publicarMarcador(grupo.numero, partido, local.valueAsNumber, visita.valueAsNumber)"
+  (submit)="$event.preventDefault(); guardar(grupo.numero, partido, local.valueAsNumber, visita.valueAsNumber)"
+>
+  <label class="field">
+    <span>Goles de {{ nombreEquipo(partido.localId) }}</span>
+    <input #local type="number" min="0" step="1" required
+      [value]="partido.marcadorEnVivo?.golesLocal ?? 0"
+      [disabled]="guardando()" />
+  </label>
+
+  <label class="field">
+    <span>Goles de {{ nombreEquipo(partido.visitanteId) }}</span>
+    <input #visita type="number" min="0" step="1" required
+      [value]="partido.marcadorEnVivo?.golesVisitante ?? 0"
+      [disabled]="guardando()" />
+  </label>
+
+  <button class="btn btn--primary" type="submit"
+    [disabled]="guardando() || marcadoresPendientes() > 0">
+    Guardar resultado
+  </button>
+</form>
               </article>
             </div>
 
