@@ -33,3 +33,36 @@
   .ticker__pista--fija { animation: none !important; }
   .ticker[data-tipo="nuevo"], .ticker[data-tipo="nuevo"] .ticker__etiqueta { animation: none; }
 }
+
+
+.ticker__etiqueta {
+  padding-inline: clamp(18px, 2.5vw, 48px);
+  font-size: clamp(20px, 2.4vw, 36px);
+}
+
+.ticker__item {
+  font-size: clamp(26px, 3.6vw, 52px);
+}
+
+.ticker__item img {
+  box-sizing: border-box;
+  height: calc(var(--ticker-h, 112px) - 20px);
+  padding: 4px 12px;
+  border-radius: 12px;
+}
+
+.ticker[data-tipo="nuevo"] .ticker__item {
+  font-size: clamp(28px, 4.2vw, 64px);
+}
+
+@media (max-width: 600px) {
+  .ticker__etiqueta {
+    padding-inline: 12px;
+    font-size: 16px;
+  }
+
+  .ticker__item,
+  .ticker[data-tipo="nuevo"] .ticker__item {
+    font-size: 24px;
+  }
+}
