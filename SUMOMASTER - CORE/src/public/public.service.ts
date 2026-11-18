@@ -25,6 +25,8 @@ import { RankingService } from '../ranking/ranking.service';
 import { Robot, RobotDocument } from '../robots/schemas/robot.schema';
 import { Bloque, BloqueDocument } from '../bloques/schemas/bloque.schema';
 
+import { TipoCombate } from '../categorias/enums/categoria.enums';
+
 // Ranking público (fase de grupos): expone solo nombres, métricas e identificador público del robot.
 export interface FilaRankingPublicaDto {
   robotId: string;
@@ -109,6 +111,29 @@ export class PublicService {
     private readonly bloqueModel: Model<BloqueDocument>,
     private readonly rankingService: RankingService,
   ) {}
+
+
+  async consultarRoboSoccer(id: string) {
+  const torneo = await this.torneoModel
+    .findOne({ _id: id, publico: true })
+    .select('nombre categoria equiposInscritos gruposRoboSoccer')
+    .populate<{ categoria: { tipoCombate: TipoCombate } | null }>(
+      'categoria', 'tipoCombate',
+    )
+    .populate('equiposInscritos', 'nombre')
+    .lean()
+    .exec();
+
+  if (torneo?.categoria?.tipoCombate !== TipoCombate.ROBO_SOCCER_RC) {
+    return null;
+  }
+
+  return {
+    nombre: torneo.nombre,
+    equiposInscritos: torneo.equiposInscritos,
+    gruposRoboSoccer: torneo.gruposRoboSoccer ?? [],
+  };
+}
 
   async listarTorneosPublicos(): Promise<TorneoResumenDto[]> {
     const torneos: any[] = await this.torneoModel
