@@ -178,3 +178,97 @@
   font-size: 0.8rem;
   text-shadow: none;
 }
+
+.soccer-marcador {
+  display: grid;
+  justify-items: center;
+  gap: 0.45rem;
+  min-inline-size: 0;
+  line-height: 1;
+}
+
+.soccer-marcador__goles {
+  padding: 0.25em 0.35em;
+  border: 1px solid #ae76f54d;
+  border-radius: 0.45em;
+  background: linear-gradient(180deg, #211334, #100b1d);
+  font-size: clamp(1.5rem, 4vw, 3.6rem);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 0 1.2rem #8729ed42;
+}
+
+.soccer-marcador__separador {
+  margin-inline: 0.14em;
+  color: #c790f0;
+}
+
+.soccer-marcador__vs {
+  color: #dcb7ff;
+}
+
+.soccer-marcador__estado {
+  padding: 0.35rem 0.55rem;
+  border: 1px solid #ff686b66;
+  border-radius: 999px;
+  background: #351425;
+  color: #ffc4c5;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-shadow: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.soccer-local.soccer-ganador,
+.soccer-visitante.soccer-ganador {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-color: #ffcf5c;
+  background: linear-gradient(180deg, #21140f 15%, #4f240c 100%);
+  color: #fff0b0;
+  text-shadow: 0 0 0.8rem #ff9800aa;
+  box-shadow:
+    0 0 1.2rem #ff990077,
+    inset 0 -0.5rem 1.3rem #ff7b003d;
+}
+
+.soccer-ganador > span {
+  position: relative;
+  z-index: 1;
+}
+
+.soccer-ganador::after {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+  content: '';
+  background:
+    radial-gradient(circle at 12% 82%, #ffd45c 1px, transparent 3px),
+    radial-gradient(circle at 27% 95%, #ff862e 2px, transparent 4px),
+    radial-gradient(circle at 53% 78%, #fff0ac 1px, transparent 3px),
+    radial-gradient(circle at 73% 92%, #ffac3f 1px, transparent 4px),
+    radial-gradient(circle at 91% 84%, #ffcf5c 2px, transparent 4px);
+  animation: soccer-brasas 1.8s ease-out infinite;
+}
+
+@keyframes soccer-brasas {
+  from {
+    opacity: 0.9;
+    transform: translateY(0.25rem);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-1.5rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .soccer-ganador::after {
+    animation: none;
+  }
+}

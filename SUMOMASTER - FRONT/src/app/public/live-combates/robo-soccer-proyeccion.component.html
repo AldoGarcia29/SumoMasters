@@ -35,31 +35,36 @@
         </select>
       </header>
 
-      <div class="soccer-enfrentamiento" *ngIf="tarjeta.partido as partido; else vacia">
-  <ng-container *ngIf="partido.resultado as goles; else pendiente">
-    <strong class="soccer-local" [class.soccer-ganador]="goles.golesLocal > goles.golesVisitante">
-      {{ partido.local }}
-      <small *ngIf="goles.golesLocal > goles.golesVisitante">Ganador</small>
-    </strong>
+     <div class="soccer-enfrentamiento" *ngIf="tarjeta.partido as partido; else vacia">
+  <strong
+    class="soccer-local"
+    [class.soccer-ganador]="
+      partido.resultado && partido.resultado.golesLocal > partido.resultado.golesVisitante
+    "
+  >
+    <span>{{ partido.local }}</span>
+  </strong>
 
-    <strong class="soccer-marcador">
-  {{ partido.marcador
-    ? partido.marcador.golesLocal + '–' + partido.marcador.golesVisitante
-    : 'VS' }}
-  <small *ngIf="partido.marcador" class="soccer-marcador__estado">En vivo</small>
-</strong>
+  <div class="soccer-marcador" aria-live="polite" aria-atomic="true">
+    <ng-container *ngIf="partido.marcador as goles; else sinMarcador">
+      <span class="soccer-marcador__goles">
+        {{ goles.golesLocal }}<span class="soccer-marcador__separador">–</span>{{ goles.golesVisitante }}
+      </span>
+      <small *ngIf="!partido.resultado" class="soccer-marcador__estado">En vivo</small>
+    </ng-container>
+    <ng-template #sinMarcador>
+      <span class="soccer-marcador__vs">VS</span>
+    </ng-template>
+  </div>
 
-    <strong class="soccer-visitante" [class.soccer-ganador]="goles.golesVisitante > goles.golesLocal">
-      {{ partido.visitante }}
-      <small *ngIf="goles.golesVisitante > goles.golesLocal">Ganador</small>
-    </strong>
-  </ng-container>
-
-  <ng-template #pendiente>
-    <strong class="soccer-local">{{ partido.local }}</strong>
-    <strong class="soccer-marcador">VS</strong>
-    <strong class="soccer-visitante">{{ partido.visitante }}</strong>
-  </ng-template>
+  <strong
+    class="soccer-visitante"
+    [class.soccer-ganador]="
+      partido.resultado && partido.resultado.golesVisitante > partido.resultado.golesLocal
+    "
+  >
+    <span>{{ partido.visitante }}</span>
+  </strong>
 </div>
 
       <ng-template #vacia>
