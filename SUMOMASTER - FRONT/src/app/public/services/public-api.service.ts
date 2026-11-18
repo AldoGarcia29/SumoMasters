@@ -9,6 +9,7 @@ import {
   TorneoResumen,
 } from '../models/live.model';
 import { RobotFicha } from '../../core/models/robot-ficha.model';
+import { PantallasTorneo } from '../../core/services/versus.service';
 
 @Injectable({ providedIn: 'root' })
 export class PublicApiService {
@@ -27,6 +28,12 @@ export class PublicApiService {
 
   getRanking(id: string): Observable<RankingPublico> {
     return this.http.get<RankingPublico>(`${this.base}/torneos/${id}/ranking`);
+  }
+
+  getPantallas(id: string): Observable<PantallasTorneo> {
+    return this.http.get<PantallasTorneo>(
+      `${this.base}/torneos/${id}/pantallas`,
+    );
   }
 
   getFichaRobot(torneoId: string, robotId: string): Observable<RobotFicha> {
