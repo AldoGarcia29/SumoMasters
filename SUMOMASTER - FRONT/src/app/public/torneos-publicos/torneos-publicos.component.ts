@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
   EMPTY,
@@ -16,6 +16,8 @@ import {
 import { LiveUserMenuComponent } from '../live-user-menu/live-user-menu.component';
 import { TorneoResumen } from '../models/live.model';
 import { PublicApiService } from '../services/public-api.service';
+import { TorneoSeguilineas } from '../../core/models/seguilineas.model';
+import { SeguilineasService } from '../../core/services/seguilineas.service';
 
 const POLL_MS = 5_000;
 
@@ -39,10 +41,16 @@ export class TorneosPublicosComponent implements OnInit, OnDestroy {
   segundosDesdeActualizacion = 0;
 
   private readonly subs = new Subscription();
+  private readonly seguilineasApi = inject(SeguilineasService);
+  seguilineas: TorneoSeguilineas[] = [];
 
   constructor(private readonly api: PublicApiService) {}
 
   ngOnInit(): void {
+    this.subs.add(
+      this.seguilineasApi.listar().subscribe({ next: (l) => (this.seguilineas = l), error: () => {} }),
+    );
+
     const visible$ = merge(
       of(!document.hidden),
       fromEvent(document, 'visibilitychange').pipe(

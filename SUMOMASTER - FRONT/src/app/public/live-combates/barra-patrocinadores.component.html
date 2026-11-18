@@ -1,0 +1,17 @@
+<ng-container *ngFor="let v of vistas; trackBy: trackVista">
+  <footer class="ticker" [attr.data-tipo]="v.tipo" aria-live="off">
+    <span class="ticker__etiqueta">{{ v.etiqueta }}</span>
+    <div class="ticker__ventana">
+      <div
+        class="ticker__pista"
+        [class.ticker__pista--fija]="v.fija"
+        [style.animationDuration.s]="v.duracionS"
+      >
+        <span class="ticker__item" *ngFor="let it of v.items; trackBy: trackItem">
+          <img *ngIf="it.logo" [src]="it.logo" alt="Patrocinador UTEQ" />
+          <ng-container *ngIf="it.texto">{{ it.texto }}</ng-container>
+        </span>
+      </div>
+    </div>
+  </footer>
+</ng-container>

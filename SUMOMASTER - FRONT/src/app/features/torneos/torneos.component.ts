@@ -6,10 +6,11 @@ import { extractErrorMessage } from '../../core/utils/error-message.util';
 import { CommonModule } from '@angular/common';
 import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { SidebarComponent } from '../../shared/components/sidebar/sidebar.component';
 import { TopbarComponent } from '../../shared/components/topbar/topbar.component';
 import { TorneoService } from '../../core/services/torneo.service';
+import { SeguilineasService } from '../../core/services/seguilineas.service';
 import { CategoriaService } from '../../core/services/categoria.service';
 import { RobotService } from '../../core/services/robot.service';
 import { EstadoTorneo, Torneo } from '../../core/models/torneo.model';
@@ -38,6 +39,8 @@ export class TorneosComponent implements OnInit {
   private readonly equipoService = inject(EquipoService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder);
+  private readonly router = inject(Router);
+  private readonly seguilineasApi = inject(SeguilineasService);
 
   readonly EstadoTorneo = EstadoTorneo;
 
@@ -106,6 +109,20 @@ export class TorneosComponent implements OnInit {
         : undefined);
 
     return tipoCombate === TipoCombate.ROBO_SOCCER_RC;
+  }
+
+  private esCategoriaSeguilineas(c?: Categoria | null): boolean {
+    return c?.tipoCombate === TipoCombate.SEGUILINEAS || /seguil/i.test(c?.nombre ?? '');
+  }
+
+  get esSeguilineasSeleccionado(): boolean {
+    const id = this.form.controls.categoria.value;
+    return this.esCategoriaSeguilineas(this.categorias().find((c) => c._id === id));
+  }
+
+  esTorneoSeguilineas(torneo: Torneo): boolean {
+    const c = torneo.categoria;
+    return this.esCategoriaSeguilineas(typeof c === 'string' ? this.categorias().find((i) => i._id === c) : c);
   }
 
   ngOnInit(): void {
@@ -192,6 +209,10 @@ export class TorneosComponent implements OnInit {
   }
 
   openEditModal(torneo: Torneo): void {
+    if (this.esTorneoSeguilineas(torneo)) {
+      void this.router.navigate(['/seguilineas']);
+      return;
+    }
     this.formError.set(null);
     this.selectedTorneo.set(torneo);
     const categoriaId = this.categoriaId(torneo);
@@ -289,6 +310,20 @@ export class TorneosComponent implements OnInit {
     }
 
     const raw = this.form.getRawValue();
+    if (this.modalMode() === 'create' && this.esSeguilineasSeleccionado) {
+      this.saving.set(true);
+      this.formError.set(null);
+      this.seguilineasApi
+        .crear({ nombre: raw.nombre.trim(), fecha: raw.fecha, descripcion: raw.descripcion?.trim() || '' })
+        .subscribe({
+          next: () => { this.saving.set(false); this.closeModal(); void this.router.navigate(['/seguilineas']); },
+          error: (err) => {
+            this.saving.set(false);
+            this.formError.set(extractErrorMessage(err, 'No se pudo crear el torneo de Seguilineas'));
+          },
+        });
+      return;
+    }
     const payload = {
       nombre: raw.nombre.trim(),
       fecha: raw.fecha,
@@ -358,6 +393,11 @@ export class TorneosComponent implements OnInit {
 
   esTorneoRoboSoccer(torneo: Torneo): boolean {
   const categoria = torneo.categoria;
+
+  if (categoria == null) {
+    return false;
+  }
+
   const tipoCombate = typeof categoria === 'string'
     ? this.categorias().find((item) => item._id === categoria)?.tipoCombate
     : categoria.tipoCombate;

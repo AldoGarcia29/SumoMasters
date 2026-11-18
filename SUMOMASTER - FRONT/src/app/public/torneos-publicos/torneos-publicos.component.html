@@ -29,6 +29,19 @@
   <p class="cargando" *ngIf="!lista && !error">Cargando torneos…</p>
   <p class="vacio" *ngIf="lista?.length === 0">No hay torneos públicos por ahora.</p>
 
+  <section class="seccion" *ngIf="seguilineas.length">
+    <div class="titulo-seccion">
+      <div><p class="eyebrow">TIEMPOS</p><h2>Seguilineas</h2></div>
+      <span class="contador">{{ seguilineas.length }}</span>
+    </div>
+    <div class="tarjetas">
+      <a class="torneo-card" *ngFor="let s of seguilineas" [routerLink]="['/live/seguilineas', s._id]">
+        <h3>{{ s.nombre }}</h3>
+        <p>{{ s.fecha | date: 'd MMM y' : 'UTC' }} · {{ s.estado }}</p>
+      </a>
+    </div>
+  </section>
+
   <section class="seccion" *ngIf="torneosEnVivo.length">
     <div class="titulo-seccion">
       <div><p class="eyebrow">AHORA MISMO</p><h2><i class="pulso"></i> En vivo ahora</h2></div>

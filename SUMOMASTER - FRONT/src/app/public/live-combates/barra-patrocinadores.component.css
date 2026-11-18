@@ -1,0 +1,35 @@
+/* La altura (--ticker-h) la define live-combates y se hereda hasta aquí. */
+:host { display: contents; }
+
+.ticker { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; display: flex; align-items: stretch; width: 100%; height: var(--ticker-h, 56px); overflow: hidden; background: #0c0a18f2; border-top: 2px solid #8b5cf6; box-shadow: 0 -6px 18px #0008; font-family: "Segoe UI", Arial, sans-serif; }
+.ticker__etiqueta { flex: 0 0 auto; display: flex; align-items: center; padding: 0 clamp(12px, 2vw, 28px); color: #fff; font-weight: 800; font-size: clamp(12px, 1.2vw, 18px); letter-spacing: 1px; white-space: nowrap; background: #7835dc; }
+.ticker__ventana { flex: 1; min-width: 0; overflow: hidden; display: flex; align-items: center; }
+.ticker__pista { display: flex; align-items: center; width: max-content; will-change: transform; animation: ticker-scroll linear infinite; }
+.ticker__item { display: inline-flex; align-items: center; padding: 0 clamp(28px, 4vw, 64px); color: #f4f1ff; font-size: clamp(16px, 1.8vw, 26px); font-weight: 600; white-space: nowrap; }
+.ticker__item img { height: calc(var(--ticker-h, 56px) - 12px); width: auto; object-fit: contain; background: #fff; border-radius: 8px; padding: 2px 8px; }
+
+.ticker[data-tipo="ranking"] .ticker__etiqueta,
+.ticker[data-tipo="llegada"] .ticker__etiqueta { background: #0f766e; }
+.ticker[data-tipo="patrocinador"] .ticker__etiqueta { background: #1d4f91; }
+
+/* Resultado recién registrado: llamativo, y fijo si caben uno o dos. */
+.ticker[data-tipo="nuevo"] { border-top-color: #f59e0b; animation: ticker-destello 1.4s ease-out; }
+.ticker[data-tipo="nuevo"] .ticker__etiqueta { background: #dc2626; animation: ticker-pulso 1.2s ease-in-out 3; }
+.ticker[data-tipo="nuevo"] .ticker__item { color: #fff; font-weight: 800; font-size: clamp(17px, 2.1vw, 32px); }
+.ticker__pista--fija { width: 100%; justify-content: center; animation: none; }
+.ticker__pista--fija .ticker__item { min-width: 0; max-width: 100%; padding: 0 clamp(12px, 2vw, 40px); overflow: hidden; text-overflow: ellipsis; display: block; line-height: var(--ticker-h, 56px); }
+
+@media (max-width: 600px) {
+  .ticker__etiqueta { padding: 0 8px; font-size: 11px; letter-spacing: .5px; }
+  .ticker[data-tipo="nuevo"] .ticker__item { font-size: 14px; }
+  .ticker__pista--fija .ticker__item { padding: 0 8px; }
+}
+
+@keyframes ticker-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes ticker-destello { 0% { background: #b45309; } 100% { background: #0c0a18f2; } }
+@keyframes ticker-pulso { 0%, 100% { filter: none; } 50% { filter: brightness(1.45); } }
+@media (prefers-reduced-motion: reduce) {
+  .ticker__pista { animation-duration: 120s !important; }
+  .ticker__pista--fija { animation: none !important; }
+  .ticker[data-tipo="nuevo"], .ticker[data-tipo="nuevo"] .ticker__etiqueta { animation: none; }
+}

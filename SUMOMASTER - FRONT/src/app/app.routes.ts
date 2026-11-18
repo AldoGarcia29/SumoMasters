@@ -151,6 +151,12 @@ export const routes: Routes = [
 
   // SEGUILINEAS
   {
+    path: 'seguilineas',
+    canActivate: [authGuard, ADMIN_Y_STAFF],
+    loadComponent: () =>
+      import('./features/seguilineas/seguilineas-admin.component').then((m) => m.SeguilineasAdminComponent),
+  },
+  {
     path: 'live/seguilineas/:id',
     data: { soloLectura: true },
     loadComponent: () =>

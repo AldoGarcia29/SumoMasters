@@ -72,6 +72,12 @@ export class SidebarComponent {
       roles: [Role.ADMIN],
     },
     {
+      icon: 'trophy',
+      label: 'Seguilineas',
+      route: '/seguilineas',
+      roles: [Role.ADMIN, Role.STAFF],
+    },
+    {
       icon: 'grid',
       label: 'Categorías',
       route: '/categorias',

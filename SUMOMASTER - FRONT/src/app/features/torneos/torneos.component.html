@@ -212,11 +212,7 @@
                   <a
                     *appCan="'manage'"
                     class="btn btn--primary btn--sm"
-                    [routerLink]="[
-                      '/torneos',
-                      torneo._id,
-                      'resultados'
-                    ]"
+                    [routerLink]="esTorneoSeguilineas(torneo) ? ['/seguilineas'] : ['/torneos', torneo._id, 'resultados']"
                     title="Ingresar al torneo"
                   >
                     Ingresar
@@ -225,11 +221,7 @@
                   <!-- Solo ADMIN -->
                   <a
                     *appCan="'admin'"
-                    [routerLink]="[
-  '/torneos',
-  torneo._id,
-  esTorneoRoboSoccer(torneo) ? 'grupos' : 'bloques'
-]"
+                    [routerLink]="esTorneoSeguilineas(torneo) ? ['/seguilineas'] : ['/torneos', torneo._id, esTorneoRoboSoccer(torneo) ? 'grupos' : 'bloques']"
                     aria-label="Gestionar fases"
                     title="Gestionar fases"
                   >
@@ -599,7 +591,7 @@
         ></textarea>
       </label>
 
-      <label class="field" *ngIf="!esRoboSoccerSeleccionado">
+      <label class="field" *ngIf="!esRoboSoccerSeleccionado && !esSeguilineasSeleccionado">
         <span>
           Tamaño de bloque
           (fase de grupos)
@@ -612,9 +604,13 @@
         />
       </label>
 
+      <p class="field__hint" *ngIf="esSeguilineasSeleccionado">
+  Seguilineas solo registra tiempos. Al guardar se crea en el módulo de Seguilineas, donde asignas staff e inscribes robots.
+</p>
+
       <div
   class="field"
-  *ngIf="form.controls.categoria.value && !esRoboSoccerSeleccionado"
+  *ngIf="form.controls.categoria.value && !esRoboSoccerSeleccionado && !esSeguilineasSeleccionado"
 >
 
         <div class="robot-picker__header">
@@ -885,11 +881,7 @@
       <a
         *appCan="'admin'"
         class="btn btn--ghost"
-        [routerLink]="[
-  '/torneos',
-  torneo._id,
-  esTorneoRoboSoccer(torneo) ? 'grupos' : 'bloques'
-]"
+        [routerLink]="esTorneoSeguilineas(torneo) ? ['/seguilineas'] : ['/torneos', torneo._id, esTorneoRoboSoccer(torneo) ? 'grupos' : 'bloques']"
       >
         Gestionar fases →
       </a>
