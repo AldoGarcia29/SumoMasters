@@ -1698,3 +1698,15 @@ a:focus-visible {
 .programa { padding-bottom: calc(24px + var(--ticker-h)); }
 .programa--proyeccion { padding-bottom: calc(var(--ticker-h) + 12px); }
 @media (max-width: 600px) { :host { --ticker-h: 48px; } }
+
+
+.arena.arena--cinco .robot__nombre strong {
+  font-size: clamp(15px, 1.35vw, 24px);
+  overflow-wrap: anywhere;
+}
+
+.bloque-proyectado__identidad strong {
+  color: #fff;
+  overflow-wrap: anywhere;
+  font-size: clamp(16px, 1.3vw, 23px);
+}
