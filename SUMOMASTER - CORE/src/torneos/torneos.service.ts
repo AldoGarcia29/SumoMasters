@@ -122,6 +122,8 @@ export class TorneosService {
     return { grupos };
   }
 
+  
+
   async create(dto: CreateTorneoDto): Promise<TorneoDocument> {
     await this.validarEquiposInscritos(
       dto.categoria,
@@ -378,6 +380,8 @@ export class TorneosService {
   id: string,
   numeroGrupo: number,
   dto: RegistrarResultadoGrupoDto,
+  campo: 'resultado' | 'marcadorEnVivo' = 'resultado',
+
 ) {
   if (!Types.ObjectId.isValid(id) || numeroGrupo < 1) {
     throw new BadRequestException('El torneo o el número de grupo no es válido');
@@ -391,33 +395,42 @@ export class TorneosService {
   const resultado = { golesLocal, golesVisitante };
   const torneoId = new Types.ObjectId(id);
 
-  const guardado = await this.torneoModel.collection.updateOne(
-    {
-      _id: torneoId,
-      gruposRoboSoccer: {
-        $elemMatch: {
-          numero: numeroGrupo,
-          partidos: { $elemMatch: { ...cruce, resultado: null } },
-        },
+  if (![golesLocal, golesVisitante].every(Number.isSafeInteger)) {
+  throw new BadRequestException('El marcador contiene un número de goles no válido');
+}
+
+const rutaPartido = 'gruposRoboSoccer.$[grupo].partidos.$[partido]';
+
+const guardado = await this.torneoModel.collection.updateOne(
+  {
+    _id: torneoId,
+    gruposRoboSoccer: {
+      $elemMatch: {
+        numero: numeroGrupo,
+        partidos: { $elemMatch: { ...cruce, resultado: null } },
       },
     },
-    {
-      $set: {
-        'gruposRoboSoccer.$[grupo].partidos.$[partido].resultado': resultado,
-        updatedAt: new Date(),
+  },
+  {
+    $set: {
+      [`${rutaPartido}.${campo}`]: resultado,
+      updatedAt: new Date(),
+    },
+    ...(campo === 'resultado'
+      ? { $unset: { [`${rutaPartido}.marcadorEnVivo`]: '' } }
+      : {}),
+  },
+  {
+    arrayFilters: [
+      { 'grupo.numero': numeroGrupo },
+      {
+        'partido.localId': cruce.localId,
+        'partido.visitanteId': cruce.visitanteId,
+        'partido.resultado': null,
       },
-    },
-    {
-      arrayFilters: [
-        { 'grupo.numero': numeroGrupo },
-        {
-          'partido.localId': cruce.localId,
-          'partido.visitanteId': cruce.visitanteId,
-          'partido.resultado': null,
-        },
-      ],
-    },
-  );
+    ],
+  },
+);
 
   if (guardado.matchedCount === 0) {
     const torneo = await this.torneoModel
@@ -446,12 +459,15 @@ export class TorneosService {
       return { resultado: partido.resultado };
     }
 
-    throw new ConflictException('Este partido ya tiene un resultado registrado');
+        throw new ConflictException('Este partido ya tiene un resultado registrado');
+  } // Cierra el if de matchedCount
+
+  if (campo === 'resultado') {
+    this.invalidatePublicData(id);
   }
 
-  this.invalidatePublicData(id);
-  return { resultado };
-}
+  return { [campo]: resultado };
+} // Cierra registrarResultadoGrupo
 
 async consultarLlaveRoboSoccer(id: string) {
   const { equipoIds, llave } = await this.leerLlaveRoboSoccer(id);

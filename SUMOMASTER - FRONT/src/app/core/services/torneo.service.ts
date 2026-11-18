@@ -99,4 +99,21 @@ cambiarGanadorRoboSoccer(
     payload,
   );
 }
+
+
+actualizarMarcadorEnVivo(
+  torneoId: string,
+  numeroGrupo: number,
+  marcador: {
+    localId: string;
+    visitanteId: string;
+    golesLocal: number;
+    golesVisitante: number;
+  },
+): Observable<unknown> {
+  return this.http.patch(
+    `${this.apiUrl}/${torneoId}/grupos/${numeroGrupo}/marcador-en-vivo`,
+    marcador,
+  );
+}
 }

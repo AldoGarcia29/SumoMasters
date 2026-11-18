@@ -124,4 +124,16 @@ elegirGanadorRoboSoccer(
 ) {
   return this.torneosService.elegirGanadorRoboSoccer(id, cruceId, dto.ganadorId);
 }
+
+@Roles(Role.ADMIN)
+@Patch(':id/grupos/:numeroGrupo/marcador-en-vivo')
+actualizarMarcadorEnVivo(
+  @Param('id') id: string,
+  @Param('numeroGrupo', ParseIntPipe) numeroGrupo: number,
+  @Body() dto: RegistrarResultadoGrupoDto,
+) {
+  return this.torneosService.registrarResultadoGrupo(
+    id, numeroGrupo, dto, 'marcadorEnVivo',
+  );
+}
 }

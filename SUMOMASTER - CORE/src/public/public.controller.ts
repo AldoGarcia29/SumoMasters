@@ -67,4 +67,20 @@ export class PublicController {
     if (!ficha) throw new NotFoundException('Robot o torneo no encontrado');
     return ficha;
   }
+
+
+  @Get('torneos/:id/robo-soccer')
+@Header('Cache-Control', 'no-store')
+async roboSoccer(@Param('id') id: string) {
+  if (!/^[a-f\d]{24}$/i.test(id)) {
+    throw new BadRequestException('ID inválido');
+  }
+
+  const datos = await this.service.consultarRoboSoccer(id);
+  if (!datos) {
+    throw new NotFoundException('Torneo público de Robo Soccer no encontrado');
+  }
+
+  return datos;
+}
 }

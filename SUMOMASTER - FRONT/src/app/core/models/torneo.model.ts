@@ -40,6 +40,7 @@ export interface PartidoDeGrupo {
   localId: string;
   visitanteId: string;
   resultado: { golesLocal: number; golesVisitante: number } | null;
+  marcadorEnVivo?: { golesLocal: number; golesVisitante: number };
 }
 
 export interface GrupoRoboSoccer {

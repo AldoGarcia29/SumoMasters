@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { finalize } from 'rxjs';
+
 
 import { TipoCombate } from '../../core/models/categoria.model';
 import { GrupoRoboSoccer, PartidoDeGrupo, Torneo } from '../../core/models/torneo.model';
@@ -17,6 +17,7 @@ import { TorneoService } from '../../core/services/torneo.service';
 import { extractErrorMessage } from '../../core/utils/error-message.util';
 import { SidebarComponent } from '../../shared/components/sidebar/sidebar.component';
 import { TopbarComponent } from '../../shared/components/topbar/topbar.component';
+import { catchError, concatMap, EMPTY, finalize, Subject } from 'rxjs';
 
 interface FilaPosiciones {
   id: string;
@@ -47,6 +48,63 @@ export class TorneoResultadosSoccerComponent implements OnInit {
   readonly error = signal('');
   readonly errorGuardado = signal('');
   readonly sidebarOpen = signal(false);
+
+  readonly errorMarcador = signal('');
+readonly marcadoresPendientes = signal(0);
+
+private readonly cambiosMarcador = new Subject<{
+  torneoId: string;
+  numeroGrupo: number;
+  localId: string;
+  visitanteId: string;
+  golesLocal: number;
+  golesVisitante: number;
+}>();
+
+constructor() {
+  this.cambiosMarcador.pipe(
+    concatMap(({ torneoId, numeroGrupo, ...marcador }) =>
+      this.servicio.actualizarMarcadorEnVivo(torneoId, numeroGrupo, marcador).pipe(
+        catchError((err) => {
+          this.errorMarcador.set(
+            extractErrorMessage(err, 'No se pudo publicar el marcador en vivo.'),
+          );
+          return EMPTY;
+        }),
+        finalize(() => this.marcadoresPendientes.update((pendientes) => pendientes - 1)),
+      ),
+    ),
+    takeUntilDestroyed(this.destroyRef),
+  ).subscribe();
+}
+
+identificarGrupo(_indice: number, grupo: GrupoRoboSoccer): number {
+  return grupo.numero;
+}
+
+publicarMarcador(
+  numeroGrupo: number,
+  partido: PartidoDeGrupo,
+  golesLocal: number,
+  golesVisitante: number,
+): void {
+  const torneo = this.torneo();
+  if (!torneo || this.guardando() || partido.resultado) return;
+  if (![golesLocal, golesVisitante].every((goles) =>
+    Number.isSafeInteger(goles) && goles >= 0
+  )) return;
+
+  this.errorMarcador.set('');
+  this.marcadoresPendientes.update((pendientes) => pendientes + 1);
+  this.cambiosMarcador.next({
+    torneoId: torneo._id,
+    numeroGrupo,
+    localId: partido.localId,
+    visitanteId: partido.visitanteId,
+    golesLocal,
+    golesVisitante,
+  });
+}
 
   private readonly nombres = computed(() => {
     const nombres = new Map<string, string>();
@@ -108,7 +166,7 @@ export class TorneoResultadosSoccerComponent implements OnInit {
     golesVisitante: number,
   ): void {
     const torneo = this.torneo();
-    if (!torneo || this.guardando() || partido.resultado) return;
+    if (!torneo || this.guardando() || this.marcadoresPendientes() || partido.resultado) return;
 
     const marcadorValido = [golesLocal, golesVisitante].every(
       (goles) => Number.isSafeInteger(goles) && goles >= 0,
