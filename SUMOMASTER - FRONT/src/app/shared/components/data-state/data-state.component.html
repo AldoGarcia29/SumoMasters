@@ -1,0 +1,29 @@
+<section
+  class="data-state"
+  [class.data-state--compact]="compact"
+  [class.data-state--loading]="state === 'loading'"
+  [class.data-state--error]="state === 'error'"
+  [attr.role]="state === 'error' ? 'alert' : 'status'"
+  aria-live="polite"
+>
+  <ng-container [ngSwitch]="state">
+    <div *ngSwitchCase="'loading'" class="data-state__loading" aria-hidden="true">
+      <span class="data-state__skeleton" *ngFor="let skeleton of skeletons"></span>
+      <span class="data-state__message">{{ message }}</span>
+    </div>
+    <div *ngSwitchCase="'error'" class="data-state__content">
+      <p>{{ message }}</p>
+      <button
+        *ngIf="showRetry"
+        type="button"
+        class="btn btn--secondary btn--sm"
+        (click)="retryRequested.emit()"
+      >
+        Reintentar
+      </button>
+    </div>
+    <div *ngSwitchDefault class="data-state__content">
+      <p>{{ message }}</p>
+    </div>
+  </ng-container>
+</section>

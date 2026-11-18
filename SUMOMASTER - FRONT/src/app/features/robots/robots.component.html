@@ -14,12 +14,12 @@
     <main class="robots">
       <section class="panel panel--header">
         <h2>Robots registrados</h2>
-        <button *appCan="'manage'" type="button" class="btn btn--primary" (click)="openCreateModal()">
+        <app-button *appCan="'manage'" variant="primary" (clicked)="openCreateModal()">
           <svg viewBox="0 0 24 24" width="16" height="16">
             <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
           </svg>
           Nuevo robot
-        </button>
+        </app-button>
       </section>
 
       <section class="panel panel--search">
@@ -38,8 +38,26 @@
       </section>
 
       <section class="panel panel--table">
+        <app-data-state
+          *ngIf="loading()"
+          state="loading"
+          message="Cargando robots…"
+          [skeletonRows]="5"
+        />
+        <app-data-state
+          *ngIf="!loading() && errorMessage()"
+          state="error"
+          [message]="errorMessage() ?? ''"
+          [showRetry]="true"
+          (retryRequested)="loadRobots()"
+        />
+        <app-data-state
+          *ngIf="!loading() && !errorMessage() && pagedRobots().length === 0"
+          state="empty"
+          message="No se encontraron robots."
+        />
         <div class="table-wrapper">
-          <table class="table" *ngIf="!loading(); else loadingTpl">
+          <table class="table" *ngIf="!loading() && !errorMessage() && pagedRobots().length > 0">
             <thead>
               <tr>
                 <th>Nombre del robot</th>
@@ -92,18 +110,9 @@
                 </td>
               </tr>
 
-              <tr *ngIf="pagedRobots().length === 0">
-                <td colspan="6" class="table__empty">No se encontraron robots.</td>
-              </tr>
             </tbody>
           </table>
-
-          <ng-template #loadingTpl>
-            <p class="table__loading">Cargando robots…</p>
-          </ng-template>
         </div>
-
-        <p class="panel__error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
 
         <div class="panel__footer" *ngIf="filteredRobots().length > 0">
           <span>Mostrando {{ pagedRobots().length }} de {{ filteredRobots().length }} robots</span>
@@ -200,9 +209,9 @@
 
       <div class="modal__footer">
         <button type="button" class="btn btn--ghost" (click)="closeModal()">Cancelar</button>
-        <button type="submit" class="btn btn--primary" [disabled]="saving()">
+        <app-button type="submit" variant="primary" [loading]="saving()">
           {{ saving() ? 'Guardando…' : 'Guardar robot' }}
-        </button>
+        </app-button>
       </div>
     </form>
   </div>

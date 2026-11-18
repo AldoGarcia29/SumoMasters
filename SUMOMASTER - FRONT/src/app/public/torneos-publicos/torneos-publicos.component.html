@@ -35,9 +35,14 @@
   </section>
 
   <p class="alerta" *ngIf="eventoConfigError">{{ eventoConfigError }}</p>
-  <p class="alerta" *ngIf="error">{{ error }}</p>
-  <p class="cargando" *ngIf="!lista && !error">Cargando torneos…</p>
-  <p class="vacio" *ngIf="lista?.length === 0">No hay torneos públicos por ahora.</p>
+  <app-data-state *ngIf="!lista && !error" state="loading" message="Cargando torneos…" />
+  <app-data-state *ngIf="!lista && error" state="error" [message]="error" />
+  <p class="alerta" *ngIf="lista && error">{{ error }}</p>
+  <app-data-state
+    *ngIf="lista?.length === 0"
+    state="empty"
+    message="No hay torneos públicos por ahora."
+  />
 
   <section class="seccion" *ngIf="seguilineas.length">
     <div class="titulo-seccion">

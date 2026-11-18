@@ -5,6 +5,8 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { SidebarComponent } from '../../shared/components/sidebar/sidebar.component';
 import { TopbarComponent } from '../../shared/components/topbar/topbar.component';
 import { ImageUploadComponent } from '../../shared/components/image-upload/image-upload.component';
+import { ButtonComponent } from '../../shared/components/button/button.component';
+import { DataStateComponent } from '../../shared/components/data-state/data-state.component';
 import { RobotService } from '../../core/services/robot.service';
 import { EquipoService } from '../../core/services/equipo.service';
 import { CategoriaService } from '../../core/services/categoria.service';
@@ -20,7 +22,7 @@ const PAGE_SIZE = 6;
 @Component({
   selector: 'app-robots',
   standalone: true,
-  imports: [CanDirective, CommonModule, ReactiveFormsModule, SidebarComponent, TopbarComponent, ImageUploadComponent],
+  imports: [CanDirective, CommonModule, ReactiveFormsModule, SidebarComponent, TopbarComponent, ImageUploadComponent, ButtonComponent, DataStateComponent],
   templateUrl: './robots.component.html',
   styleUrl: './robots.component.scss',
 })
@@ -43,7 +45,7 @@ export class RobotsComponent implements OnInit {
   readonly robots = signal<Robot[]>([]);
   readonly equipos = signal<Equipo[]>([]);
   readonly categorias = signal<Categoria[]>([]);
-  readonly loading = signal(false);
+  readonly loading = signal(true);
   readonly errorMessage = signal<string | null>(null);
   readonly searchTerm = signal('');
   readonly page = signal(1);

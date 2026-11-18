@@ -9,6 +9,8 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { SidebarComponent } from '../../shared/components/sidebar/sidebar.component';
 import { TopbarComponent } from '../../shared/components/topbar/topbar.component';
+import { ButtonComponent } from '../../shared/components/button/button.component';
+import { DataStateComponent } from '../../shared/components/data-state/data-state.component';
 import { TorneoService } from '../../core/services/torneo.service';
 import { SeguilineasService } from '../../core/services/seguilineas.service';
 import { EventoConfigService } from '../../core/services/evento-config.service';
@@ -29,7 +31,7 @@ const PAGE_SIZE = 6;
 @Component({
   selector: 'app-torneos',
   standalone: true,
-  imports: [CanDirective, CommonModule, ReactiveFormsModule, RouterLink, SidebarComponent, TopbarComponent],
+  imports: [CanDirective, CommonModule, ReactiveFormsModule, RouterLink, SidebarComponent, TopbarComponent, ButtonComponent, DataStateComponent],
   templateUrl: './torneos.component.html',
   styleUrl: './torneos.component.scss',
 })
@@ -60,7 +62,7 @@ export class TorneosComponent implements OnInit {
   readonly categorias = signal<Categoria[]>([]);
   readonly robotsDisponibles = signal<Robot[]>([]);
   readonly equiposDisponibles = signal<Equipo[]>([]);
-  readonly loading = signal(false);
+  readonly loading = signal(true);
   readonly errorMessage = signal<string | null>(null);
   readonly featuredTournamentId = signal<string | null>(null);
   readonly featuredTournamentBusyId = signal<string | null>(null);

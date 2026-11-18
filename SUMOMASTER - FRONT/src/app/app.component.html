@@ -1,2 +1,9 @@
+<div
+  class="router-progress"
+  [class.router-progress--active]="navigationLoading()"
+  role="progressbar"
+  aria-label="Cargando página"
+  [attr.aria-valuetext]="navigationLoading() ? 'Navegando' : 'Listo'"
+></div>
 <router-outlet />
 <app-robot-ficha-modal />

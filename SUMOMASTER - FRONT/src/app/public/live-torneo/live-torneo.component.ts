@@ -3,6 +3,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
   EMPTY,
+  exhaustMap,
   Subscription,
   catchError,
   distinctUntilChanged,
@@ -20,13 +21,14 @@ import { RobotFichaDialogService } from '../../core/services/robot-ficha-dialog.
 import { EventoConfigService } from '../../core/services/evento-config.service';
 import { EventoConfig } from '../../core/models/evento-config.model';
 import { Title } from '@angular/platform-browser';
+import { DataStateComponent } from '../../shared/components/data-state/data-state.component';
 
 const POLL_MS = 5_000;
 
 @Component({
   selector: 'app-live-torneo',
   standalone: true,
-  imports: [CommonModule, RouterLink, LiveUserMenuComponent],
+  imports: [CommonModule, RouterLink, LiveUserMenuComponent, DataStateComponent],
   templateUrl: './live-torneo.component.html',
   styleUrls: ['./live-torneo.component.css'],
 })
@@ -84,7 +86,7 @@ export class LiveTorneoComponent implements OnInit, OnDestroy {
           switchMap((visible) =>
             visible ? timer(0, POLL_MS) : EMPTY,
           ),
-          switchMap(() =>
+          exhaustMap(() =>
             this.api.getLive(id).pipe(
               catchError((err) => {
                 this.error =

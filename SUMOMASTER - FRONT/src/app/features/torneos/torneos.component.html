@@ -28,11 +28,10 @@
         <h2>Torneos</h2>
 
         <!-- Solo ADMIN puede crear torneos -->
-        <button
+        <app-button
           *appCan="'admin'"
-          type="button"
-          class="btn btn--primary"
-          (click)="openCreateModal()"
+          variant="primary"
+          (clicked)="openCreateModal()"
         >
           <svg viewBox="0 0 24 24" width="16" height="16">
             <path
@@ -45,7 +44,7 @@
           </svg>
 
           Nuevo torneo
-        </button>
+        </app-button>
       </section>
 
       <!-- ========================= -->
@@ -101,11 +100,29 @@
       <section class="panel panel--table">
         <p class="featured-error" *ngIf="featuredTournamentError()">{{ featuredTournamentError() }}</p>
 
+        <app-data-state
+          *ngIf="loading()"
+          state="loading"
+          message="Cargando torneos…"
+          [skeletonRows]="5"
+        />
+        <app-data-state
+          *ngIf="!loading() && errorMessage()"
+          state="error"
+          [message]="errorMessage() ?? ''"
+          [showRetry]="true"
+          (retryRequested)="loadTorneos()"
+        />
+        <app-data-state
+          *ngIf="!loading() && !errorMessage() && pagedTorneos().length === 0"
+          state="empty"
+          message="No hay torneos para este filtro."
+        />
         <div class="table-wrapper">
 
           <table
             class="table"
-            *ngIf="!loading(); else loadingTpl"
+            *ngIf="!loading() && !errorMessage() && pagedTorneos().length > 0"
           >
             <thead>
               <tr>
@@ -370,36 +387,10 @@
 
               </tr>
 
-              <tr
-                *ngIf="
-                  pagedTorneos().length === 0
-                "
-              >
-                <td
-                  colspan="6"
-                  class="table__empty"
-                >
-                  No se encontraron torneos.
-                </td>
-              </tr>
-
             </tbody>
           </table>
 
-          <ng-template #loadingTpl>
-            <p class="table__loading">
-              Cargando torneos…
-            </p>
-          </ng-template>
-
         </div>
-
-        <p
-          class="panel__error"
-          *ngIf="errorMessage()"
-        >
-          {{ errorMessage() }}
-        </p>
 
         <!-- ========================= -->
         <!-- PAGINACIÓN -->
@@ -407,9 +398,7 @@
 
         <div
           class="panel__footer"
-          *ngIf="
-            filteredTorneos().length > 0
-          "
+          *ngIf="!loading() && !errorMessage() && filteredTorneos().length > 0"
         >
 
           <span>
@@ -741,17 +730,17 @@
           Cancelar
         </button>
 
-        <button
+        <app-button
           type="submit"
-          class="btn btn--primary"
-          [disabled]="saving()"
+          variant="primary"
+          [loading]="saving()"
         >
           {{
             saving()
               ? 'Guardando…'
               : 'Guardar torneo'
           }}
-        </button>
+        </app-button>
 
       </div>
 

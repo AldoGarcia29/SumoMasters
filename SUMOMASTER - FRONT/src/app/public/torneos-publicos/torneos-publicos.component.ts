@@ -3,6 +3,7 @@ import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
   EMPTY,
+  exhaustMap,
   Subscription,
   catchError,
   distinctUntilChanged,
@@ -21,6 +22,7 @@ import { SeguilineasService } from '../../core/services/seguilineas.service';
 import { EventoConfigService } from '../../core/services/evento-config.service';
 import { EventoConfig } from '../../core/models/evento-config.model';
 import { Title } from '@angular/platform-browser';
+import { DataStateComponent } from '../../shared/components/data-state/data-state.component';
 
 const POLL_MS = 5_000;
 
@@ -32,7 +34,7 @@ interface GrupoFecha {
 @Component({
   selector: 'app-torneos-publicos',
   standalone: true,
-  imports: [CommonModule, RouterLink, LiveUserMenuComponent],
+  imports: [CommonModule, RouterLink, LiveUserMenuComponent, DataStateComponent],
   templateUrl: './torneos-publicos.component.html',
   styleUrls: ['./torneos-publicos.component.css'],
 })
@@ -82,7 +84,7 @@ export class TorneosPublicosComponent implements OnInit, OnDestroy {
       visible$
         .pipe(
           switchMap((visible) => (visible ? timer(0, POLL_MS) : EMPTY)),
-          switchMap(() =>
+          exhaustMap(() =>
             this.api.getTorneos().pipe(
               catchError(() => {
                 this.error = 'No se pudo cargar la lista de torneos.';

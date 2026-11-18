@@ -10,6 +10,8 @@ import {
 import { SidebarComponent } from '../../shared/components/sidebar/sidebar.component';
 import { TopbarComponent } from '../../shared/components/topbar/topbar.component';
 import { ImageUploadComponent } from '../../shared/components/image-upload/image-upload.component';
+import { ButtonComponent } from '../../shared/components/button/button.component';
+import { DataStateComponent } from '../../shared/components/data-state/data-state.component';
 import { EquipoService } from '../../core/services/equipo.service';
 import { CategoriaService } from '../../core/services/categoria.service';
 import { Equipo } from '../../core/models/equipo.model';
@@ -23,7 +25,7 @@ const PAGE_SIZE = 5;
 @Component({
   selector: 'app-equipos',
   standalone: true,
-  imports: [CanDirective, CommonModule, ReactiveFormsModule, SidebarComponent, TopbarComponent, ImageUploadComponent],
+  imports: [CanDirective, CommonModule, ReactiveFormsModule, SidebarComponent, TopbarComponent, ImageUploadComponent, ButtonComponent, DataStateComponent],
   templateUrl: './equipos.component.html',
   styleUrl: './equipos.component.scss',
 })
@@ -42,7 +44,7 @@ export class EquiposComponent implements OnInit {
 
   readonly equipos = signal<Equipo[]>([]);
   readonly categorias = signal<Categoria[]>([]);
-  readonly loading = signal(false);
+  readonly loading = signal(true);
   readonly errorMessage = signal<string | null>(null);
   readonly searchTerm = signal('');
   readonly page = signal(1);

@@ -8,8 +8,9 @@
   </header>
 
   <p class="alerta" *ngIf="eventoConfigError">{{ eventoConfigError }}</p>
-  <p class="alerta" *ngIf="error">{{ error }}</p>
-  <p class="cargando" *ngIf="!data && !error">Cargando torneo…</p>
+  <app-data-state *ngIf="!data && !error" state="loading" message="Cargando torneo…" />
+  <app-data-state *ngIf="!data && error" state="error" [message]="error" />
+  <p class="alerta" *ngIf="data && error">{{ error }}</p>
 
   <ng-container *ngIf="data as live">
     <section class="hero">
