@@ -99,6 +99,12 @@ export class AuthService {
     return this.hasValidSession() ? this.readStoredToken() : null;
   }
 
+  isTokenExpired(token: string | null): boolean {
+    if (!token) return false;
+    const claims = this.readTokenClaims(token);
+    return claims !== null && claims.exp * 1000 <= Date.now();
+  }
+
   private persistSession(response: AuthResponse): void {
     this.clearStoredSession();
     localStorage.setItem(TOKEN_KEY, response.accessToken);

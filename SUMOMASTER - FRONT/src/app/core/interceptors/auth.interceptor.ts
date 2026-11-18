@@ -9,6 +9,9 @@ import { AuthService } from '../services/auth.service';
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const authService = inject(AuthService);
   const token = authService.getToken();
+  const isAuthRequest =
+    /\/auth(?:\/|$)/.test(request.url) &&
+    !/\/auth\/(?:login|register)(?:[?#]|$)/.test(request.url);
 
   const requestWithToken = token
     ? request.clone({
@@ -22,7 +25,7 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
     catchError((error: HttpErrorResponse) => {
       if (
         error.status === 401 &&
-        !request.url.includes('/auth/login')
+        (isAuthRequest || authService.isTokenExpired(token))
       ) {
         authService.logout();
       }
