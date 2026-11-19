@@ -1,6 +1,11 @@
-<div class="app-shell">
+<div class="app-shell" *ngIf="!modoProyeccion()">
   <app-sidebar [isOpen]="sidebarOpen()" (closeRequested)="sidebarOpen.set(false)" />
-  <div class="app-shell__backdrop" *ngIf="sidebarOpen()" (click)="sidebarOpen.set(false)"></div>
+
+  <div
+    class="app-shell__backdrop"
+    *ngIf="sidebarOpen()"
+    (click)="sidebarOpen.set(false)"
+  ></div>
 
   <div class="app-shell__main">
     <app-topbar
@@ -13,25 +18,40 @@
     <main class="llaves-page">
       <p *ngIf="cargando()" role="status">Cargando llave…</p>
       <p *ngIf="error()" class="panel__error" role="alert">{{ error() }}</p>
-      <button *ngIf="error() && !cargando()" type="button" class="btn btn--ghost"
-        [disabled]="guardando()" (click)="cargar()">
+
+      <button
+        *ngIf="error() && !cargando()"
+        type="button"
+        class="btn btn--ghost"
+        [disabled]="guardando()"
+        (click)="cargar()"
+      >
         Consultar llave guardada
       </button>
 
       <ng-container *ngIf="torneo() as actual">
         <section class="panel panel--header">
           <h2>{{ actual.nombre }}</h2>
-          <a class="btn btn--ghost" [routerLink]="['/torneos', actual._id, 'grupos', 'resultados']">
+
+          <a
+            class="btn btn--ghost"
+            [routerLink]="['/torneos', actual._id, 'grupos', 'resultados']"
+          >
             ← Volver a resultados
           </a>
         </section>
 
         <section class="panel llaves-panel">
           <h2>Armar cruces</h2>
+
           <fieldset [disabled]="guardando() || cargando()">
             <label class="field ronda-selector">
               <span>Ronda inicial</span>
-              <select #inicio [value]="ronda()" (change)="elegirRonda(inicio.value); inicio.value = ronda()">
+              <select
+                #inicio
+                [value]="ronda()"
+                (change)="elegirRonda(inicio.value); inicio.value = ronda()"
+              >
                 <option *ngFor="let opcion of opciones" [value]="opcion">
                   {{ rondas[opcion].nombre }}
                 </option>
@@ -39,78 +59,93 @@
             </label>
 
             <div class="cruces-grid">
-              <article class="cruce" *ngFor="let cruce of cruces(); let i = index">
-                <h3>Cruce {{ i + 1 }}</h3>
-                <label class="field">
-                  <span>Local</span>
-                  <select #local [value]="cruce.localId ?? ''" (change)="asignar(i, 'localId', local.value)">
-                    <option value="">Por definir</option>
-                    <option *ngFor="let equipo of actual.equiposInscritos"
-                      [value]="equipoId(equipo)" [disabled]="ocupado(equipoId(equipo), i, 'localId')">
-                      {{ nombre(equipoId(equipo)) }}
-                    </option>
-                  </select>
-                </label>
+  <article
+    class="cruce"
+    *ngFor="let cruce of cruces(); let i = index; trackBy: identificarCruceInicial"
+  >
+    <h3>Cruce {{ i + 1 }}</h3>
 
-                <label class="field">
-                  <span>Visitante</span>
-                  <select #visitante [value]="cruce.visitanteId ?? ''"
-                    (change)="asignar(i, 'visitanteId', visitante.value)">
-                    <option value="">Por definir</option>
-                    <option *ngFor="let equipo of actual.equiposInscritos"
-                      [value]="equipoId(equipo)" [disabled]="ocupado(equipoId(equipo), i, 'visitanteId')">
-                      {{ nombre(equipoId(equipo)) }}
-                    </option>
-                  </select>
-                </label>
-              </article>
-            </div>
+    <label class="field">
+      <span>Local</span>
+      <select
+        [ngModel]="cruce.localId ?? ''"
+        [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="asignar(i, 'localId', $event)"
+      >
+        <option value="">Por definir</option>
+        <option
+          *ngFor="let equipo of actual.equiposInscritos"
+          [value]="equipoId(equipo)"
+          [disabled]="ocupado(equipoId(equipo), i, 'localId')"
+        >
+          {{ nombre(equipoId(equipo)) }}
+        </option>
+      </select>
+    </label>
 
-            <button type="button" class="btn btn--primary guardar-cruces" (click)="guardar()"
-              [disabled]="!cambios() && !!respuesta()?.llave">
+    <label class="field">
+      <span>Visitante</span>
+      <select
+        [ngModel]="cruce.visitanteId ?? ''"
+        [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="asignar(i, 'visitanteId', $event)"
+      >
+        <option value="">Por definir</option>
+        <option
+          *ngFor="let equipo of actual.equiposInscritos"
+          [value]="equipoId(equipo)"
+          [disabled]="ocupado(equipoId(equipo), i, 'visitanteId')"
+        >
+          {{ nombre(equipoId(equipo)) }}
+        </option>
+      </select>
+    </label>
+  </article>
+</div>
+
+            <button
+              type="button"
+              class="btn btn--primary guardar-cruces"
+              [disabled]="!cambios() && !!respuesta()?.llave"
+              (click)="guardar()"
+            >
               {{ guardando() ? 'Guardando…' : 'Guardar cruces' }}
             </button>
           </fieldset>
         </section>
 
         <section class="panel llaves-panel" *ngIf="respuesta()?.cuadro as cuadro">
-          <h2>Cuadro eliminatorio</h2>
-          <p *ngIf="cambios()" role="status">Guarda los cruces para seguir registrando ganadores.</p>
-
-          <label class="field ronda-selector">
-            <span>Ver ronda</span>
-            <select #vista [value]="filtro()" (change)="filtro.set(vista.value)">
-              <option value="TODAS">Todas las rondas</option>
-              <option *ngFor="let columna of cuadro.rondas" [value]="columna.ronda">
-                {{ rondas[columna.ronda].nombre }}
-              </option>
-              <option *ngIf="cuadro.tercerLugar" value="TERCER_LUGAR">Tercer lugar</option>
-            </select>
-          </label>
-
-          <div class="cuadro">
-            <ng-container *ngFor="let columna of cuadro.rondas">
-              <section class="cuadro-columna"
-                *ngIf="filtro() === 'TODAS' || filtro() === columna.ronda">
-                <h3>{{ rondas[columna.ronda].nombre }}</h3>
-                <ng-container *ngFor="let cruce of columna.cruces"
-                  [ngTemplateOutlet]="tarjeta" [ngTemplateOutletContext]="{ $implicit: cruce }" />
-              </section>
-            </ng-container>
-
-            <ng-container *ngIf="cuadro.tercerLugar as tercero">
-              <section class="cuadro-columna" *ngIf="filtro() === 'TODAS' || filtro() === 'TERCER_LUGAR'">
-                <h3>Tercer lugar</h3>
-                <ng-container [ngTemplateOutlet]="tarjeta"
-                  [ngTemplateOutletContext]="{ $implicit: tercero }" />
-              </section>
-            </ng-container>
+          <div class="llaves-acciones">
+            <h2>Cuadro eliminatorio</h2>
+            <button
+              type="button"
+              class="btn btn--primary"
+              [disabled]="cambios() || guardando() || cargando()"
+              (click)="abrirProyeccion()"
+            >
+              Proyectar llaves
+            </button>
           </div>
 
+          <p *ngIf="cambios()" role="status">
+            Guarda los cruces para seguir registrando ganadores.
+          </p>
+
+          <ng-container [ngTemplateOutlet]="cuadroLlaves" />
+
           <dl class="podio" *ngIf="cuadro.podio.primero || cuadro.podio.tercero">
-            <div><dt>Campeón</dt><dd>{{ nombre(cuadro.podio.primero) }}</dd></div>
-            <div><dt>Subcampeón</dt><dd>{{ nombre(cuadro.podio.segundo) }}</dd></div>
-            <div *ngIf="cuadro.tercerLugar"><dt>Tercer lugar</dt><dd>{{ nombre(cuadro.podio.tercero) }}</dd></div>
+            <div>
+              <dt>Campeón</dt>
+              <dd>{{ nombre(cuadro.podio.primero) }}</dd>
+            </div>
+            <div>
+              <dt>Subcampeón</dt>
+              <dd>{{ nombre(cuadro.podio.segundo) }}</dd>
+            </div>
+            <div *ngIf="cuadro.tercerLugar">
+              <dt>Tercer lugar</dt>
+              <dd>{{ nombre(cuadro.podio.tercero) }}</dd>
+            </div>
           </dl>
         </section>
       </ng-container>
@@ -118,16 +153,144 @@
   </div>
 </div>
 
+<main *ngIf="modoProyeccion()" class="proyeccion-llaves">
+  <header class="proyeccion-llaves__barra">
+    <div>
+      <p>{{ torneo()?.nombre }}</p>
+      <h1>{{ mostrandoPodio() ? 'Podio' : 'Llaves de Robo Soccer' }}</h1>
+    </div>
+
+    <div class="proyeccion-llaves__acciones">
+      <button
+        *ngIf="!mostrandoPodio()"
+        type="button"
+        [disabled]="!podioListo() || guardando() || cargando()"
+        (click)="mostrandoPodio.set(true)"
+      >
+        Ver podio
+      </button>
+
+      <button
+        *ngIf="mostrandoPodio()"
+        type="button"
+        (click)="mostrandoPodio.set(false)"
+      >
+        Volver a las llaves
+      </button>
+
+      <button type="button" (click)="cerrarProyeccion()">
+        Salir de proyección
+      </button>
+    </div>
+  </header>
+
+  <p *ngIf="error()" class="proyeccion-llaves__error" role="alert">
+    {{ error() }}
+  </p>
+
+  <button
+    *ngIf="error() && !cargando()"
+    type="button"
+    class="btn btn--ghost"
+    [disabled]="guardando()"
+    (click)="cargar()"
+  >
+    Consultar llave guardada
+  </button>
+
+  <p *ngIf="guardando() || cargando()" role="status">
+    {{ guardando() ? 'Guardando resultado…' : 'Cargando llave…' }}
+  </p>
+
+  <ng-container *ngIf="respuesta()?.cuadro as cuadro">
+    <ol
+      *ngIf="mostrandoPodio() && podioListo(); else cuadroProyectado"
+      class="podio-proyeccion"
+      [class.podio-proyeccion--dos]="!cuadro.tercerLugar"
+    >
+      <li class="podio-proyeccion__primero">
+        <span>1.º · Campeón</span>
+        <strong>{{ nombre(cuadro.podio.primero) }}</strong>
+      </li>
+      <li class="podio-proyeccion__segundo">
+        <span>2.º · Subcampeón</span>
+        <strong>{{ nombre(cuadro.podio.segundo) }}</strong>
+      </li>
+      <li *ngIf="cuadro.tercerLugar" class="podio-proyeccion__tercero">
+        <span>3.º · Tercer lugar</span>
+        <strong>{{ nombre(cuadro.podio.tercero) }}</strong>
+      </li>
+    </ol>
+
+    <ng-template #cuadroProyectado>
+      <ng-container [ngTemplateOutlet]="cuadroLlaves" />
+    </ng-template>
+  </ng-container>
+</main>
+
+<ng-template #cuadroLlaves>
+  <ng-container *ngIf="respuesta()?.cuadro as cuadro">
+    <label class="field ronda-selector">
+      <span>Ver ronda</span>
+      <select #vista [value]="filtro()" (change)="filtro.set(vista.value)">
+        <option value="TODAS">Todas las rondas</option>
+        <option *ngFor="let columna of cuadro.rondas" [value]="columna.ronda">
+          {{ rondas[columna.ronda].nombre }}
+        </option>
+        <option *ngIf="cuadro.tercerLugar" value="TERCER_LUGAR">
+          Tercer lugar
+        </option>
+      </select>
+    </label>
+
+    <div class="cuadro">
+      <ng-container *ngFor="let columna of cuadro.rondas">
+        <section
+          *ngIf="filtro() === 'TODAS' || filtro() === columna.ronda"
+          class="cuadro-columna"
+        >
+          <h3>{{ rondas[columna.ronda].nombre }}</h3>
+
+          <ng-container
+            *ngFor="let cruce of columna.cruces"
+            [ngTemplateOutlet]="tarjeta"
+            [ngTemplateOutletContext]="{ $implicit: cruce }"
+          />
+        </section>
+      </ng-container>
+
+      <ng-container *ngIf="cuadro.tercerLugar as tercero">
+        <section
+          *ngIf="filtro() === 'TODAS' || filtro() === 'TERCER_LUGAR'"
+          class="cuadro-columna"
+        >
+          <h3>Tercer lugar</h3>
+
+          <ng-container
+            [ngTemplateOutlet]="tarjeta"
+            [ngTemplateOutletContext]="{ $implicit: tercero }"
+          />
+        </section>
+      </ng-container>
+    </div>
+  </ng-container>
+</ng-template>
+
 <ng-template #tarjeta let-cruce>
   <article class="cruce">
-    <button *ngFor="let id of [cruce.localId, cruce.visitanteId]"
-      type="button" class="equipo-boton"
-      [class.ganador]="id && id === cruce.ganadorId"
+    <button
+      *ngFor="let id of [cruce.localId, cruce.visitanteId]"
+      type="button"
+      class="equipo-boton"
+      [class.ganador]="!!id && id === cruce.ganadorId"
       [attr.aria-pressed]="!!id && id === cruce.ganadorId"
       [disabled]="guardando() || cargando() || cambios() || !cruce.localId || !cruce.visitanteId"
-      (click)="elegirGanador(cruce, id)">
+      (click)="elegirGanador(cruce, id)"
+    >
       <span>{{ nombre(id) }}</span>
-      <strong *ngIf="id && id === cruce.ganadorId">Ganador</strong>
+      <strong *ngIf="!modoProyeccion() && id && id === cruce.ganadorId">
+        Ganador
+      </strong>
     </button>
   </article>
 </ng-template>

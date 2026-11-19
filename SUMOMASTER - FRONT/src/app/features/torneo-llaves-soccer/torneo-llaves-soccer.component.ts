@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { finalize, forkJoin, Observable } from 'rxjs';
@@ -15,6 +15,7 @@ import { TorneoService } from '../../core/services/torneo.service';
 import { extractErrorMessage } from '../../core/utils/error-message.util';
 import { SidebarComponent } from '../../shared/components/sidebar/sidebar.component';
 import { TopbarComponent } from '../../shared/components/topbar/topbar.component';
+import { FormsModule } from '@angular/forms';
 
 const RONDAS = {
   DIECISEISAVOS: { nombre: 'Dieciseisavos', cruces: 16 },
@@ -27,7 +28,7 @@ const RONDAS = {
 @Component({
   selector: 'app-torneo-llaves-soccer',
   standalone: true,
-  imports: [CommonModule, RouterLink, SidebarComponent, TopbarComponent],
+  imports: [CommonModule,  FormsModule, RouterLink, SidebarComponent, TopbarComponent],
   templateUrl: './torneo-llaves-soccer.component.html',
   styleUrl: './torneo-llaves-soccer.component.scss',
 })
@@ -50,6 +51,33 @@ export class TorneoLlavesSoccerComponent implements OnInit {
   readonly error = signal('');
   readonly rondas = RONDAS;
   readonly opciones = Object.keys(RONDAS) as RondaInicialRoboSoccer[];
+
+  readonly modoProyeccion = signal(false);
+readonly mostrandoPodio = signal(false);
+
+readonly podioListo = computed(() => {
+  const cuadro = this.respuesta()?.cuadro;
+  if (!cuadro) return false;
+
+  const { primero, segundo, tercero } = cuadro.podio;
+  return !!(primero && segundo && (!cuadro.tercerLugar || tercero));
+});
+
+abrirProyeccion(): void {
+  if (!this.respuesta()?.cuadro || this.cambios() || this.guardando()) return;
+
+  this.filtro.set('TODAS');
+  this.modoProyeccion.set(true);
+}
+
+cerrarProyeccion(): void {
+  this.mostrandoPodio.set(false);
+  this.modoProyeccion.set(false);
+}
+
+identificarCruceInicial(indice: number): number {
+  return indice;
+}
 
   ngOnInit(): void {
     this.cargar();

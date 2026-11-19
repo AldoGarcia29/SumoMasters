@@ -96,7 +96,7 @@ cambiarGanadorRoboSoccer(
 ): Observable<RespuestaLlaveRoboSoccer> {
   return this.http.patch<RespuestaLlaveRoboSoccer>(
     `${this.apiUrl}/${torneoId}/llave-robo-soccer/cruces/${encodeURIComponent(cruceId)}/ganador`,
-    payload,
+    { ganadorId: payload.ganadorId },
   );
 }
 

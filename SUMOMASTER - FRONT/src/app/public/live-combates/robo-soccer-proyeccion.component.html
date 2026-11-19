@@ -36,35 +36,40 @@
       </header>
 
      <div class="soccer-enfrentamiento" *ngIf="tarjeta.partido as partido; else vacia">
-  <strong
-    class="soccer-local"
+  <div
+    class="soccer-equipo soccer-equipo--local"
     [class.soccer-ganador]="
       partido.resultado && partido.resultado.golesLocal > partido.resultado.golesVisitante
     "
   >
-    <span>{{ partido.local }}</span>
-  </strong>
-
-  <div class="soccer-marcador" aria-live="polite" aria-atomic="true">
-    <ng-container *ngIf="partido.marcador as goles; else sinMarcador">
-      <span class="soccer-marcador__goles">
-        {{ goles.golesLocal }}<span class="soccer-marcador__separador">–</span>{{ goles.golesVisitante }}
-      </span>
-      <small *ngIf="!partido.resultado" class="soccer-marcador__estado">En vivo</small>
-    </ng-container>
-    <ng-template #sinMarcador>
-      <span class="soccer-marcador__vs">VS</span>
-    </ng-template>
+    <strong>{{ partido.local }}</strong>
   </div>
 
-  <strong
-    class="soccer-visitante"
+  <div class="soccer-centro">
+    <div class="soccer-reloj" aria-live="polite" aria-atomic="true">
+      <ng-container *ngIf="partido.marcador as goles; else sinMarcador">
+        <span class="soccer-reloj__goles">
+          {{ goles.golesLocal }}<i>–</i>{{ goles.golesVisitante }}
+        </span>
+      </ng-container>
+      <ng-template #sinMarcador>
+        <span class="soccer-reloj__vs">VS</span>
+      </ng-template>
+    </div>
+
+    <small *ngIf="partido.marcador && !partido.resultado" class="soccer-en-vivo">
+      En vivo
+    </small>
+  </div>
+
+  <div
+    class="soccer-equipo soccer-equipo--visitante"
     [class.soccer-ganador]="
       partido.resultado && partido.resultado.golesVisitante > partido.resultado.golesLocal
     "
   >
-    <span>{{ partido.visitante }}</span>
-  </strong>
+    <strong>{{ partido.visitante }}</strong>
+  </div>
 </div>
 
       <ng-template #vacia>

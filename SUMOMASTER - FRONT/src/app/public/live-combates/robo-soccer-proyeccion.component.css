@@ -272,3 +272,244 @@
     animation: none;
   }
 }
+
+
+.soccer-tarjeta {
+  border-radius: 1.5rem;
+  overflow: hidden;
+}
+
+.soccer-enfrentamiento {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(0.4rem, 2.5vw, 2.25rem);
+  overflow: hidden;
+  padding: clamp(0.75rem, 3vw, 2.25rem);
+  background:
+    radial-gradient(ellipse at 10% 100%, #175cb780, transparent 57%),
+    radial-gradient(ellipse at 90% 100%, #9c284c80, transparent 57%),
+    radial-gradient(ellipse at 50% 45%, #6435a340, transparent 53%),
+    #100d1d;
+}
+
+.soccer-enfrentamiento::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  content: '';
+  background:
+    radial-gradient(circle at 8% 24%, #74c5ff70 1px, transparent 3px),
+    radial-gradient(circle at 19% 71%, #a6d9ff80 1px, transparent 3px),
+    radial-gradient(circle at 32% 22%, #d5afff80 1px, transparent 3px),
+    radial-gradient(circle at 42% 81%, #b27afa75 1px, transparent 3px),
+    radial-gradient(circle at 65% 27%, #e6b0ff70 1px, transparent 3px),
+    radial-gradient(circle at 76% 77%, #ff907d80 1px, transparent 3px),
+    radial-gradient(circle at 90% 23%, #ffbf8b80 1px, transparent 3px);
+}
+
+.soccer-equipo {
+  --luz: #52bbff;
+  --halo: #278bff6b;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  min-inline-size: 0;
+  min-block-size: 6rem;
+  padding: 0.8rem 0.2rem;
+  color: var(--luz);
+  text-shadow: 0 0 1rem var(--halo);
+}
+
+.soccer-equipo--visitante {
+  --luz: #ff8cae;
+  --halo: #ff467a70;
+}
+
+.soccer-equipo strong {
+  position: relative;
+  z-index: 1;
+  font-size: clamp(0.85rem, 2.1vw, 2.5rem);
+  font-weight: 900;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.soccer-equipo::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0 -8%;
+  pointer-events: none;
+  content: '';
+  background: radial-gradient(ellipse at 50% 72%, var(--halo), transparent 68%);
+}
+
+.soccer-equipo::after {
+  position: absolute;
+  inset: auto 10% 11%;
+  height: 2px;
+  border-radius: 50%;
+  pointer-events: none;
+  content: '';
+  background: linear-gradient(90deg, transparent, var(--luz), transparent);
+  filter: drop-shadow(0 0 8px var(--luz));
+}
+
+.soccer-centro {
+  position: relative;
+  display: grid;
+  justify-items: center;
+}
+
+.soccer-reloj {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  min-inline-size: clamp(4.25rem, 8vw, 8rem);
+  min-block-size: clamp(4.25rem, 8vw, 8rem);
+  padding: 0.45rem;
+  border: 1px solid #b991fa;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 32%, #302044, #110b1e 74%);
+  color: #fff7ff;
+  box-shadow: 0 0 1.4rem #9258e366, inset 0 0 0.8rem #9565db33;
+  text-shadow: 0 0 0.65rem #b678ff;
+}
+
+.soccer-reloj__goles,
+.soccer-reloj__vs {
+  font-size: clamp(1.2rem, 3.1vw, 3.4rem);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.soccer-reloj__goles i {
+  margin-inline: 0.12em;
+  color: #d5adff;
+  font-style: normal;
+}
+
+.soccer-en-vivo {
+  position: absolute;
+  inset-block-start: calc(100% + 0.5rem);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: #ffb5ca;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.soccer-en-vivo::before {
+  width: 0.38rem;
+  height: 0.38rem;
+  border-radius: 50%;
+  background: #ff628c;
+  box-shadow: 0 0 0.7rem #ff4784;
+  content: '';
+}
+
+.soccer-equipo.soccer-ganador {
+  --luz: #ffdc83;
+  --halo: #e9872799;
+  background: none;
+  box-shadow: none;
+}
+
+.soccer-equipo.soccer-ganador::before {
+  background:
+    radial-gradient(circle at 18% 78%, #ffdf6d 1px, transparent 3px),
+    radial-gradient(circle at 37% 85%, #ff913d 2px, transparent 4px),
+    radial-gradient(circle at 65% 72%, #fff0b0 1px, transparent 3px),
+    radial-gradient(circle at 83% 85%, #ffac45 1px, transparent 4px),
+    radial-gradient(ellipse at 50% 80%, var(--halo), transparent 67%);
+  animation: soccer-ascenso-brasas 2.4s ease-in-out infinite alternate;
+}
+
+@keyframes soccer-ascenso-brasas {
+  from {
+    opacity: 0.68;
+    transform: translateY(0.2rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(-0.55rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .soccer-equipo.soccer-ganador::before {
+    animation: none;
+  }
+}
+
+:host {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.soccer {
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+}
+
+.soccer-barra h2 {
+  font-size: clamp(1.25rem, 1.7vw, 2rem);
+}
+
+.soccer-barra label {
+  font-size: clamp(1rem, 1.15vw, 1.35rem);
+}
+
+.soccer-grid[data-cantidad="1"] {
+  flex: 1 0 auto;
+}
+
+.soccer-grid[data-cantidad="1"] .soccer-tarjeta {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+}
+
+.soccer-grid[data-cantidad="1"] .soccer-tarjeta__barra {
+  padding: 0.85rem clamp(0.75rem, 2vw, 2rem);
+  font-size: clamp(1rem, 1.4vw, 1.65rem);
+}
+
+.soccer-grid[data-cantidad="1"] .soccer-enfrentamiento {
+  flex: 1 0 auto;
+  min-height: clamp(18rem, 44dvh, 34rem);
+  gap: clamp(0.35rem, 2vw, 2rem);
+}
+
+.soccer-grid[data-cantidad="1"] .soccer-equipo strong {
+  font-size: clamp(1.15rem, 4.2vw, 5.5rem);
+}
+
+.soccer-grid[data-cantidad="1"] .soccer-reloj {
+  min-inline-size: clamp(4.25rem, 14vw, 17rem);
+  min-block-size: clamp(4.25rem, 14vw, 17rem);
+}
+
+.soccer-grid[data-cantidad="1"] :is(.soccer-reloj__goles, .soccer-reloj__vs) {
+  font-size: clamp(1.35rem, 5vw, 6.5rem);
+}
+
+.soccer-grid[data-cantidad="1"] .soccer-en-vivo {
+  font-size: clamp(0.7rem, 1.1vw, 1.25rem);
+}
+
+.programa--proyeccion app-robo-soccer-proyeccion {
+  flex: 1 0 auto;
+}
