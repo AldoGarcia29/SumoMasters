@@ -21,11 +21,19 @@ export interface GrupoRoboSoccer {
 export function generarGruposRoboSoccer(
   equipoIds: readonly string[],
   cantidadGrupos: number,
+  equipoIdConUnRobot?: string,
 ): GrupoRoboSoccer[] {
   const ids = equipoIds.map((id) => id.toLowerCase());
+  const equipoPrioritario = equipoIdConUnRobot?.toLowerCase();
 
   if (new Set(ids).size !== ids.length) {
     throw new BadRequestException('Hay equipos repetidos en el torneo');
+  }
+
+  if (equipoPrioritario && !ids.includes(equipoPrioritario)) {
+    throw new BadRequestException(
+      'El equipo con un robot debe estar inscrito en el torneo',
+    );
   }
 
   if (ids.length < 2) {
@@ -54,12 +62,15 @@ export function generarGruposRoboSoccer(
     }),
   );
 
+  const equiposParaDistribuir = equipoPrioritario
+    ? [...ids.filter((id) => id !== equipoPrioritario), equipoPrioritario]
+    : ids;
   const equiposPorGrupo = Math.floor(ids.length / cantidadGrupos);
   const residuo = ids.length % cantidadGrupos;
   const primerGrupoConEquipoExtra = cantidadGrupos - residuo;
   const equiposDeDistribucionEquilibrada = equiposPorGrupo * cantidadGrupos;
 
-  ids.forEach((id, indice) => {
+  equiposParaDistribuir.forEach((id, indice) => {
     const grupoIndice =
       indice < equiposDeDistribucionEquilibrada
         ? indice % cantidadGrupos

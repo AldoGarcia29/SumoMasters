@@ -6,26 +6,29 @@ describe('generarGruposRoboSoccer', () => {
       totalEquipos: 25,
       expectedSizes: [4, 4, 4, 4, 4, 5],
       expectedMatches: [6, 6, 6, 6, 6, 10],
+      equipoIdConUnRobot: 'equipo-1',
     },
     {
       totalEquipos: 26,
       expectedSizes: [4, 4, 4, 4, 5, 5],
       expectedMatches: [6, 6, 6, 6, 10, 10],
+      equipoIdConUnRobot: undefined,
     },
     {
       totalEquipos: 27,
       expectedSizes: [4, 4, 4, 5, 5, 5],
       expectedMatches: [6, 6, 6, 10, 10, 10],
+      equipoIdConUnRobot: undefined,
     },
   ])(
     'assigns remainder teams to the last groups for $totalEquipos teams',
-    ({ totalEquipos, expectedSizes, expectedMatches }) => {
+    ({ totalEquipos, expectedSizes, expectedMatches, equipoIdConUnRobot }) => {
       const equipoIds = Array.from(
         { length: totalEquipos },
         (_, indice) => `equipo-${indice + 1}`,
       );
 
-      const grupos = generarGruposRoboSoccer(equipoIds, 6);
+      const grupos = generarGruposRoboSoccer(equipoIds, 6, equipoIdConUnRobot);
 
       expect(grupos.map((grupo) => grupo.equipoIds.length)).toEqual(
         expectedSizes,
@@ -36,6 +39,9 @@ describe('generarGruposRoboSoccer', () => {
       expect(grupos.map((grupo) => grupo.partidos.length)).toEqual(
         expectedMatches,
       );
+      if (equipoIdConUnRobot) {
+        expect(grupos[5].equipoIds).toContain(equipoIdConUnRobot);
+      }
 
       for (const grupo of grupos) {
         expect(grupo.partidos).toHaveLength(
