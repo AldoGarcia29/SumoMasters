@@ -12,6 +12,8 @@ import { extractErrorMessage } from '../../core/utils/error-message.util';
 import { SidebarComponent } from '../../shared/components/sidebar/sidebar.component';
 import { TopbarComponent } from '../../shared/components/topbar/topbar.component';
 import { RobotChipComponent } from '../../shared/components/robot-chip/robot-chip.component';
+import { ButtonComponent } from '../../shared/components/button/button.component';
+import { DataStateComponent } from '../../shared/components/data-state/data-state.component';
 
 import { TorneoService } from '../../core/services/torneo.service';
 import { CombateService } from '../../core/services/combate.service';
@@ -45,6 +47,8 @@ type TabEstado = 'Pendiente' | 'En curso' | 'Finalizado';
     SidebarComponent,
     TopbarComponent,
     RobotChipComponent,
+    ButtonComponent,
+    DataStateComponent,
     CanDirective,
   ],
   templateUrl: './torneo-resultados.component.html',
