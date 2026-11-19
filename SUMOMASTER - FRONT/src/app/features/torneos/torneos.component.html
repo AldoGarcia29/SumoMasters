@@ -28,11 +28,10 @@
         <h2>Torneos</h2>
 
         <!-- Solo ADMIN puede crear torneos -->
-        <button
+        <app-button
           *appCan="'admin'"
-          type="button"
-          class="btn btn--primary"
-          (click)="openCreateModal()"
+          variant="primary"
+          (clicked)="openCreateModal()"
         >
           <svg viewBox="0 0 24 24" width="16" height="16">
             <path
@@ -45,7 +44,7 @@
           </svg>
 
           Nuevo torneo
-        </button>
+        </app-button>
       </section>
 
       <!-- ========================= -->
@@ -99,13 +98,41 @@
       <!-- ========================= -->
 
       <section class="panel panel--table">
+        <p class="live-visibility-error" *ngIf="visibleTournamentError()">{{ visibleTournamentError() }}</p>
 
+        <app-data-state
+          *ngIf="loading()"
+          state="loading"
+          message="Cargando torneos…"
+          [skeletonRows]="5"
+        />
+        <app-data-state
+          *ngIf="!loading() && errorMessage()"
+          state="error"
+          [message]="errorMessage() ?? ''"
+          [showRetry]="true"
+          (retryRequested)="loadTorneos()"
+        />
+        <app-data-state
+          *ngIf="!loading() && !errorMessage() && pagedTorneos().length === 0"
+          state="empty"
+          message="No hay torneos para este filtro."
+        />
         <div class="table-wrapper">
 
           <table
             class="table"
-            *ngIf="!loading(); else loadingTpl"
+            *ngIf="!loading() && !errorMessage() && pagedTorneos().length > 0"
           >
+            <colgroup>
+              <col class="torneos-col--name" />
+              <col class="torneos-col--date" />
+              <col class="torneos-col--category" />
+              <col class="torneos-col--status" />
+              <col class="torneos-col--participants" />
+              <col class="torneos-col--visibility" />
+              <col class="torneos-col--actions" />
+            </colgroup>
             <thead>
               <tr>
                 <th>Nombre</th>
@@ -113,7 +140,8 @@
                 <th>Categoría</th>
                 <th>Estado</th>
                 <th>Participantes</th>
-                <th class="table__actions-head">
+                <th class="table__visibility-head">Visible en /live</th>
+                <th class="table__actions-head table__actions-head--torneos">
                   Acciones
                 </th>
               </tr>
@@ -161,7 +189,9 @@
                       </svg>
                     </span>
 
-                    {{ torneo.nombre }}
+                    <span class="table__name-text" [title]="torneo.nombre">
+                      {{ torneo.nombre }}
+                    </span>
 
                   </span>
                 </td>
@@ -177,7 +207,7 @@
                 </td>
 
                 <!-- Estado -->
-                <td>
+                <td class="table__status">
                   <span
                     class="badge"
                     [class]="
@@ -199,32 +229,58 @@
   </ng-template>
 </td>
 
+                <td class="table__visibility">
+                  <label class="live-visibility" *appCan="'admin'">
+                    <input
+                      type="checkbox"
+                      [checked]="torneo.visibleEnLive !== false"
+                      [disabled]="torneo.publico === false || visibleTournamentBusyId() !== null"
+                      [attr.aria-label]="'Mostrar ' + torneo.nombre + ' en /live'"
+                      [attr.aria-busy]="visibleTournamentBusyId() === torneo._id ? 'true' : null"
+                      (change)="cambiarVisibleEnLive(torneo, $any($event.target).checked)"
+                    />
+                    <span class="live-visibility__indicator" aria-hidden="true"></span>
+                    <span class="live-visibility__label">
+                      {{
+                        visibleTournamentBusyId() === torneo._id
+                          ? 'Guardando…'
+                          : torneo.publico === false
+                            ? 'No público'
+                            : torneo.visibleEnLive !== false
+                              ? 'Visible'
+                              : 'Oculto'
+                      }}
+                    </span>
+                  </label>
+                  <span *ngIf="!isAdmin()" class="live-visibility__label">
+                    {{ torneo.visibleEnLive !== false ? 'Visible' : 'Oculto' }}
+                  </span>
+                </td>
+
                 <!-- ========================= -->
                 <!-- ACCIONES -->
                 <!-- ========================= -->
 
-                <td class="table__actions">
+                <td class="table__actions-cell">
+                  <div class="table__actions table__actions--torneos">
 
-                  <!--
-                    ADMIN y STAFF pueden ingresar
-                    al módulo operativo del torneo.
-                  -->
                   <a
                     *appCan="'manage'"
-                    class="btn btn--primary btn--sm"
+                    class="btn btn--primary btn--sm table__action-label"
                     [routerLink]="esTorneoSeguilineas(torneo) ? ['/seguilineas'] : ['/torneos', torneo._id, 'resultados']"
-                    title="Ingresar al torneo"
+                    title="Resultados"
                   >
-                    Ingresar
+                    Resultados
                   </a>
 
-                  <!-- Solo ADMIN -->
-                  <a
-                    *appCan="'admin'"
-                    [routerLink]="esTorneoSeguilineas(torneo) ? ['/seguilineas'] : ['/torneos', torneo._id, esTorneoRoboSoccer(torneo) ? 'grupos' : 'bloques']"
-                    aria-label="Gestionar fases"
-                    title="Gestionar fases"
-                  >
+                  <!-- Seguilineas ya se abre desde Resultados; evitar dos acciones idénticas. -->
+                  <ng-container *appCan="'admin'">
+                    <a
+                      *ngIf="!esTorneoSeguilineas(torneo)"
+                      [routerLink]="esTorneoRoboSoccer(torneo) ? ['/torneos', torneo._id, 'grupos'] : ['/torneos', torneo._id, 'bloques']"
+                      aria-label="Fases/Bloques"
+                      title="Fases/Bloques"
+                    >
                     <svg
                       viewBox="0 0 24 24"
                       width="16"
@@ -274,14 +330,15 @@
                         stroke-width="1.6"
                       />
                     </svg>
-                  </a>
+                    </a>
+                  </ng-container>
 
                   <!-- Solo ADMIN -->
                   <button
                     *appCan="'admin'"
                     type="button"
                     aria-label="Editar"
-                    title="Editar torneo"
+                    title="Editar"
                     (click)="openEditModal(torneo)"
                   >
                     <svg
@@ -303,7 +360,7 @@
                   <button
                     type="button"
                     aria-label="Ver"
-                    title="Ver torneo"
+                    title="Ver"
                     (click)="openViewModal(torneo)"
                   >
                     <svg
@@ -335,7 +392,7 @@
                     type="button"
                     class="table__actions-danger"
                     aria-label="Eliminar"
-                    title="Eliminar torneo"
+                    title="Eliminar"
                     (click)="askDelete(torneo)"
                   >
                     <svg
@@ -354,40 +411,15 @@
                     </svg>
                   </button>
 
+                  </div>
                 </td>
 
-              </tr>
-
-              <tr
-                *ngIf="
-                  pagedTorneos().length === 0
-                "
-              >
-                <td
-                  colspan="6"
-                  class="table__empty"
-                >
-                  No se encontraron torneos.
-                </td>
               </tr>
 
             </tbody>
           </table>
 
-          <ng-template #loadingTpl>
-            <p class="table__loading">
-              Cargando torneos…
-            </p>
-          </ng-template>
-
         </div>
-
-        <p
-          class="panel__error"
-          *ngIf="errorMessage()"
-        >
-          {{ errorMessage() }}
-        </p>
 
         <!-- ========================= -->
         <!-- PAGINACIÓN -->
@@ -395,9 +427,7 @@
 
         <div
           class="panel__footer"
-          *ngIf="
-            filteredTorneos().length > 0
-          "
+          *ngIf="!loading() && !errorMessage() && filteredTorneos().length > 0"
         >
 
           <span>
@@ -721,25 +751,25 @@
 
       <div class="modal__footer">
 
-        <button
+        <app-button
           type="button"
-          class="btn btn--ghost"
-          (click)="closeModal()"
+          variant="secondary"
+          (clicked)="closeModal()"
         >
           Cancelar
-        </button>
+        </app-button>
 
-        <button
+        <app-button
           type="submit"
-          class="btn btn--primary"
-          [disabled]="saving()"
+          variant="primary"
+          [loading]="saving()"
         >
           {{
             saving()
               ? 'Guardando…'
               : 'Guardar torneo'
           }}
-        </button>
+        </app-button>
 
       </div>
 
@@ -870,13 +900,13 @@
 
     <div class="modal__footer">
 
-      <button
+      <app-button
         type="button"
-        class="btn btn--ghost"
-        (click)="closeModal()"
+        variant="secondary"
+        (clicked)="closeModal()"
       >
         Cerrar
-      </button>
+      </app-button>
 
       <a
         *appCan="'admin'"
@@ -886,16 +916,16 @@
         Gestionar fases →
       </a>
 
-      <button
+      <app-button
         *appCan="'admin'"
         type="button"
-        class="btn btn--primary"
-        (click)="
+        variant="primary"
+        (clicked)="
           openEditModal(torneo)
         "
       >
         Editar
-      </button>
+      </app-button>
 
     </div>
 
@@ -942,26 +972,26 @@
 
     <div class="modal__footer">
 
-      <button
+      <app-button
         type="button"
-        class="btn btn--ghost"
-        (click)="cancelDelete()"
+        variant="secondary"
+        (clicked)="cancelDelete()"
       >
         Cancelar
-      </button>
+      </app-button>
 
-      <button
+      <app-button
         type="button"
-        class="btn btn--danger"
-        [disabled]="deleting()"
-        (click)="confirmDelete()"
+        variant="danger"
+        [loading]="deleting()"
+        (clicked)="confirmDelete()"
       >
         {{
           deleting()
             ? 'Eliminando…'
             : 'Eliminar'
         }}
-      </button>
+      </app-button>
 
     </div>
 

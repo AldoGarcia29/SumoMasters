@@ -12,6 +12,8 @@ export interface Torneo {
   _id: string;
   nombre: string;
   fecha: string;
+  publico?: boolean;
+  visibleEnLive?: boolean;
   descripcion?: string;
   categoria: Categoria | string;
   estado: EstadoTorneo;
@@ -31,6 +33,7 @@ export interface TorneoPayload {
   descripcion?: string;
   categoria: string;
   estado?: EstadoTorneo;
+  visibleEnLive?: boolean;
   robotsInscritos?: string[];
   equiposInscritos?: string[];
   tamanioBloque?: number;

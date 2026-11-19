@@ -25,8 +25,10 @@ export class AuthService {
   private readonly apiUrl = `${environment.apiUrl}/auth`;
 
   private readonly currentUserSignal = signal<AuthUser | null>(this.readStoredUser());
+  private readonly sessionInvalidSignal = signal(false);
 
   readonly currentUser = this.currentUserSignal.asReadonly();
+  readonly sessionInvalid = this.sessionInvalidSignal.asReadonly();
 
   readonly isAuthenticated = computed(() => this.currentUserSignal() !== null);
 
@@ -89,14 +91,39 @@ export class AuthService {
   logout(): void {
     this.clearStoredSession();
     this.currentUserSignal.set(null);
+    this.sessionInvalidSignal.set(false);
 
     void this.router.navigateByUrl('/auth/login', {
       replaceUrl: true,
     });
   }
 
+  logoutForInvalidSession(): void {
+    this.clearStoredSession();
+    this.currentUserSignal.set(null);
+    this.sessionInvalidSignal.set(true);
+
+    void this.router.navigateByUrl('/auth/login', {
+      replaceUrl: true,
+    });
+  }
+
+  markSessionInvalid(): void {
+    this.sessionInvalidSignal.set(true);
+  }
+
+  dismissSessionInvalid(): void {
+    this.sessionInvalidSignal.set(false);
+  }
+
   getToken(): string | null {
     return this.hasValidSession() ? this.readStoredToken() : null;
+  }
+
+  isTokenExpired(token: string | null): boolean {
+    if (!token) return false;
+    const claims = this.readTokenClaims(token);
+    return claims !== null && claims.exp * 1000 <= Date.now();
   }
 
   private persistSession(response: AuthResponse): void {
@@ -104,6 +131,7 @@ export class AuthService {
     localStorage.setItem(TOKEN_KEY, response.accessToken);
     localStorage.setItem(USER_KEY, JSON.stringify(response.user));
     this.currentUserSignal.set(response.user);
+    this.sessionInvalidSignal.set(false);
   }
 
   private readStoredUser(): AuthUser | null {

@@ -9,6 +9,7 @@ import {
   TorneoResumen,
 } from '../models/live.model';
 import { RobotFicha } from '../../core/models/robot-ficha.model';
+import { PantallasTorneo } from '../../core/services/versus.service';
 import type { Torneo } from '../../core/models/torneo.model';
 
 @Injectable({ providedIn: 'root' })
@@ -30,15 +31,23 @@ export class PublicApiService {
     return this.http.get<RankingPublico>(`${this.base}/torneos/${id}/ranking`);
   }
 
+  getPantallas(id: string): Observable<PantallasTorneo> {
+    return this.http.get<PantallasTorneo>(
+      `${this.base}/torneos/${id}/pantallas`,
+    );
+  }
+
   getFichaRobot(torneoId: string, robotId: string): Observable<RobotFicha> {
     return this.http.get<RobotFicha>(
       `${this.base}/torneos/${torneoId}/robots/${robotId}/ficha`,
     );
   }
 
-  getRoboSoccer(id: string) {
-  return this.http.get<Pick<Torneo, 'nombre' | 'equiposInscritos' | 'gruposRoboSoccer'>>(
-    `${this.base}/torneos/${id}/robo-soccer`,
-  );
-}
+  getRoboSoccer(
+    id: string,
+  ): Observable<Pick<Torneo, 'nombre' | 'equiposInscritos' | 'gruposRoboSoccer'>> {
+    return this.http.get<
+      Pick<Torneo, 'nombre' | 'equiposInscritos' | 'gruposRoboSoccer'>
+    >(`${this.base}/torneos/${id}/robo-soccer`);
+  }
 }

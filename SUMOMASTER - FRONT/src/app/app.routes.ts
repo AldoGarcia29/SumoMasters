@@ -31,7 +31,6 @@ export const routes: Routes = [
 
   {
     path: 'live/:id/combates',
-    canActivate: [authGuard],
     loadComponent: () =>
       import('./public/live-combates/live-combates.component').then(
         (m) => m.LiveCombatesComponent,
@@ -268,8 +267,17 @@ export const routes: Routes = [
   },
 
   {
+    path: 'pantallas',
+    canActivate: [authGuard, ADMIN_Y_STAFF],
+    loadComponent: () =>
+      import('./features/control-pantallas/control-pantallas.component').then(
+        (m) => m.ControlPantallasComponent,
+      ),
+  },
+
+  {
     path: 'torneos/:id/control-versus',
-    canActivate: [authGuard, SOLO_ADMIN],
+    canActivate: [authGuard, ADMIN_Y_STAFF],
     loadComponent: () =>
       import('./features/control-versus/control-versus.component').then(
         (m) => m.ControlVersusComponent,

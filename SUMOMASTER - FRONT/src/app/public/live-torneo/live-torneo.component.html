@@ -1,20 +1,22 @@
 <main class="live-page">
   <header class="barra">
-    <a class="marca" routerLink="/live" aria-label="MECAMEX Live">
-      <span class="marca-icono">M</span>
-      <span>MECAMEX <b>LIVE</b></span>
+    <a class="marca" routerLink="/live" [attr.aria-label]="(eventoConfig?.nombreEvento ?? 'Evento') + ' Live'">
+      <span class="marca-icono">{{ eventoConfig?.nombreEvento?.charAt(0) ?? 'E' }}</span>
+      <span>{{ eventoConfig?.nombreEvento ?? 'Evento' }} <b>LIVE</b></span>
     </a>
     <app-live-user-menu />
   </header>
 
-  <p class="alerta" *ngIf="error">{{ error }}</p>
-  <p class="cargando" *ngIf="!data && !error">Cargando torneo…</p>
+  <p class="alerta" *ngIf="eventoConfigError">{{ eventoConfigError }}</p>
+  <app-data-state *ngIf="!data && !error" state="loading" message="Cargando torneo…" />
+  <app-data-state *ngIf="!data && error" state="error" [message]="error" />
+  <p class="alerta" *ngIf="data && error">{{ error }}</p>
 
   <ng-container *ngIf="data as live">
     <section class="hero">
       <div>
         <a class="volver" routerLink="/live">← Todos los torneos</a>
-        <p class="eyebrow">MECAMEX 2026 · SEGUIMIENTO EN DIRECTO</p>
+        <p class="eyebrow">{{ eventoConfig?.lema || 'SEGUIMIENTO EN DIRECTO' }}</p>
         <h1>{{ live.torneo.nombre }}</h1>
         <p class="hero-detalle">
           <span *ngIf="live.torneo.fecha">{{ live.torneo.fecha | date: "longDate" }}</span>

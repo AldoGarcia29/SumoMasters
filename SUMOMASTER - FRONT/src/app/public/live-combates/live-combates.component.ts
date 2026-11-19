@@ -26,6 +26,7 @@ import {
   TorneoResumen,
 } from '../models/live.model';
 import { PublicApiService } from '../services/public-api.service';
+import { CombatePantalla, PantallasTorneo } from '../../core/services/versus.service';
 import { RoboSoccerProyeccionComponent } from './robo-soccer-proyeccion.component';
 import { BarraPatrocinadoresComponent } from './barra-patrocinadores.component';
 
@@ -72,7 +73,7 @@ export class LiveCombatesComponent implements OnInit, OnDestroy {
   aviso: string | null = null;
   cargando = true;
 
-  faseSeleccionada = '';
+  faseSeleccionada = 'Todas';
   rondaSeleccionada = '';
   busca = '';
   soloPendientes = false;
@@ -82,11 +83,13 @@ export class LiveCombatesComponent implements OnInit, OnDestroy {
   segundosDesdeActualizacion = 0;
 
   modoProyeccion = false;
+  pantallas: PantallasTorneo | null = null;
+  dojosLocales = 0;
   rotacionAutomatica = false;
   pagina = 0;
   readonly porPagina = 4;
 
-  vistaProyeccion: 'arena' | 'bloques' | 'roboSoccer' = 'arena';
+  vistaProyeccion: 'arena' | 'bloques' | 'roboSoccer' | 'pantallas' = 'arena';
   torneoSoccerId = '';
   readonly opcionesDojos = [1, 2, 3, 4, 5];
   dojosSeleccionados = [1, 2, 3, 4, 5];
@@ -95,6 +98,7 @@ export class LiveCombatesComponent implements OnInit, OnDestroy {
   private ultimoAvance = Date.now();
   private readonly subs = new Subscription();
   private readonly fotosFallidas = new Set<string>();
+  private ultimoDojosServidor = 0;
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -133,11 +137,12 @@ export class LiveCombatesComponent implements OnInit, OnDestroy {
           switchMap((id) => {
             this.id = id;
             this.data = null;
+            this.pantallas = null;
             this.dojosPantalla = [];
             this.error = null;
             this.cargando = true;
 
-            this.faseSeleccionada = '';
+            this.faseSeleccionada = 'Todas';
             this.rondaSeleccionada = '';
             this.busca = '';
             this.soloPendientes = false;
@@ -195,6 +200,44 @@ export class LiveCombatesComponent implements OnInit, OnDestroy {
     );
 
     this.subs.add(
+      this.route.paramMap
+        .pipe(
+          map((params) => params.get('id') ?? ''),
+          distinctUntilChanged(),
+          switchMap((id) =>
+            visible$.pipe(
+              switchMap((visible) =>
+                visible && id
+                  ? timer(0, 2_000).pipe(
+                      exhaustMap(() =>
+                        this.api.getPantallas(id).pipe(
+                          catchError(() => {
+                            this.aviso =
+                              'No se pudo cargar el lote de pantallas; se reintentará automáticamente.';
+                            return EMPTY;
+                          }),
+                        ),
+                      ),
+                    )
+                  : EMPTY,
+              ),
+            ),
+          ),
+        )
+        .subscribe((pantallas) => {
+          this.pantallas = pantallas;
+          if (
+            this.dojosLocales === 0 ||
+            this.dojosLocales === this.ultimoDojosServidor
+          ) {
+            this.dojosLocales = pantallas.dojosActivos;
+          }
+          this.ultimoDojosServidor = pantallas.dojosActivos;
+          this.aviso = null;
+        }),
+    );
+
+    this.subs.add(
       timer(0, 1_000).subscribe(() => {
         this.horaActual = new Date();
         this.avanzarDojos();
@@ -223,6 +266,14 @@ export class LiveCombatesComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subs.unsubscribe();
+    if (document.fullscreenElement === document.documentElement) {
+      void document.exitFullscreen().catch((error: unknown) => {
+        console.error(
+          'No se pudo salir de pantalla completa al abandonar la vista de combates.',
+          error,
+        );
+      });
+    }
   }
 
   // Se usan las asignaciones reales publicadas por el torneo, no datos de ejemplo.
@@ -270,6 +321,7 @@ export class LiveCombatesComponent implements OnInit, OnDestroy {
     const conocidas: string[] = Object.values(FaseCombate);
 
     return [
+      'Todas',
       ...conocidas.filter((fase) => disponibles.has(fase)),
       ...[...disponibles].filter(
         (fase) => !conocidas.includes(fase),
@@ -298,6 +350,7 @@ export class LiveCombatesComponent implements OnInit, OnDestroy {
     return (this.data?.combates ?? [])
       .filter((combate) => {
         if (
+          this.faseSeleccionada !== 'Todas' &&
           (combate.fase || 'Sin fase') !==
           this.faseSeleccionada
         ) {
@@ -403,6 +456,28 @@ export class LiveCombatesComponent implements OnInit, OnDestroy {
         !this.terminado(c) &&
         this.numeroDojo(c.dojo) === null,
     ).length;
+  }
+
+  get loteActual(): CombatePantalla[] {
+    const lote = this.pantallas?.lote ?? [];
+    return lote.slice(
+      0,
+      this.modoProyeccion
+        ? this.pantallas?.dojosActivos ?? lote.length
+        : this.dojosLocales || this.pantallas?.dojosActivos || lote.length,
+    );
+  }
+
+  estadoLote(combate: CombatePantalla): string {
+    if (combate.estado === ESTADO_EN_CURSO) return 'EN CURSO';
+    const primerPendiente = this.loteActual.find(
+      (item) => item.estado !== ESTADO_EN_CURSO,
+    );
+    return primerPendiente?.id === combate.id ? 'SIGUIENTE' : 'PENDIENTE';
+  }
+
+  trackPantalla(_index: number, combate: CombatePantalla): string {
+    return combate.id;
   }
 
   cambiarTorneo(id: string): void {

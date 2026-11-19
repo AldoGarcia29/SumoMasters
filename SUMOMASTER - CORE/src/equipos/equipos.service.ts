@@ -6,6 +6,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { MongoServerError } from 'mongodb';
 import { Model } from 'mongoose';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { CreateEquipoDto } from './dto/create-equipo.dto';
 import { UpdateEquipoDto } from './dto/update-equipo.dto';
 import { Equipo, EquipoDocument } from './schemas/equipo.schema';
@@ -17,11 +18,21 @@ export class EquiposService {
   constructor(
     @InjectModel(Equipo.name)
     private readonly equipoModel: Model<EquipoDocument>,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   async create(dto: CreateEquipoDto): Promise<EquipoDocument> {
+    const createPayload = { ...dto };
+    if (dto.logoUrl?.startsWith('data:image')) {
+      const uploadResult = await this.cloudinaryService.uploadBase64(
+        dto.logoUrl,
+        'sumomaster_teams',
+      );
+      createPayload.logoUrl = uploadResult?.secure_url ?? '';
+    }
+
     const equipo = new this.equipoModel({
-      ...dto,
+      ...createPayload,
       nombre: dto.nombre.trim(),
       logoIniciales: dto.logoIniciales || this.buildInitials(dto.nombre),
     });
@@ -73,9 +84,26 @@ export class EquiposService {
   }
 
   async update(id: string, dto: UpdateEquipoDto): Promise<EquipoDocument> {
+    const updatePayload = { ...dto };
+    if (dto.logoUrl?.startsWith('data:image')) {
+      const uploadResult = await this.cloudinaryService.uploadBase64(
+        dto.logoUrl,
+        'sumomaster_teams',
+      );
+      if (uploadResult) {
+        updatePayload.logoUrl = uploadResult.secure_url;
+      } else {
+        delete updatePayload.logoUrl;
+      }
+    }
+
     try {
       const equipo = await this.equipoModel
-        .findByIdAndUpdate(id, { $set: dto }, { new: true, runValidators: true })
+        .findByIdAndUpdate(
+          id,
+          { $set: updatePayload },
+          { new: true, runValidators: true },
+        )
         .populate(CATEGORIA_POPULATE)
         .exec();
 

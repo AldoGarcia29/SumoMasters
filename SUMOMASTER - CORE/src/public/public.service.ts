@@ -26,6 +26,7 @@ import { Robot, RobotDocument } from '../robots/schemas/robot.schema';
 import { Bloque, BloqueDocument } from '../bloques/schemas/bloque.schema';
 
 import { TipoCombate } from '../categorias/enums/categoria.enums';
+import { seleccionarTorneosVisiblesEnLive } from './visible-torneos';
 
 // Ranking público (fase de grupos): expone solo nombres, métricas e identificador público del robot.
 export interface FilaRankingPublicaDto {
@@ -138,7 +139,7 @@ export class PublicService {
   async listarTorneosPublicos(): Promise<TorneoResumenDto[]> {
     const torneos: any[] = await this.torneoModel
       .find({ publico: true })
-      .select('nombre fecha categoria estado fase robotsInscritos')
+      .select('nombre fecha categoria estado fase robotsInscritos visibleEnLive')
       .populate('categoria', 'nombre')
       .sort({ fecha: -1 })
       .lean()
@@ -146,7 +147,10 @@ export class PublicService {
 
     if (torneos.length === 0) return [];
 
-    const torneoIds = torneos.map((torneo) => torneo._id);
+    const torneosVisibles = seleccionarTorneosVisiblesEnLive(torneos);
+    if (torneosVisibles.length === 0) return [];
+
+    const torneoIds = torneosVisibles.map((torneo) => torneo._id);
     const combates: any[] = await this.combateModel
       .find({ torneo: { $in: torneoIds } })
       .select('torneo estado fase resultado robot1 robot2')
@@ -162,7 +166,7 @@ export class PublicService {
       porTorneo.set(key, actual);
     }
 
-    return torneos.map((t) => {
+    return torneosVisibles.map((t) => {
       const combatesTorneo = porTorneo.get(String(t._id)) ?? [];
       const final = combatesTorneo.find(
         (combate) =>

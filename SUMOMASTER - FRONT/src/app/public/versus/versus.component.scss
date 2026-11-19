@@ -727,6 +727,203 @@ footer {
   }
 }
 
+main {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+  padding: clamp(14px, 2vh, 24px) clamp(18px, 3vw, 58px) 14px;
+}
+
+main.controles-ocultos,
+main.controles-ocultos * {
+  cursor: none !important;
+}
+
+header {
+  flex: 0 0 auto;
+  padding-bottom: 10px;
+}
+
+.encabezado {
+  flex: 0 0 auto;
+  margin: clamp(12px, 2vh, 22px) auto 10px;
+}
+
+.encabezado h1 {
+  font-size: clamp(24px, 3.2vw, 54px);
+}
+
+.detalles {
+  flex: 0 0 auto;
+  gap: 7px;
+}
+
+.detalles span {
+  padding: 6px 12px;
+}
+
+.versus {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: stretch;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  gap: clamp(10px, 1.5vw, 28px);
+  margin: clamp(12px, 2vh, 22px) auto 12px;
+}
+
+.robot {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: clamp(12px, 1.7vw, 30px);
+}
+
+.robot .foto {
+  display: grid;
+  place-items: center;
+  width: min(28vw, 36vh);
+  height: min(28vw, 36vh);
+  aspect-ratio: 1 / 1;
+  margin: clamp(8px, 1.3vh, 16px) auto 0;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #0007;
+}
+
+.robot .foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.robot h2 {
+  display: -webkit-box;
+  max-width: 100%;
+  margin: clamp(8px, 1.5vh, 18px) 0 4px;
+  overflow: hidden;
+  font-size: clamp(2rem, 4.2vw, 4.5rem);
+  line-height: 1.04;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.robot h2 small {
+  display: block;
+  margin-bottom: 4px;
+  color: #b9c5e2;
+  font-size: .38em;
+  letter-spacing: .08em;
+}
+
+.robot > strong.espacio-ganador {
+  visibility: hidden;
+  min-height: clamp(42px, 6vh, 68px);
+  margin-top: auto;
+  padding: 10px 20px;
+}
+
+.robot > strong.espacio-ganador.visible {
+  visibility: visible;
+  border-color: #ffd66b;
+  color: #fff0b5;
+  background: #b8861840;
+  box-shadow: 0 0 28px #ffd66b55;
+}
+
+.centro {
+  align-self: center;
+  width: clamp(72px, 9vw, 150px);
+}
+
+.vs {
+  font-size: clamp(34px, 6vw, 96px);
+}
+
+.tira-simultaneas {
+  display: flex;
+  min-height: 44px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  overflow: hidden;
+  padding: 6px 0;
+  border-top: 1px solid #ffffff18;
+}
+
+.tira-simultaneas__titulo {
+  flex: 0 0 auto;
+  color: #cab6ed;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.chip-combate {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border: 1px solid #ffffff1c;
+  border-radius: 9px;
+  background: #ffffff08;
+  font-size: clamp(10px, .8vw, 13px);
+}
+
+.chip-combate span {
+  overflow: hidden;
+  max-width: 22vw;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chip-combate small {
+  color: #c2b6d5;
+  white-space: nowrap;
+}
+
+.chip-combate--curso small {
+  color: #8af2ba;
+  animation: latidoEstado 1.2s ease-in-out infinite;
+}
+
+footer {
+  flex: 0 0 auto;
+  padding-top: 8px;
+  text-align: center;
+  font-size: 10px;
+}
+
+@keyframes latidoEstado {
+  50% { opacity: .45; }
+}
+
+@media (max-height: 800px) {
+  .encabezado { margin: 8px auto 4px; }
+  .detalles span { padding: 4px 9px; }
+  .versus { margin: 8px auto; }
+  .robot .foto { width: min(22vw, 20vh); height: min(22vw, 20vh); }
+  .robot h2 { margin-top: 8px; }
+}
+
+@media (max-width: 900px) {
+  .tira-simultaneas { justify-content: flex-start; overflow-x: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vs,
+  .chip-combate--curso small {
+    animation: none;
+  }
+}
+
 /* =========================================
    ARENA: FUEGO, BRASAS Y ENERGÍA
    ========================================= */
@@ -1140,15 +1337,15 @@ main {
   isolation: isolate;
 
   .robot.azul {
-    animation: presentarAzul 1.3s cubic-bezier(.16, 1, .3, 1) both;
+    animation: presentarAzul 500ms ease-out both;
   }
 
   .robot.rojo {
-    animation: presentarRojo 1.3s cubic-bezier(.16, 1, .3, 1) both;
+    animation: presentarRojo 500ms ease-out both;
   }
 
   .centro {
-    animation: impactoCentro 1.6s ease-out both;
+    animation: impactoCentro 500ms ease-out both;
   }
 
   // Mantiene el efecto de victoria cuando cambia el resultado.
@@ -1156,6 +1353,14 @@ main {
     animation:
       coronar 700ms ease both,
       auraVictoria 3s ease-in-out 700ms infinite;
+  }
+
+  .robot.ganador.azul {
+    animation: presentarAzul 500ms ease-out both, auraVictoria 3s ease-in-out 500ms infinite;
+  }
+
+  .robot.ganador.rojo {
+    animation: presentarRojo 500ms ease-out both, auraVictoria 3s ease-in-out 500ms infinite;
   }
 }
 
@@ -1385,6 +1590,11 @@ main {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .entrada-epica .robot,
+  .entrada-epica .centro,
+  .robot.ganador {
+    animation: none !important;
+  }
   .rafaga-presentacion {
     display: none;
   }

@@ -9,7 +9,10 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { SidebarComponent } from '../../shared/components/sidebar/sidebar.component';
 import { TopbarComponent } from '../../shared/components/topbar/topbar.component';
+import { ButtonComponent } from '../../shared/components/button/button.component';
+import { DataStateComponent } from '../../shared/components/data-state/data-state.component';
 import { TorneoService } from '../../core/services/torneo.service';
+import { AuthService } from '../../core/services/auth.service';
 import { SeguilineasService } from '../../core/services/seguilineas.service';
 import { CategoriaService } from '../../core/services/categoria.service';
 import { RobotService } from '../../core/services/robot.service';
@@ -28,12 +31,13 @@ const PAGE_SIZE = 6;
 @Component({
   selector: 'app-torneos',
   standalone: true,
-  imports: [CanDirective, CommonModule, ReactiveFormsModule, RouterLink, SidebarComponent, TopbarComponent],
+  imports: [CanDirective, CommonModule, ReactiveFormsModule, RouterLink, SidebarComponent, TopbarComponent, ButtonComponent, DataStateComponent],
   templateUrl: './torneos.component.html',
   styleUrl: './torneos.component.scss',
 })
 export class TorneosComponent implements OnInit {
   private readonly torneoService = inject(TorneoService);
+  private readonly authService = inject(AuthService);
   private readonly categoriaService = inject(CategoriaService);
   private readonly robotService = inject(RobotService);
   private readonly equipoService = inject(EquipoService);
@@ -45,6 +49,7 @@ export class TorneosComponent implements OnInit {
   readonly EstadoTorneo = EstadoTorneo;
 
   readonly sidebarOpen = signal(false);
+  readonly isAdmin = this.authService.isAdmin;
   toggleSidebar(): void {
     this.sidebarOpen.update((v) => !v);
   }
@@ -58,8 +63,10 @@ export class TorneosComponent implements OnInit {
   readonly categorias = signal<Categoria[]>([]);
   readonly robotsDisponibles = signal<Robot[]>([]);
   readonly equiposDisponibles = signal<Equipo[]>([]);
-  readonly loading = signal(false);
+  readonly loading = signal(true);
   readonly errorMessage = signal<string | null>(null);
+  readonly visibleTournamentBusyId = signal<string | null>(null);
+  readonly visibleTournamentError = signal<string | null>(null);
   readonly page = signal(1);
 
   readonly activeTab = signal<TabFilter>('todos');
@@ -128,7 +135,6 @@ export class TorneosComponent implements OnInit {
   ngOnInit(): void {
     this.categoriaService.findAll().subscribe({ next: (data) => this.categorias.set(data) });
     this.loadTorneos();
-
     this.form.controls.categoria.valueChanges.pipe(
       switchMap((categoriaId) => {
         this.form.controls.robotsInscritos.setValue([]);
@@ -183,6 +189,45 @@ export class TorneosComponent implements OnInit {
   setTab(tab: TabFilter): void {
     this.activeTab.set(tab);
     this.page.set(1);
+  }
+
+  cambiarVisibleEnLive(torneo: Torneo, visibleEnLive: boolean): void {
+    if (this.visibleTournamentBusyId() || torneo.publico === false) return;
+
+    const visibleAnterior = torneo.visibleEnLive === true;
+    this.visibleTournamentBusyId.set(torneo._id);
+    this.visibleTournamentError.set(null);
+    this.torneos.update((torneos) =>
+      torneos.map((item) =>
+        item._id === torneo._id ? { ...item, visibleEnLive } : item,
+      ),
+    );
+
+    this.torneoService.update(torneo._id, { visibleEnLive }).subscribe({
+      next: (actualizado) => {
+        this.torneos.update((torneos) =>
+          torneos.map((item) =>
+            item._id === actualizado._id
+              ? { ...item, visibleEnLive: actualizado.visibleEnLive === true }
+              : item,
+          ),
+        );
+        this.visibleTournamentBusyId.set(null);
+      },
+      error: (err) => {
+        this.torneos.update((torneos) =>
+          torneos.map((item) =>
+            item._id === torneo._id
+              ? { ...item, visibleEnLive: visibleAnterior }
+              : item,
+          ),
+        );
+        this.visibleTournamentBusyId.set(null);
+        this.visibleTournamentError.set(
+          extractErrorMessage(err, 'No se pudo actualizar la visibilidad en /live.'),
+        );
+      },
+    });
   }
 
   goToPage(page: number): void {

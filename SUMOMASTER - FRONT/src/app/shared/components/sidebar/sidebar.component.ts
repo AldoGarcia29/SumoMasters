@@ -54,6 +54,12 @@ export class SidebarComponent {
       roles: [Role.ADMIN],
     },
     {
+      icon: 'grid',
+      label: 'Control de pantallas',
+      route: '/pantallas',
+      roles: [Role.ADMIN, Role.STAFF],
+    },
+    {
       icon: 'users',
       label: 'Equipos',
       route: '/equipos',

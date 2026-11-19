@@ -6,7 +6,7 @@ import { Torneo, TorneoDocument } from '../torneos/schemas/torneo.schema';
 import { Robot, RobotDocument } from './schemas/robot.schema';
 import { CreateRobotDto } from './dto/create-robot.dto';
 import { UpdateRobotDto } from './dto/update-robot.dto';
-import { CloudinaryService } from '../cloudinary/cloudinary.service'; // <-- Importación de Cloudinary
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 // Importamos las clases para poder inyectar sus modelos
 import { Equipo } from '../equipos/schemas/equipo.schema';
@@ -21,7 +21,7 @@ export class RobotsService {
     @InjectModel(Equipo.name) private readonly equipoModel: Model<any>,
     @InjectModel(Categoria.name) private readonly categoriaModel: Model<any>,
     private readonly equiposService: EquiposService,
-    private readonly cloudinaryService: CloudinaryService, // <-- Inyección del servicio
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   async create(dto: CreateRobotDto): Promise<any> {
@@ -31,7 +31,7 @@ export class RobotsService {
     if (urlImagenFinal && urlImagenFinal.startsWith('data:image')) {
       const uploadResult =
         await this.cloudinaryService.uploadBase64(urlImagenFinal);
-      urlImagenFinal = uploadResult.secure_url;
+      urlImagenFinal = uploadResult?.secure_url ?? '';
     }
 
     const robot = new this.robotModel({
@@ -148,16 +148,24 @@ export class RobotsService {
     const previousEquipo = existing.equipo.toString();
 
     // Interceptamos si la imagen viene en formato Base64 durante una actualización
-    let urlImagenFinal = dto.imagenUrl;
-    if (urlImagenFinal && urlImagenFinal.startsWith('data:image')) {
-      const uploadResult =
-        await this.cloudinaryService.uploadBase64(urlImagenFinal);
-      urlImagenFinal = uploadResult.secure_url;
-      dto.imagenUrl = urlImagenFinal; // Sobrescribimos el valor en el DTO antes de actualizar
+    const updatePayload = { ...dto };
+    if (dto.imagenUrl?.startsWith('data:image')) {
+      const uploadResult = await this.cloudinaryService.uploadBase64(
+        dto.imagenUrl,
+      );
+      if (uploadResult) {
+        updatePayload.imagenUrl = uploadResult.secure_url;
+      } else {
+        delete updatePayload.imagenUrl;
+      }
     }
 
     const robot = await this.robotModel
-      .findByIdAndUpdate(id, { $set: dto }, { new: true, runValidators: true })
+      .findByIdAndUpdate(
+        id,
+        { $set: updatePayload },
+        { new: true, runValidators: true },
+      )
       .lean()
       .exec();
 

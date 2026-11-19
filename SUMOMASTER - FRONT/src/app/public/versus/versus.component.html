@@ -1,10 +1,10 @@
-<main>
+<main [class.controles-ocultos]="!controlsVisible()">
   <header>
     <span class="marca">
       SUMO <b>MASTERS</b>
     </span>
 
-    <button type="button" (click)="pantallaCompleta()">
+    <button type="button" *ngIf="controlsVisible()" (click)="pantallaCompleta()">
       Pantalla completa ⛶
     </button>
   </header>
@@ -114,18 +114,17 @@
           </div>
 
           <h2>
+            <small *ngIf="loteRobot(c._id, 1) as robot">
+              #{{ numeroRobot(robot.numero) }}
+            </small>
             {{ c.robot1?.nombre || 'Por definir' }}
           </h2>
 
-      
-
           <strong
-            *ngIf="
-              c.estado === 'Finalizado' &&
-              c.resultado === 'Gana Robot 1'
-            "
+            class="espacio-ganador"
+            [class.visible]="c.estado === 'Finalizado' && c.resultado === 'Gana Robot 1'"
           >
-            🏆 GANADOR
+            {{ c.estado === 'Finalizado' && c.resultado === 'Gana Robot 1' ? '🏆 GANADOR' : 'GANADOR' }}
           </strong>
         </article>
 
@@ -220,22 +219,33 @@
           </div>
 
           <h2>
+            <small *ngIf="loteRobot(c._id, 2) as robot">
+              #{{ numeroRobot(robot.numero) }}
+            </small>
             {{ c.robot2?.nombre || 'Por definir' }}
           </h2>
 
-   
-
           <strong
-            *ngIf="
-              c.estado === 'Finalizado' &&
-              c.resultado === 'Gana Robot 2'
-            "
+            class="espacio-ganador"
+            [class.visible]="c.estado === 'Finalizado' && c.resultado === 'Gana Robot 2'"
           >
-            🏆 GANADOR
+            {{ c.estado === 'Finalizado' && c.resultado === 'Gana Robot 2' ? '🏆 GANADOR' : 'GANADOR' }}
           </strong>
         </article>
       </section>
     </ng-container>
+
+    <section class="tira-simultaneas" *ngIf="data()?.lote?.length as cantidad">
+      <span class="tira-simultaneas__titulo">PELEAS SIMULTÁNEAS</span>
+      <ng-container *ngFor="let item of data()?.lote">
+        <article *ngIf="!data()?.combate || item.id !== data()?.combate?._id"
+          class="chip-combate" [class.chip-combate--curso]="item.estado === 'En curso'">
+          <strong>{{ item.dojo || 'Dojo' }} · #{{ item.numero }}</strong>
+          <span>{{ item.robot1.nombre }} VS {{ item.robot2.nombre }}</span>
+          <small>{{ item.estado }}</small>
+        </article>
+      </ng-container>
+    </section>
 
     <!-- Torneo disponible sin combate seleccionado -->
     <ng-template #espera>

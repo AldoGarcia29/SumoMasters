@@ -3,6 +3,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
   EMPTY,
+  exhaustMap,
   Subscription,
   catchError,
   distinctUntilChanged,
@@ -17,13 +18,17 @@ import { LiveUserMenuComponent } from '../live-user-menu/live-user-menu.componen
 import { CombateLive, LiveData } from '../models/live.model';
 import { PublicApiService } from '../services/public-api.service';
 import { RobotFichaDialogService } from '../../core/services/robot-ficha-dialog.service';
+import { EventoConfigService } from '../../core/services/evento-config.service';
+import { EventoConfig } from '../../core/models/evento-config.model';
+import { Title } from '@angular/platform-browser';
+import { DataStateComponent } from '../../shared/components/data-state/data-state.component';
 
 const POLL_MS = 5_000;
 
 @Component({
   selector: 'app-live-torneo',
   standalone: true,
-  imports: [CommonModule, RouterLink, LiveUserMenuComponent],
+  imports: [CommonModule, RouterLink, LiveUserMenuComponent, DataStateComponent],
   templateUrl: './live-torneo.component.html',
   styleUrls: ['./live-torneo.component.css'],
 })
@@ -31,6 +36,8 @@ export class LiveTorneoComponent implements OnInit, OnDestroy {
   id = '';
   data: LiveData | null = null;
   error: string | null = null;
+  eventoConfig: EventoConfig | null = null;
+  eventoConfigError: string | null = null;
   horaActual = new Date();
   ultimaActualizacion: Date | null = null;
   segundosDesdeActualizacion = 0;
@@ -41,9 +48,24 @@ export class LiveTorneoComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private api: PublicApiService,
     private readonly fichaDialog: RobotFichaDialogService,
+    private readonly eventoConfigService: EventoConfigService,
+    private readonly title: Title,
   ) {}
 
   ngOnInit(): void {
+    this.subs.add(
+      this.eventoConfigService.obtener().subscribe({
+        next: (config) => {
+          this.eventoConfig = config;
+          this.eventoConfigError = null;
+          this.actualizarTitulo();
+        },
+        error: () => {
+          this.eventoConfigError = 'No se pudo cargar la identidad del evento.';
+        },
+      }),
+    );
+
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
       this.error = 'Torneo no disponible';
@@ -64,7 +86,7 @@ export class LiveTorneoComponent implements OnInit, OnDestroy {
           switchMap((visible) =>
             visible ? timer(0, POLL_MS) : EMPTY,
           ),
-          switchMap(() =>
+          exhaustMap(() =>
             this.api.getLive(id).pipe(
               catchError((err) => {
                 this.error =
@@ -78,6 +100,7 @@ export class LiveTorneoComponent implements OnInit, OnDestroy {
         )
         .subscribe((data) => {
           this.data = data;
+          this.actualizarTitulo();
           this.ultimaActualizacion = new Date();
           this.segundosDesdeActualizacion = 0;
           this.error = null;
@@ -98,6 +121,15 @@ export class LiveTorneoComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subs.unsubscribe();
+  }
+
+  private actualizarTitulo(): void {
+    const nombreEvento = this.eventoConfig?.nombreEvento ?? 'En vivo';
+    this.title.setTitle(
+      this.data
+        ? `${nombreEvento} | ${this.data.torneo.nombre}`
+        : `${nombreEvento} | En vivo`,
+    );
   }
 
   get enCurso(): CombateLive[] {

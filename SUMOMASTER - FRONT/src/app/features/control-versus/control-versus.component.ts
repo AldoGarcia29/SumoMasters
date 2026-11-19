@@ -1,17 +1,19 @@
 import { CommonModule } from '@angular/common';
 import {
   Component,
+  OnDestroy,
   OnInit,
   computed,
   inject,
   signal,
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { catchError, forkJoin, of } from 'rxjs';
+import { EMPTY, Subscription, catchError, exhaustMap, forkJoin, of, timer } from 'rxjs';
 
 import {
   VersusService,
   CombateVersus,
+  PantallasTorneo,
 } from '../../core/services/versus.service';
 import { TorneoService } from '../../core/services/torneo.service';
 import { Torneo } from '../../core/models/torneo.model';
@@ -41,6 +43,7 @@ import { FaseCombate } from '../../core/models/combate.model';
           *ngIf="torneoId()"
           class="btn"
           [routerLink]="['/versus', 'principal']"
+          [queryParams]="{ torneo: torneoId() }"
           target="_blank"
           rel="noopener"
         >
@@ -60,6 +63,56 @@ import { FaseCombate } from '../../core/models/combate.model';
         {{ mensaje() }}
       </p>
 
+      <section class="pantalla-fija" aria-live="polite">
+        <strong>EN PANTALLA:</strong>
+        <ng-container *ngIf="principal() as combate; else sinPrincipal">
+          #{{ numeroRobot(combate.robot1.numero) }}
+          {{ combate.robot1.nombre }} VS
+          #{{ numeroRobot(combate.robot2.numero) }}
+          {{ combate.robot2.nombre }}
+        </ng-container>
+        <ng-template #sinPrincipal>Sin combate priorizado</ng-template>
+      </section>
+
+      <section class="simultaneas">
+        <header class="simultaneas__titulo">
+          <div>
+            <span class="etiqueta">EN VIVO</span>
+            <h2>Peleas simultáneas ahora</h2>
+          </div>
+          <label class="stepper">
+            Dojos activos
+            <button type="button" aria-label="Reducir dojos activos"
+              [disabled]="!pantallas() || pantallas()!.dojosActivos <= 1 || dojosGuardando()"
+              (click)="actualizarDojos(pantallas()!.dojosActivos - 1)">−</button>
+            <strong>{{ pantallas()?.dojosActivos ?? 1 }}</strong>
+            <button type="button" aria-label="Aumentar dojos activos"
+              [disabled]="!pantallas() || pantallas()!.dojosActivos >= pantallas()!.dojosDisponibles || dojosGuardando()"
+              (click)="actualizarDojos(pantallas()!.dojosActivos + 1)">+</button>
+          </label>
+        </header>
+
+        <p class="vacio" *ngIf="!pantallas()?.lote?.length">
+          No hay combates listos en el lote actual.
+        </p>
+
+        <article class="tarjeta-lote" *ngFor="let item of pantallas()?.lote"
+          [class.tarjeta-lote--principal]="item.esPrincipal">
+          <div class="tarjeta-lote__datos">
+            <strong class="dojo">{{ item.dojo || 'Dojo' }}<ng-container *ngIf="item.arena"> · Arena {{ item.arena }}</ng-container></strong>
+            <span class="estado">{{ item.estado }}</span>
+            <h3>#{{ item.numero }} {{ item.robot1.nombre }} <span>VS</span> {{ item.robot2.nombre }}</h3>
+            <small *ngIf="item.esPrincipal">★ EN PANTALLA PRINCIPAL</small>
+          </div>
+          <button type="button" class="priorizar" [disabled]="item.esPrincipal || guardando()"
+            (click)="priorizar(item.id)">
+            {{ item.esPrincipal ? '★ En pantalla' : 'Poner en pantalla principal' }}
+          </button>
+        </article>
+      </section>
+
+      <details class="todos-combates">
+        <summary>Todos los combates</summary>
       <section class="filtros">
         <label>
           Torneo
@@ -253,6 +306,7 @@ import { FaseCombate } from '../../core/models/combate.model';
           <span *ngIf="guardando()">Actualizando pantalla…</span>
         </div>
       </section>
+      </details>
     </main>
   `,
 
@@ -475,6 +529,11 @@ import { FaseCombate } from '../../core/models/combate.model';
     }
 
     .ok {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      z-index: 20;
+      box-shadow: 0 8px 24px #0004;
       color: #166534;
       background: #dcfce7;
     }
@@ -505,13 +564,112 @@ import { FaseCombate } from '../../core/models/combate.model';
       font-size: 13px;
     }
 
+    .pantalla-fija {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 14px 18px;
+      color: #fff1bd;
+      background: #17130df2;
+      border: 1px solid #d5aa4a;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px #0005;
+      font-weight: 800;
+    }
+
+    .simultaneas,
+    .todos-combates {
+      margin-top: 16px;
+      padding: 18px;
+      border: 1px solid #ffffff20;
+      border-radius: 16px;
+      background: #11101c;
+    }
+
+    .simultaneas__titulo {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+
+    .simultaneas h2 {
+      margin: 4px 0 0;
+      color: #fff;
+      font-size: 22px;
+    }
+
+    .simultaneas .etiqueta {
+      color: #e5bd64;
+    }
+
+    .stepper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #eee;
+      font-size: 14px;
+    }
+
+    .stepper button {
+      width: 48px;
+      height: 48px;
+      padding: 0;
+      color: #fff;
+      background: #292237;
+      border: 1px solid #74638d;
+      font-size: 24px;
+    }
+
+    .stepper strong {
+      min-width: 20px;
+      text-align: center;
+    }
+
+    article.tarjeta-lote {
+      margin: 10px 0;
+      padding: 14px;
+      color: #f5f1ff;
+      background: #1a1825;
+      border-color: #40394f;
+    }
+
+    article.tarjeta-lote--principal {
+      background: #352a13;
+      border-color: #e0b64c;
+      box-shadow: inset 0 0 0 1px #e0b64c, 0 0 22px #e0b64c30;
+    }
+
+    .tarjeta-lote__datos { min-width: 0; }
+    .tarjeta-lote__datos .dojo { color: #e3c474; }
+    .tarjeta-lote__datos .estado { margin-left: 10px; color: #d4d0dc; }
+    .tarjeta-lote h3 { margin: 8px 0; color: #fff; font-size: 16px; line-height: 1.4; }
+    .tarjeta-lote h3 span { color: #ba9cff; }
+    .tarjeta-lote small { color: #ffe08a; font-weight: 800; }
+    .priorizar { min-height: 48px; flex: 0 0 auto; color: #fff; background: #7041c4; }
+    .priorizar:disabled { color: #ffe08a; background: #4b3b1d; opacity: 1; }
+
+    .todos-combates { padding: 0; overflow: hidden; }
+    .todos-combates > summary {
+      padding: 17px 20px;
+      color: #e5d5ff;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .todos-combates[open] > summary { border-bottom: 1px solid #ffffff18; }
+
     @media (max-width: 700px) {
       .control {
-        padding: 18px;
+        padding: 12px;
+        color: #f5f1ff;
+        background: #0b0915;
       }
 
       header,
-      article,
       .titulo {
         align-items: stretch;
         flex-direction: column;
@@ -524,29 +682,56 @@ import { FaseCombate } from '../../core/models/combate.model';
 
       .filtros,
       .lista {
-        padding: 18px;
+        padding: 14px;
+        color: #f5f1ff;
+        background: #151220;
+        border-color: #ffffff20;
       }
 
-      article {
+      article:not(.tarjeta-lote) {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 16px;
         padding: 16px;
+        color: #f5f1ff;
+        background: #1a1825;
+        border-color: #40394f;
       }
 
       .acciones > button {
         width: 100%;
       }
+
+      .simultaneas__titulo {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      article.tarjeta-lote {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .priorizar { width: 100%; }
+      .filtros label { color: #fff; }
+      .filtros select { color: #fff; background: #21182f; border-color: #5d487e; }
     }
   `],
 })
-export class ControlVersusComponent implements OnInit {
+export class ControlVersusComponent implements OnInit, OnDestroy {
   private readonly api = inject(VersusService);
   private readonly torneoService = inject(TorneoService);
   private readonly route = inject(ActivatedRoute);
 
   private solicitud = 0;
+  private loteSubscription?: Subscription;
 
   readonly torneoId = signal('');
   readonly torneos = signal<Torneo[]>([]);
   readonly combates = signal<CombateVersus[]>([]);
+  readonly pantallas = signal<PantallasTorneo | null>(null);
+  readonly dojosGuardando = signal(false);
 
   readonly fase = signal('');
   readonly ronda = signal('');
@@ -572,6 +757,18 @@ export class ControlVersusComponent implements OnInit {
         (torneo) => torneo._id === this.torneoId(),
       )?.nombre ?? 'Torneo',
   );
+  readonly principal = computed(() => {
+    const id = this.pantallas()?.combateProyectado ?? this.proyectadoId();
+    const proyectado = this.pantallas()?.lote.find((combate) => combate.id === id);
+    if (proyectado) return proyectado;
+
+    const combate = this.combates().find((item) => item._id === id);
+    if (!combate?.robot1 || !combate.robot2) return null;
+    return {
+      robot1: { nombre: combate.robot1.nombre, numero: null },
+      robot2: { nombre: combate.robot2.nombre, numero: null },
+    };
+  });
 
   readonly fases = computed(() => {
     const disponibles = new Set(
@@ -643,6 +840,7 @@ export class ControlVersusComponent implements OnInit {
 
     if (id) {
       this.cargar();
+      this.observarPantallas();
     }
 
     this.cargandoTorneos.set(true);
@@ -680,8 +878,10 @@ export class ControlVersusComponent implements OnInit {
     this.ronda.set('');
     this.proyectadoId.set(null);
     this.mensaje.set('');
+    this.pantallas.set(null);
 
     this.cargar();
+    this.observarPantallas();
   }
 
   cambiarFase(fase: string): void {
@@ -710,17 +910,12 @@ export class ControlVersusComponent implements OnInit {
     this.mensaje.set('');
 
     forkJoin({
-  combates: this.api.combates(torneoId),
-
-  seleccion: this.api.seleccionActual(torneoId).pipe(
-    catchError(() => of(null)),
-  ),
-
-  principal: this.api.seleccionPrincipal().pipe(
-    catchError(() => of(null)),
-  ),
-}).subscribe({
-      next: ({ combates, seleccion, principal }) => {
+      combates: this.api.combates(torneoId),
+      seleccion: this.api.seleccionActual(torneoId).pipe(
+        catchError(() => of(null)),
+      ),
+    }).subscribe({
+      next: ({ combates, seleccion }) => {
         if (solicitud !== this.solicitud) return;
 
         this.combates.set(combates);
@@ -742,19 +937,8 @@ export class ControlVersusComponent implements OnInit {
         }
 
         if (seleccion) {
-          this.seleccionDisponible.set(principal !== null);
-
-this.proyectadoId.set(
-  principal?.torneoId === torneoId
-    ? principal.combateId
-    : null,
-);
-
-if (principal === null) {
-  this.error.set(
-    'No se pudo consultar la pantalla principal. Actualiza la lista.',
-  );
-}
+          this.seleccionDisponible.set(true);
+          this.proyectadoId.set(seleccion.combateId);
 
           if (!seleccion.publico) {
             this.aviso.set(
@@ -800,6 +984,10 @@ if (principal === null) {
     }).format(fecha);
   }
 
+  numeroRobot(numero: number | null): string {
+    return numero == null ? '—' : String(numero).padStart(2, '0');
+  }
+
   identificarCombate(
     _index: number,
     combate: CombateVersus,
@@ -824,6 +1012,62 @@ if (principal === null) {
     );
   }
 
+  priorizar(combateId: string): void {
+    const item = this.pantallas()?.lote.find((combate) => combate.id === combateId);
+    if (!item) return;
+    this.guardar(
+      combateId,
+      `En pantalla: ${item.robot1.nombre} VS ${item.robot2.nombre}`,
+    );
+  }
+
+  actualizarDojos(valor: number): void {
+    const pantallas = this.pantallas();
+    if (!pantallas || this.dojosGuardando()) return;
+    const cantidad = Math.max(1, Math.min(8, pantallas.dojosDisponibles, valor));
+    const anterior = pantallas.dojosActivos;
+    if (cantidad === anterior) return;
+
+    this.pantallas.set({ ...pantallas, dojosActivos: cantidad });
+    this.dojosGuardando.set(true);
+    this.api.actualizarPantallas(this.torneoId(), { dojosActivos: cantidad }).subscribe({
+      next: () => this.dojosGuardando.set(false),
+      error: () => {
+        const actual = this.pantallas();
+        if (actual) this.pantallas.set({ ...actual, dojosActivos: anterior });
+        this.dojosGuardando.set(false);
+        this.error.set('No se pudo guardar la cantidad de dojos activos.');
+      },
+    });
+  }
+
+  private observarPantallas(): void {
+    this.loteSubscription?.unsubscribe();
+    const torneoId = this.torneoId();
+    if (!torneoId) return;
+    this.loteSubscription = timer(0, 2_000)
+      .pipe(
+        exhaustMap(() =>
+          this.api.pantallas(torneoId).pipe(
+            catchError(() => {
+              this.error.set(
+                'No se pudo actualizar el lote de pantallas; se reintentará automáticamente.',
+              );
+              return EMPTY;
+            }),
+          ),
+        ),
+      )
+      .subscribe((pantallas) => {
+        this.pantallas.set(pantallas);
+        this.proyectadoId.set(pantallas.combateProyectado);
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.loteSubscription?.unsubscribe();
+  }
+
   quitar(): void {
     this.guardar(null, 'La pantalla pública está en espera.');
   }
@@ -834,26 +1078,34 @@ if (principal === null) {
   ): void {
     const torneoId = this.torneoId();
 
-    if (
-      !torneoId ||
-      this.guardando() ||
-      this.cargando() ||
-      !this.seleccionDisponible()
-    ) {
+    if (!torneoId || this.guardando() || this.cargando()) {
       return;
     }
 
+    const anterior = this.proyectadoId();
+    this.proyectadoId.set(combateId);
     this.guardando.set(true);
     this.error.set('');
     this.mensaje.set('');
 
-    this.api.mostrar(torneoId, combateId).subscribe({
+    this.api.actualizarPantallas(torneoId, { combateProyectado: combateId }).subscribe({
       next: () => {
-        this.proyectadoId.set(combateId);
+        const pantallas = this.pantallas();
+        if (pantallas) {
+          this.pantallas.set({
+            ...pantallas,
+            combateProyectado: combateId,
+            lote: pantallas.lote.map((item) => ({
+              ...item,
+              esPrincipal: item.id === combateId,
+            })),
+          });
+        }
         this.mensaje.set(mensaje);
         this.guardando.set(false);
       },
       error: () => {
+        this.proyectadoId.set(anterior);
         this.error.set(
           'No se pudo cambiar la proyección. Revisa tu conexión y tus permisos.',
         );

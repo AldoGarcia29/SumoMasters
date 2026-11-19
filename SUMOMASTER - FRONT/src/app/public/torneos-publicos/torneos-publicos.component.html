@@ -1,16 +1,16 @@
 <main class="pagina">
   <header class="barra">
-    <a class="marca" routerLink="/live" aria-label="MECAMEX Live">
-      <span class="marca-icono">M</span>
-      <span>MECAMEX <b>LIVE</b></span>
+    <a class="marca" routerLink="/live" [attr.aria-label]="(eventoConfig?.nombreEvento ?? 'Evento') + ' Live'">
+      <span class="marca-icono">{{ eventoConfig?.nombreEvento?.charAt(0) ?? 'E' }}</span>
+      <span>{{ eventoConfig?.nombreEvento ?? 'Evento' }} <b>LIVE</b></span>
     </a>
     <app-live-user-menu />
   </header>
 
   <section class="hero">
     <div class="hero-copy">
-      <p class="eyebrow">COMPETENCIA · TECNOLOGÍA · COMUNIDAD</p>
-      <h1>MECAMEX <span>2026</span></h1>
+      <p class="eyebrow">{{ eventoConfig?.lema || 'COMPETENCIA · TECNOLOGÍA · COMUNIDAD' }}</p>
+      <h1>{{ eventoConfig?.nombreEvento ?? 'Evento' }}</h1>
       <p class="intro">Sigue la acción, los resultados y cada enfrentamiento en tiempo real.</p>
       <div class="estado-evento">
         <i></i>
@@ -19,15 +19,21 @@
       </div>
     </div>
     <div class="hero-kpis">
-      <div><strong>{{ lista?.length ?? "—" }}</strong><span>Torneos públicos</span></div>
+      <div><strong>{{ lista?.length ?? "—" }}</strong><span>Torneos visibles</span></div>
       <div><strong>{{ torneosEnVivo.length }}</strong><span>En vivo ahora</span></div>
       <div><strong>{{ torneosFinalizados.length }}</strong><span>Finalizados</span></div>
     </div>
   </section>
 
-  <p class="alerta" *ngIf="error">{{ error }}</p>
-  <p class="cargando" *ngIf="!lista && !error">Cargando torneos…</p>
-  <p class="vacio" *ngIf="lista?.length === 0">No hay torneos públicos por ahora.</p>
+  <p class="alerta" *ngIf="eventoConfigError">{{ eventoConfigError }}</p>
+  <app-data-state *ngIf="!lista && !error" state="loading" message="Cargando torneos…" />
+  <app-data-state *ngIf="!lista && error" state="error" [message]="error" />
+  <p class="alerta" *ngIf="lista && error">{{ error }}</p>
+  <app-data-state
+    *ngIf="lista?.length === 0"
+    state="empty"
+    message="No hay torneos visibles por ahora."
+  />
 
   <section class="seccion" *ngIf="seguilineas.length">
     <div class="titulo-seccion">

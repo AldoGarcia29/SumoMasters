@@ -7,6 +7,149 @@
   padding: 1.75rem 2rem 3rem;
 }
 
+.torneos .table {
+  table-layout: fixed;
+}
+
+.torneos-col--name { width: 22%; }
+.torneos-col--date { width: 9%; }
+.torneos-col--category { width: 12%; }
+.torneos-col--status { width: 11%; }
+.torneos-col--participants { width: 10%; }
+.torneos-col--visibility { width: 14%; }
+.torneos-col--actions { width: 22%; }
+
+.torneos .table th:nth-child(1),
+.torneos .table td:nth-child(1) { min-width: 170px; }
+.torneos .table th:nth-child(2),
+.torneos .table td:nth-child(2) { min-width: 86px; white-space: nowrap; }
+.torneos .table th:nth-child(3),
+.torneos .table td:nth-child(3) { min-width: 100px; }
+.torneos .table th:nth-child(4),
+.torneos .table td:nth-child(4) { min-width: 95px; }
+.torneos .table th:nth-child(5),
+.torneos .table td:nth-child(5) { min-width: 100px; }
+.torneos .table th:nth-child(6),
+.torneos .table td:nth-child(6) { min-width: 126px; }
+.torneos .table th:nth-child(7),
+.torneos .table td:nth-child(7) { min-width: 248px; }
+
+.torneos .table th,
+.torneos .table td {
+  padding-inline: 0.4rem;
+}
+
+.torneos .table__status,
+.torneos .table__status .badge {
+  white-space: nowrap;
+}
+
+.table__actions-cell {
+  padding-inline: 0.35rem !important;
+}
+
+.table__actions-head--torneos {
+  padding-right: 0.35rem !important;
+  text-align: right;
+}
+
+.table__actions--torneos {
+  min-width: 0;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.25rem;
+}
+
+.table__visibility-head,
+.table__visibility {
+  white-space: nowrap;
+}
+
+.live-visibility {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+
+  input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    clip-path: inset(50%);
+  }
+
+  input:checked + .live-visibility__indicator {
+    background: var(--color-success);
+  }
+
+  input:checked + .live-visibility__indicator::after {
+    transform: translateX(1rem);
+  }
+
+  input:focus-visible + .live-visibility__indicator {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  input:disabled + .live-visibility__indicator {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.live-visibility__indicator {
+  position: relative;
+  width: 2.4rem;
+  height: 1.4rem;
+  flex: none;
+  background: #a7a1b2;
+  border-radius: var(--radius-pill);
+  transition: background-color var(--motion-fast) ease;
+
+  &::after {
+    position: absolute;
+    top: 0.2rem;
+    left: 0.2rem;
+    width: 1rem;
+    height: 1rem;
+    content: '';
+    background: #fff;
+    border-radius: 50%;
+    transition: transform var(--motion-fast) ease;
+  }
+}
+
+.live-visibility__label {
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.live-visibility-error {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  color: #b42318;
+  font-size: 0.82rem;
+}
+
+.table__actions--torneos .table__action-label {
+  width: auto;
+  min-width: 4.5rem;
+  flex: 0 0 auto;
+  padding-inline: 0.35rem;
+}
+
+.table__actions--torneos button,
+.table__actions--torneos a:not(.table__action-label) {
+  width: 1.7rem;
+  height: 1.7rem;
+}
+
 .table__trophy {
   display: flex;
   align-items: center;
@@ -17,6 +160,21 @@
   color: var(--color-primary);
   background: #f1e9ff;
   border-radius: 0.5rem;
+}
+
+.table__name {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.5rem;
+  overflow: hidden;
+}
+
+.table__name-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .robot-picker {
@@ -87,6 +245,13 @@
 .robot-picker__select-all:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
+}
+
+@media (max-width: 1279px) {
+  .torneos .table {
+    min-width: 980px;
+    table-layout: auto;
+  }
 }
 
 @media (max-width: 720px) {

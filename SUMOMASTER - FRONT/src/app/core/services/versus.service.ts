@@ -32,6 +32,37 @@ export interface CombateVersus {
 export interface ProyeccionVersus {
   torneo: { id: string; nombre: string };
   combate: CombateVersus | null;
+  dojosActivos?: number;
+  lote?: CombatePantalla[];
+}
+
+export interface RobotPantalla {
+  nombre: string;
+  numero: number | null;
+  imagenUrl: string | null;
+}
+
+export interface CombatePantalla {
+  id: string;
+  numero: number;
+  fase: string;
+  bloque: string | null;
+  dojo: string | null;
+  arena: number | null;
+  turno: number | null;
+  estado: string;
+  robot1: RobotPantalla;
+  robot2: RobotPantalla;
+  esPrincipal: boolean;
+}
+
+export interface PantallasTorneo {
+  torneo: { id: string; nombre: string };
+  dojosActivos: number;
+  dojosDisponibles: number;
+  combateProyectado: string | null;
+  lote: CombatePantalla[];
+  despues: CombatePantalla[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -62,9 +93,26 @@ export class VersusService {
   );
 }
 
-publicoPrincipal() {
+publicoPrincipal(torneoId?: string) {
   return this.http.get<ProyeccionVersus | null>(
     `${this.base}/public/versus/principal`,
+    { params: torneoId ? { torneo: torneoId } : {} },
+  );
+}
+
+pantallas(torneoId: string) {
+  return this.http.get<PantallasTorneo>(
+    `${this.base}/torneos/${torneoId}/pantallas`,
+  );
+}
+
+actualizarPantallas(
+  torneoId: string,
+  cambios: { dojosActivos?: number; combateProyectado?: string | null },
+) {
+  return this.http.patch<{ dojosActivos: number; combateProyectado: string | null }>(
+    `${this.base}/torneos/${torneoId}/pantallas`,
+    cambios,
   );
 }
 

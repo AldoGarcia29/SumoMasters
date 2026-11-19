@@ -89,6 +89,17 @@
         />
         Cambiar página de tabla cada 15 segundos
       </label>
+      <label class="selector-dojos">
+        Dojos visibles
+        <input
+          type="range"
+          min="1"
+          [max]="pantallas?.dojosActivos || 1"
+          [(ngModel)]="dojosLocales"
+          [disabled]="!pantallas || modoProyeccion"
+        />
+        <strong>{{ loteActual.length }}</strong>
+      </label>
     </div>
 
     <section class="config-proyeccion">
@@ -114,6 +125,7 @@
           <option value="arena">Arena dividida</option>
           <option value="bloques">Bloques / Grupos</option>
           <option value="roboSoccer">Robo Soccer</option>
+          <option value="pantallas">Pantallas configuradas</option>
         </select>
       </label>
 
@@ -208,7 +220,6 @@
           [alt]="nombreRobot(c, lado)"
           (error)="marcarFotoFallida(foto)"
         />
-
         <ng-template #sinFoto>
           <span
             class="foto-vacia"
@@ -437,6 +448,16 @@
   ▦ Robo Soccer
 </button>
 
+<button
+  type="button"
+  class="boton"
+  [class.activo]="vistaProyeccion === 'pantallas'"
+  [attr.aria-pressed]="vistaProyeccion === 'pantallas'"
+  (click)="vistaProyeccion = 'pantallas'"
+>
+  ▦ Pantallas configuradas
+</button>
+
 <label class="proyeccion-torneo" *ngIf="vistaProyeccion === 'roboSoccer'">
   <span>Torneo</span>
   <select [(ngModel)]="torneoSoccerId">
@@ -459,6 +480,78 @@
         Salir ⛶
       </button>
     </nav>
+
+    <section
+      class="lote-pantallas"
+      *ngIf="vistaProyeccion === 'pantallas' && pantallas"
+      aria-label="Combates asignados a pantallas"
+    >
+      <p class="lote-vacio" *ngIf="!loteActual.length">
+        No hay combates listos para proyectar en este momento.
+      </p>
+      <div class="lote-grid" [attr.data-count]="loteActual.length">
+        <article
+          class="lote-card"
+          *ngFor="let item of loteActual; trackBy: trackPantalla"
+          [class.lote-card--principal]="item.esPrincipal"
+          [class.lote-card--curso]="item.estado === 'En curso'"
+        >
+          <header>
+            <span class="lote-dojo">
+              {{ item.dojo || 'Dojo por asignar' }}
+              <ng-container *ngIf="item.arena"> · Arena {{ item.arena }}</ng-container>
+            </span>
+            <span
+              class="lote-estado"
+              [class.lote-estado--curso]="item.estado === 'En curso'"
+            >
+              {{ estadoLote(item) }}
+            </span>
+          </header>
+          <span class="lote-numero">COMBATE #{{ item.numero }}</span>
+          <div class="lote-versus">
+            <div class="lote-robot">
+              <img
+                *ngIf="item.robot1.imagenUrl"
+                [src]="item.robot1.imagenUrl"
+                [alt]="item.robot1.nombre"
+              />
+              <strong>{{ item.robot1.nombre }}</strong>
+            </div>
+            <span class="lote-vs">VS</span>
+            <div class="lote-robot">
+              <img
+                *ngIf="item.robot2.imagenUrl"
+                [src]="item.robot2.imagenUrl"
+                [alt]="item.robot2.nombre"
+              />
+              <strong>{{ item.robot2.nombre }}</strong>
+            </div>
+          </div>
+          <span class="prioridad" *ngIf="item.esPrincipal">
+            ★ EN PANTALLA PRINCIPAL
+          </span>
+        </article>
+      </div>
+
+      <section class="despues" *ngIf="pantallas.despues.length">
+        <h2>Después</h2>
+        <ol>
+          <li *ngFor="let item of pantallas.despues">
+            <strong>{{ item.dojo || 'Dojo' }}</strong>
+            <span>
+              #{{ item.numero }} · {{ item.robot1.nombre }} VS {{ item.robot2.nombre }}
+            </span>
+          </li>
+        </ol>
+      </section>
+    </section>
+    <p
+      class="lote-vacio"
+      *ngIf="vistaProyeccion === 'pantallas' && !pantallas"
+    >
+      Cargando lote de pantallas…
+    </p>
 
     <app-robo-soccer-proyeccion
   *ngIf="vistaProyeccion === 'roboSoccer' && torneoSoccerId"
