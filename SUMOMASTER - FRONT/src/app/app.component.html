@@ -5,5 +5,25 @@
   aria-label="Cargando página"
   [attr.aria-valuetext]="navigationLoading() ? 'Navegando' : 'Listo'"
 ></div>
+<section
+  *ngIf="sessionInvalid()"
+  class="session-invalid"
+  role="alert"
+  aria-live="assertive"
+>
+  <p>La sesión no es válida para CORE. Vuelve a iniciar sesión para continuar.</p>
+  <div class="session-invalid__actions">
+    <app-button type="button" variant="primary" (clicked)="returnToLogin()">
+      Volver a iniciar sesión
+    </app-button>
+    <app-button
+      type="button"
+      variant="secondary"
+      (clicked)="dismissSessionNotice()"
+    >
+      Cerrar aviso
+    </app-button>
+  </div>
+</section>
 <router-outlet />
 <app-robot-ficha-modal />

@@ -21,8 +21,45 @@
   animation: route-progress 1s ease-in-out infinite alternate;
 }
 
+.session-invalid {
+  position: fixed;
+  z-index: 1100;
+  top: 0.75rem;
+  right: 1rem;
+  left: 1rem;
+  display: flex;
+  max-width: 62rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-inline: auto;
+  padding: 1rem 1.25rem;
+  color: var(--color-danger);
+  background: var(--color-surface);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.session-invalid p {
+  margin: 0;
+}
+
+.session-invalid__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
 @keyframes route-progress {
   to {
     transform: scaleX(0.94);
+  }
+}
+
+@media (max-width: 680px) {
+  .session-invalid {
+    align-items: stretch;
+    flex-direction: column;
   }
 }
