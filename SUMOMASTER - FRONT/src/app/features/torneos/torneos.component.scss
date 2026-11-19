@@ -11,13 +11,28 @@
   table-layout: fixed;
 }
 
-.torneos-col--name { width: 18%; }
+.torneos-col--name { width: 22%; }
 .torneos-col--date { width: 9%; }
-.torneos-col--category { width: 11%; }
-.torneos-col--status { width: 10%; }
+.torneos-col--category { width: 12%; }
+.torneos-col--status { width: 11%; }
 .torneos-col--participants { width: 10%; }
-.torneos-col--visibility { width: 16%; }
-.torneos-col--actions { width: 26%; }
+.torneos-col--visibility { width: 14%; }
+.torneos-col--actions { width: 22%; }
+
+.torneos .table th:nth-child(1),
+.torneos .table td:nth-child(1) { min-width: 170px; }
+.torneos .table th:nth-child(2),
+.torneos .table td:nth-child(2) { min-width: 86px; white-space: nowrap; }
+.torneos .table th:nth-child(3),
+.torneos .table td:nth-child(3) { min-width: 100px; }
+.torneos .table th:nth-child(4),
+.torneos .table td:nth-child(4) { min-width: 95px; }
+.torneos .table th:nth-child(5),
+.torneos .table td:nth-child(5) { min-width: 100px; }
+.torneos .table th:nth-child(6),
+.torneos .table td:nth-child(6) { min-width: 126px; }
+.torneos .table th:nth-child(7),
+.torneos .table td:nth-child(7) { min-width: 248px; }
 
 .torneos .table th,
 .torneos .table td {
@@ -34,6 +49,7 @@
 }
 
 .table__actions-head--torneos {
+  padding-right: 0.35rem !important;
   text-align: right;
 }
 
@@ -144,6 +160,21 @@
   color: var(--color-primary);
   background: #f1e9ff;
   border-radius: 0.5rem;
+}
+
+.table__name {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.5rem;
+  overflow: hidden;
+}
+
+.table__name-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .robot-picker {
