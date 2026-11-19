@@ -91,7 +91,25 @@ export class TorneosService {
       ];
     }
 
-    const grupos = generarGruposRoboSoccer(ordenSorteado, cantidadGrupos);
+    const equiposConUnRobot = await this.equipoModel
+      .find({ _id: { $in: equiposGuardados } })
+      .select('_id robotsCount')
+      .lean()
+      .exec();
+    const idsDeEquiposConUnRobot = new Set(
+      equiposConUnRobot
+        .filter((equipo) => equipo.robotsCount === 1)
+        .map((equipo) => equipo._id.toString().toLowerCase()),
+    );
+    const equipoConUnRobot = ordenSorteado.find((equipoId) =>
+      idsDeEquiposConUnRobot.has(equipoId.toLowerCase()),
+    );
+
+    const grupos = generarGruposRoboSoccer(
+      ordenSorteado,
+      cantidadGrupos,
+      equipoConUnRobot,
+    );
 
     const guardado = await this.torneoModel.collection.updateOne(
       {
