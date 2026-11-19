@@ -54,8 +54,19 @@ export function generarGruposRoboSoccer(
     }),
   );
 
+  const equiposPorGrupo = Math.floor(ids.length / cantidadGrupos);
+  const residuo = ids.length % cantidadGrupos;
+  const primerGrupoConEquipoExtra = cantidadGrupos - residuo;
+  const equiposDeDistribucionEquilibrada = equiposPorGrupo * cantidadGrupos;
+
   ids.forEach((id, indice) => {
-    grupos[indice % cantidadGrupos].equipoIds.push(id);
+    const grupoIndice =
+      indice < equiposDeDistribucionEquilibrada
+        ? indice % cantidadGrupos
+        : primerGrupoConEquipoExtra +
+          (indice - equiposDeDistribucionEquilibrada);
+
+    grupos[grupoIndice].equipoIds.push(id);
   });
 
   for (const grupo of grupos) {
