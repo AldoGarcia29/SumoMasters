@@ -124,6 +124,15 @@
             class="table"
             *ngIf="!loading() && !errorMessage() && pagedTorneos().length > 0"
           >
+            <colgroup>
+              <col class="torneos-col--name" />
+              <col class="torneos-col--date" />
+              <col class="torneos-col--category" />
+              <col class="torneos-col--status" />
+              <col class="torneos-col--participants" />
+              <col class="torneos-col--visibility" />
+              <col class="torneos-col--actions" />
+            </colgroup>
             <thead>
               <tr>
                 <th>Nombre</th>
@@ -196,7 +205,7 @@
                 </td>
 
                 <!-- Estado -->
-                <td>
+                <td class="table__status">
                   <span
                     class="badge"
                     [class]="
@@ -250,7 +259,8 @@
                 <!-- ACCIONES -->
                 <!-- ========================= -->
 
-                <td class="table__actions table__actions--torneos">
+                <td class="table__actions-cell">
+                  <div class="table__actions table__actions--torneos">
 
                   <a
                     *appCan="'manage'"
@@ -399,6 +409,7 @@
                     </svg>
                   </button>
 
+                  </div>
                 </td>
 
               </tr>
