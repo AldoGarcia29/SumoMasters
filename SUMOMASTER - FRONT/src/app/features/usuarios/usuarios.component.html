@@ -130,10 +130,10 @@
     </div>
 
     <div class="modal__footer">
-      <button type="button" class="btn btn--ghost" (click)="closeRolesModal()">Cancelar</button>
-      <button type="button" class="btn btn--primary" [disabled]="savingRoles() || !rolSeleccionado()" (click)="guardarRoles()">
+      <app-button type="button" variant="secondary" (clicked)="closeRolesModal()">Cancelar</app-button>
+      <app-button type="button" variant="primary" [loading]="savingRoles()" [disabled]="!rolSeleccionado()" (clicked)="guardarRoles()">
         {{ savingRoles() ? 'Guardando…' : 'Guardar roles' }}
-      </button>
+      </app-button>
     </div>
   </div>
 </div>
@@ -172,15 +172,24 @@
           <strong>{{ nombreDojo(asignacion.dojo) }}</strong>
           <span>{{ nombreTorneo(asignacion.torneo) }} · {{ asignacion.fecha }}</span>
         </div>
-        <button type="button" (click)="eliminarAsignacion(asignacion._id)" aria-label="Eliminar asignación">Eliminar</button>
+        <app-button
+          type="button"
+          variant="danger"
+          size="small"
+          ariaLabel="Eliminar asignación"
+          (clicked)="eliminarAsignacion(asignacion._id)"
+        >
+          Eliminar
+        </app-button>
       </div>
     </div>
     <div class="modal__footer">
-      <button type="button" class="btn btn--ghost" (click)="cerrarAsignaciones()">Cerrar</button>
-      <button type="button" class="btn btn--primary" (click)="guardarAsignacion()"
-        [disabled]="guardandoAsignacion() || !torneoElegido() || !dojoElegido() || !fechaElegida()">
+      <app-button type="button" variant="secondary" (clicked)="cerrarAsignaciones()">Cerrar</app-button>
+      <app-button type="button" variant="primary" (clicked)="guardarAsignacion()"
+        [loading]="guardandoAsignacion()"
+        [disabled]="!torneoElegido() || !dojoElegido() || !fechaElegida()">
         {{ guardandoAsignacion() ? 'Guardando…' : 'Guardar asignación' }}
-      </button>
+      </app-button>
     </div>
   </div>
 </div>

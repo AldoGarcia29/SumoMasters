@@ -4,6 +4,7 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { SidebarComponent } from '../../shared/components/sidebar/sidebar.component';
 import { TopbarComponent } from '../../shared/components/topbar/topbar.component';
+import { ButtonComponent } from '../../shared/components/button/button.component';
 import { CategoriaService } from '../../core/services/categoria.service';
 import {
   Categoria,
@@ -17,7 +18,7 @@ type ModalMode = 'create' | 'edit' | 'view' | null;
 @Component({
   selector: 'app-categorias',
   standalone: true,
-  imports: [CanDirective, CommonModule, ReactiveFormsModule, SidebarComponent, TopbarComponent],
+  imports: [CanDirective, CommonModule, ReactiveFormsModule, SidebarComponent, TopbarComponent, ButtonComponent],
   templateUrl: './categorias.component.html',
   styleUrl: './categorias.component.scss',
 })

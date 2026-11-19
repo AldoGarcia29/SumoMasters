@@ -3,6 +3,7 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { SidebarComponent } from '../../shared/components/sidebar/sidebar.component';
 import { TopbarComponent } from '../../shared/components/topbar/topbar.component';
+import { ButtonComponent } from '../../shared/components/button/button.component';
 import { DojoService } from '../../core/services/dojo.service';
 import { extractErrorMessage } from '../../core/utils/error-message.util';
 import { Dojo, EstadoDojo } from '../../core/models/dojo.model';
@@ -13,7 +14,7 @@ type ModalMode = 'create' | 'edit' | null;
 @Component({
   selector: 'app-dojos',
   standalone: true,
-  imports: [CanDirective, CommonModule, ReactiveFormsModule, SidebarComponent, TopbarComponent],
+  imports: [CanDirective, CommonModule, ReactiveFormsModule, SidebarComponent, TopbarComponent, ButtonComponent],
   templateUrl: './dojos.component.html',
   styleUrl: './dojos.component.scss',
 })

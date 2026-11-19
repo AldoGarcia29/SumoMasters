@@ -751,13 +751,13 @@
 
       <div class="modal__footer">
 
-        <button
+        <app-button
           type="button"
-          class="btn btn--ghost"
-          (click)="closeModal()"
+          variant="secondary"
+          (clicked)="closeModal()"
         >
           Cancelar
-        </button>
+        </app-button>
 
         <app-button
           type="submit"
@@ -900,13 +900,13 @@
 
     <div class="modal__footer">
 
-      <button
+      <app-button
         type="button"
-        class="btn btn--ghost"
-        (click)="closeModal()"
+        variant="secondary"
+        (clicked)="closeModal()"
       >
         Cerrar
-      </button>
+      </app-button>
 
       <a
         *appCan="'admin'"
@@ -916,16 +916,16 @@
         Gestionar fases →
       </a>
 
-      <button
+      <app-button
         *appCan="'admin'"
         type="button"
-        class="btn btn--primary"
-        (click)="
+        variant="primary"
+        (clicked)="
           openEditModal(torneo)
         "
       >
         Editar
-      </button>
+      </app-button>
 
     </div>
 
@@ -972,26 +972,26 @@
 
     <div class="modal__footer">
 
-      <button
+      <app-button
         type="button"
-        class="btn btn--ghost"
-        (click)="cancelDelete()"
+        variant="secondary"
+        (clicked)="cancelDelete()"
       >
         Cancelar
-      </button>
+      </app-button>
 
-      <button
+      <app-button
         type="button"
-        class="btn btn--danger"
-        [disabled]="deleting()"
-        (click)="confirmDelete()"
+        variant="danger"
+        [loading]="deleting()"
+        (clicked)="confirmDelete()"
       >
         {{
           deleting()
             ? 'Eliminando…'
             : 'Eliminar'
         }}
-      </button>
+      </app-button>
 
     </div>
 

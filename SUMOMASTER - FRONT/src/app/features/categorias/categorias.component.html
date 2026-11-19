@@ -194,10 +194,10 @@
       <p class="field__error" *ngIf="formError()">{{ formError() }}</p>
 
       <div class="modal__footer">
-        <button type="button" class="btn btn--ghost" (click)="closeModal()">Cancelar</button>
-        <button type="submit" class="btn btn--primary" [disabled]="saving()">
+        <app-button type="button" variant="secondary" (clicked)="closeModal()">Cancelar</app-button>
+        <app-button type="submit" variant="primary" [loading]="saving()">
           {{ saving() ? 'Guardando…' : 'Guardar categoría' }}
-        </button>
+        </app-button>
       </div>
     </form>
   </div>
@@ -226,8 +226,8 @@
     </div>
 
     <div class="modal__footer">
-      <button type="button" class="btn btn--ghost" (click)="closeModal()">Cerrar</button>
-      <button *appCan="'manage'" type="button" class="btn btn--primary" (click)="openEditModal(categoria)">Editar</button>
+      <app-button type="button" variant="secondary" (clicked)="closeModal()">Cerrar</app-button>
+      <app-button *appCan="'manage'" type="button" variant="primary" (clicked)="openEditModal(categoria)">Editar</app-button>
     </div>
   </div>
 </div>
@@ -242,10 +242,10 @@
       <p>¿Seguro que deseas eliminar <strong>{{ categoria.nombre }}</strong>? Esta acción no se puede deshacer.</p>
     </div>
     <div class="modal__footer">
-      <button type="button" class="btn btn--ghost" (click)="cancelDelete()">Cancelar</button>
-      <button type="button" class="btn btn--danger" [disabled]="deleting()" (click)="confirmDelete()">
+      <app-button type="button" variant="secondary" (clicked)="cancelDelete()">Cancelar</app-button>
+      <app-button type="button" variant="danger" [loading]="deleting()" (clicked)="confirmDelete()">
         {{ deleting() ? 'Eliminando…' : 'Eliminar' }}
-      </button>
+      </app-button>
     </div>
   </div>
 </div>
