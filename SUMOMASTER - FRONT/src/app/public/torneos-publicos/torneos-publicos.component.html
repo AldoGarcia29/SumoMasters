@@ -19,7 +19,7 @@
       </div>
     </div>
     <div class="hero-kpis">
-      <div><strong>{{ lista?.length ?? "—" }}</strong><span>Torneos públicos</span></div>
+      <div><strong>{{ lista?.length ?? "—" }}</strong><span>Torneos visibles</span></div>
       <div><strong>{{ torneosEnVivo.length }}</strong><span>En vivo ahora</span></div>
       <div><strong>{{ torneosFinalizados.length }}</strong><span>Finalizados</span></div>
     </div>
@@ -32,7 +32,7 @@
   <app-data-state
     *ngIf="lista?.length === 0"
     state="empty"
-    message="No hay torneos públicos por ahora."
+    message="No hay torneos visibles por ahora."
   />
 
   <section class="seccion" *ngIf="seguilineas.length">

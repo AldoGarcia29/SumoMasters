@@ -148,6 +148,8 @@ export class PublicService {
     if (torneos.length === 0) return [];
 
     const torneosVisibles = seleccionarTorneosVisiblesEnLive(torneos);
+    if (torneosVisibles.length === 0) return [];
+
     const torneoIds = torneosVisibles.map((torneo) => torneo._id);
     const combates: any[] = await this.combateModel
       .find({ torneo: { $in: torneoIds } })

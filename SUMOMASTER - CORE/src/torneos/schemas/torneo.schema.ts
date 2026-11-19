@@ -92,7 +92,7 @@ gruposRoboSoccer: GrupoRoboSoccer[];
   @Prop({ type: Boolean, default: true, index: true })
   publico: boolean;
 
-  @Prop({ type: Boolean, default: false, index: true })
+  @Prop({ type: Boolean, default: true, index: true })
   visibleEnLive: boolean;
 
   @Prop({ type: Number, min: 1, max: 8 })

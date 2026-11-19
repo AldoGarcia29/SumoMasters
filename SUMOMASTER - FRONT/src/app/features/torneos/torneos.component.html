@@ -222,7 +222,7 @@
                   <label class="live-visibility" *appCan="'admin'">
                     <input
                       type="checkbox"
-                      [checked]="torneo.visibleEnLive === true"
+                      [checked]="torneo.visibleEnLive !== false"
                       [disabled]="torneo.publico === false || visibleTournamentBusyId() !== null"
                       [attr.aria-label]="'Mostrar ' + torneo.nombre + ' en /live'"
                       [attr.aria-busy]="visibleTournamentBusyId() === torneo._id ? 'true' : null"
@@ -235,14 +235,14 @@
                           ? 'Guardando…'
                           : torneo.publico === false
                             ? 'No público'
-                            : torneo.visibleEnLive === true
-                              ? 'Activo'
+                            : torneo.visibleEnLive !== false
+                              ? 'Visible'
                               : 'Oculto'
                       }}
                     </span>
                   </label>
                   <span *ngIf="!isAdmin()" class="live-visibility__label">
-                    {{ torneo.visibleEnLive === true ? 'Activo' : 'Oculto' }}
+                    {{ torneo.visibleEnLive !== false ? 'Visible' : 'Oculto' }}
                   </span>
                 </td>
 
