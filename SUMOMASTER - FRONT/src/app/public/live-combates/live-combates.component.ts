@@ -266,6 +266,14 @@ export class LiveCombatesComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subs.unsubscribe();
+    if (document.fullscreenElement === document.documentElement) {
+      void document.exitFullscreen().catch((error: unknown) => {
+        console.error(
+          'No se pudo salir de pantalla completa al abandonar la vista de combates.',
+          error,
+        );
+      });
+    }
   }
 
   // Se usan las asignaciones reales publicadas por el torneo, no datos de ejemplo.

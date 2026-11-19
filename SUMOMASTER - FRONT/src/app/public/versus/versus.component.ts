@@ -99,6 +99,14 @@ export class VersusComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.subscription?.unsubscribe();
     if (this.hideControlsTimeout) clearTimeout(this.hideControlsTimeout);
+    if (document.fullscreenElement === document.documentElement) {
+      void document.exitFullscreen().catch((error: unknown) => {
+        console.error(
+          'No se pudo salir de pantalla completa al abandonar la proyección.',
+          error,
+        );
+      });
+    }
   }
 
   identificarCombate(
